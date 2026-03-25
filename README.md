@@ -2,7 +2,7 @@
 
 Follow these steps to set up your local environment.
 
-### 🛠️ Setup Instructions
+### Setup Instructions
 1. **Clone the repo**: `git clone https://github.com/BaiSakinaAbad/HOPE_INC_Customer_Management_System.git`
 2. **Enter directory**: `cd hopecms`
 3. **Install dependencies**: `npm install`
