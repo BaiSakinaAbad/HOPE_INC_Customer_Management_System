@@ -1,0 +1,180 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+/* ── Reset ───────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+body {
+  display: block !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Primary gradient ────────────────────────────────── */
+.primary-gradient {
+  background: linear-gradient(135deg, #b89fff 0%, #834fff 100%);
+}
+
+/* ── Neon teal focus bar ─────────────────────────────── */
+.neon-focus-bar {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 2px;
+  background: #2de7d2;
+  box-shadow: 0 0 14px rgba(45, 231, 210, 0.5);
+  transition: width 0.3s ease;
+  border-radius: 0 0 4px 4px;
+  pointer-events: none;
+}
+
+.input-group:focus-within .neon-focus-bar {
+  width: 100%;
+}
+
+/* ── Neon badge glow ─────────────────────────────────── */
+.neon-badge {
+  box-shadow: 0 0 18px rgba(51, 233, 213, 0.28);
+}
+
+/* ── Form enter animation ────────────────────────────── */
+@keyframes authFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.auth-form-enter {
+  animation: authFadeIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Spinner ─────────────────────────────────────────── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Auth layout — responsive shell ─────────────────── */
+
+/* 
+  .auth-shell       = outer flex container
+  .auth-hero        = left pane
+  .auth-form-pane   = right pane
+  .auth-mobile-logo = logo shown only on mobile
+*/
+
+.auth-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.auth-hero {
+  display: none; /* hidden on mobile */
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 48px 64px;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.auth-form-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 28px 24px 32px;
+  min-width: 0;
+}
+
+.auth-form-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 0;
+}
+
+.auth-form-inner {
+  width: 100%;
+  max-width: 420px;
+}
+
+.auth-mobile-logo {
+  display: flex;  /* visible on mobile */
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.auth-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+/* ── Tablet (≥ 640px) ────────────────────────────────── */
+@media (min-width: 640px) {
+  .auth-form-pane {
+    padding: 40px 48px 40px;
+  }
+}
+
+/* ── Desktop (≥ 1024px) ──────────────────────────────── */
+@media (min-width: 1024px) {
+  .auth-shell {
+    flex-direction: row;
+  }
+
+  .auth-hero {
+    display: flex;
+    width: 58%;
+  }
+
+  .auth-form-pane {
+    padding: 40px 64px;
+  }
+
+  .auth-mobile-logo {
+    display: none; /* hidden on desktop — logo lives in hero pane */
+  }
+
+  .auth-topbar {
+    justify-content: flex-end; /* toggle only, no mobile logo */
+    margin-bottom: 32px;
+  }
+}
+
+/* ── Large desktop (≥ 1280px) ────────────────────────── */
+@media (min-width: 1280px) {
+  .auth-hero {
+    padding: 48px 80px;
+  }
+
+  .auth-form-pane {
+    padding: 40px 80px;
+  }
+}
+
+/* ── Smooth theme transitions ────────────────────────── */
+button, a, input, section, header, footer, div {
+  transition-property: background-color, color, border-color, opacity;
+  transition-duration: 0.2s;
+  transition-timing-function: ease;
+}
+
+button, a {
+  transition-property: background-color, color, border-color, opacity, transform, box-shadow;
+}
