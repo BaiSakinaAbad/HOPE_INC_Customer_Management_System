@@ -6,9 +6,10 @@ interface AuthLayoutProps {
   children: React.ReactNode;
   title: string;
   subtitle: string;
+  compact?: boolean;
 }
 
-export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitle }) => {
+export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitle, compact }) => {
   const { isDark } = useTheme();
   const t = isDark ? tokens.dark : tokens.light;
 
@@ -56,18 +57,18 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
         )}
 
         {/* Logo */}
-        <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div className="primary-gradient" style={{
-            width: '40px', height: '40px', borderRadius: '10px', flexShrink: 0,
+            width: '34px', height: '34px', borderRadius: '9px', flexShrink: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="white">
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
             </svg>
           </div>
           <span style={{
             fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 900,
-            fontSize: '22px', letterSpacing: '-0.03em', color: t.primary,
+            fontSize: '18px', letterSpacing: '-0.03em', color: t.primary,
           }}>
             SaaSy Team
           </span>
@@ -77,52 +78,52 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
         <div style={{ position: 'relative', zIndex: 1 }}>
           <h1 style={{
             fontFamily: "'Plus Jakarta Sans', sans-serif",
-            fontSize: 'clamp(2.5rem, 4.5vw, 4.5rem)',
+            fontSize: 'clamp(2rem, 3.5vw, 3.5rem)',
             fontWeight: 700, lineHeight: 1.1, letterSpacing: '-0.02em',
-            color: t.onSurface, marginBottom: '24px',
+            color: t.onSurface, marginBottom: '16px',
           }}>
             Customer <br />Management, <br />
             <span style={{ color: t.tertiaryFixed }}>System</span>
           </h1>
 
           <p style={{
-            fontSize: '17px', lineHeight: 1.65,
-            color: t.onSurfaceVariant, maxWidth: '460px', marginBottom: '40px',
+            fontSize: '14px', lineHeight: 1.6,
+            color: t.onSurfaceVariant, maxWidth: '400px', marginBottom: '28px',
           }}>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.          </p>
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.          </p>
 
           {/* Glass data card */}
           <div style={{
-            maxWidth: '400px', padding: '28px', borderRadius: '16px',
+            maxWidth: '360px', padding: '20px', borderRadius: '14px',
             background: t.glassCard,
             backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
             borderTop: `1px solid ${t.glassBorderTop}`,
             boxShadow: isDark ? '0 20px 40px rgba(0,0,0,0.4)' : '0 20px 40px rgba(184,159,255,0.15)',
           }}>
             {/* Card header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
               <div>
                 <p style={{
-                  fontFamily: "'Inter', sans-serif", fontSize: '10px', fontWeight: 600,
+                  fontFamily: "'Inter', sans-serif", fontSize: '9px', fontWeight: 600,
                   textTransform: 'uppercase', letterSpacing: '0.12em',
-                  color: t.onSurfaceVariant, marginBottom: '4px',
+                  color: t.onSurfaceVariant, marginBottom: '3px',
                 }}>
                   Lorem Ipsum
                 </p>
                 <h3 style={{
                   fontFamily: "'Plus Jakarta Sans', sans-serif",
-                  fontSize: '24px', fontWeight: 600, color: t.onSurface, margin: 0,
+                  fontSize: '19px', fontWeight: 600, color: t.onSurface, margin: 0,
                 }}>
-                  Lorem Ipsum Dolor
+                  Lorem Ipsum
                 </h3>
               </div>
               <div className="neon-badge" style={{
-                padding: '4px 10px', borderRadius: '999px',
+                padding: '3px 9px', borderRadius: '999px',
                 backgroundColor: `${t.tertiaryFixed}30`, color: t.tertiaryFixed,
-                fontSize: '12px', fontWeight: 700,
-                display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0,
+                fontSize: '11px', fontWeight: 700,
+                display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0,
               }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
                   <polyline points="17 6 23 6 23 12" />
                 </svg>
@@ -131,14 +132,14 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
             </div>
 
             {/* Bar chart */}
-            <div style={{ height: '110px', display: 'flex', alignItems: 'flex-end', gap: '6px', marginBottom: '10px' }}>
+            <div style={{ height: '80px', display: 'flex', alignItems: 'flex-end', gap: '5px', marginBottom: '8px' }}>
               {[
                 { h: 40, alpha: '33' }, { h: 65, alpha: '33' },
                 { h: 55, alpha: '4d' }, { h: 85, alpha: '66' },
                 { h: 100, teal: true  },
               ].map((bar, i) => (
                 <div key={i} style={{
-                  flex: 1, height: `${bar.h}%`, borderRadius: '4px 4px 0 0',
+                  flex: 1, height: `${bar.h}%`, borderRadius: '3px 3px 0 0',
                   backgroundColor: bar.teal ? t.tertiaryDim : `${t.primary}${bar.alpha}`,
                 }} />
               ))}
@@ -148,7 +149,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               {['OCT', 'NOV', 'DEC', 'JAN', 'FEB'].map(m => (
                 <span key={m} style={{
-                  fontFamily: "'Inter', sans-serif", fontSize: '11px',
+                  fontFamily: "'Inter', sans-serif", fontSize: '10px',
                   fontWeight: 500, color: t.onSurfaceVariant,
                 }}>{m}</span>
               ))}
@@ -170,35 +171,35 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
           {/* Mobile-only logo */}
           <div className="auth-mobile-logo" style={{ margin: 0 }}>
             <div className="primary-gradient" style={{
-              width: '32px', height: '32px', borderRadius: '8px', flexShrink: 0,
+              width: '28px', height: '28px', borderRadius: '7px', flexShrink: 0,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
               </svg>
             </div>
             <span style={{
               fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 900,
-              fontSize: '18px', letterSpacing: '-0.03em', color: t.primary,
+              fontSize: '16px', letterSpacing: '-0.03em', color: t.primary,
             }}>
-              SaaSy Team
+              Luminous Curator
             </span>
           </div>
           <ThemeToggle />
         </div>
 
         {/* Centered form */}
-        <div className="auth-form-center">
+        <div className="auth-form-center" style={compact ? { paddingTop: 0, paddingBottom: 0 } : undefined}>
           <div className="auth-form-inner">
-            <header style={{ marginBottom: '36px' }}>
+            <header style={{ marginBottom: compact ? '14px' : '24px' }}>
               <h2 style={{
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                fontSize: 'clamp(24px, 3vw, 30px)', fontWeight: 700,
-                letterSpacing: '-0.02em', color: t.onSurface, marginBottom: '10px',
+                fontSize: compact ? 'clamp(18px, 2vw, 21px)' : 'clamp(20px, 2.5vw, 24px)', fontWeight: 700,
+                letterSpacing: '-0.02em', color: t.onSurface, marginBottom: '4px',
               }}>
                 {title}
               </h2>
-              <p style={{ color: t.onSurfaceVariant, fontSize: '15px', margin: 0 }}>{subtitle}</p>
+              <p style={{ color: t.onSurfaceVariant, fontSize: compact ? '12px' : '13px', margin: 0 }}>{subtitle}</p>
             </header>
 
             <main className="auth-form-enter">{children}</main>
@@ -208,12 +209,12 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
         {/* Footer */}
         <footer style={{
           display: 'flex', flexWrap: 'wrap', alignItems: 'center',
-          justifyContent: 'center', gap: '8px 24px',
-          paddingTop: '24px',
+          justifyContent: 'center', gap: '6px 20px',
+          paddingTop: '16px',
           borderTop: `1px solid ${t.outlineVariant}30`,
-          fontFamily: "'Inter', sans-serif", fontSize: '11px',
+          fontFamily: "'Inter', sans-serif", fontSize: '10px',
           textTransform: 'uppercase', letterSpacing: '0.08em',
-          color: t.outline, marginTop: '24px',
+          color: t.outline, marginTop: '16px',
         }}>
           {['Privacy', 'Terms', 'Support'].map(link => (
             <a key={link} href="#"
@@ -228,7 +229,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
             marginLeft: 'auto', textTransform: 'none', letterSpacing: 'normal',
             color: `${t.outline}80`, fontSize: '11px',
           }}>
-            © 2024  SaaSy Team
+            © 2026 SaaSy Team
           </span>
         </footer>
       </section>

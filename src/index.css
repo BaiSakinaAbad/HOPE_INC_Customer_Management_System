@@ -83,7 +83,7 @@ body {
   display: none; /* hidden on mobile */
   flex-direction: column;
   justify-content: space-between;
-  padding: 48px 64px;
+  padding: 36px 48px;
   position: relative;
   overflow: hidden;
   flex-shrink: 0;
@@ -94,7 +94,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 28px 24px 32px;
+  padding: 24px 20px 28px;
   min-width: 0;
 }
 
@@ -103,32 +103,32 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px 0;
+  padding: 12px 0;
 }
 
 .auth-form-inner {
   width: 100%;
-  max-width: 420px;
+  max-width: 360px;
 }
 
 .auth-mobile-logo {
   display: flex;  /* visible on mobile */
   align-items: center;
-  gap: 10px;
-  margin-bottom: 28px;
+  gap: 8px;
+  margin-bottom: 20px;
 }
 
 .auth-topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 /* ── Tablet (≥ 640px) ────────────────────────────────── */
 @media (min-width: 640px) {
   .auth-form-pane {
-    padding: 40px 48px 40px;
+    padding: 32px 40px;
   }
 }
 
@@ -140,11 +140,11 @@ body {
 
   .auth-hero {
     display: flex;
-    width: 58%;
+    width: 55%;
   }
 
   .auth-form-pane {
-    padding: 40px 64px;
+    padding: 32px 52px;
   }
 
   .auth-mobile-logo {
@@ -153,18 +153,18 @@ body {
 
   .auth-topbar {
     justify-content: flex-end; /* toggle only, no mobile logo */
-    margin-bottom: 32px;
+    margin-bottom: 20px;
   }
 }
 
 /* ── Large desktop (≥ 1280px) ────────────────────────── */
 @media (min-width: 1280px) {
   .auth-hero {
-    padding: 48px 80px;
+    padding: 40px 64px;
   }
 
   .auth-form-pane {
-    padding: 40px 80px;
+    padding: 32px 64px;
   }
 }
 

@@ -55,8 +55,9 @@ export const AuthInput: React.FC<
     label: string;
     showToggle?: boolean;
     rightLabel?: React.ReactNode;
+    compact?: boolean;
   }
-> = ({ label, showToggle, rightLabel, style, ...props }) => {
+> = ({ label, showToggle, rightLabel, compact, style, ...props }) => {
   const { isDark } = useTheme();
   const t = isDark ? tokens.dark : tokens.light;
   const [visible, setVisible] = useState(false);
@@ -66,11 +67,11 @@ export const AuthInput: React.FC<
     <div>
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        marginBottom: '6px', padding: '0 4px',
+        marginBottom: compact ? '3px' : '6px', padding: '0 4px',
       }}>
         <label htmlFor={props.id} style={{
           fontFamily: "'Inter', sans-serif",
-          fontSize: '11px', fontWeight: 700,
+          fontSize: compact ? '10px' : '11px', fontWeight: 700,
           textTransform: 'uppercase', letterSpacing: '0.08em',
           color: t.onSurfaceVariant,
         }}>
@@ -85,11 +86,11 @@ export const AuthInput: React.FC<
           id={props.id}
           type={resolvedType}
           style={{
-            width: '100%', height: '52px',
+            width: '100%', height: compact ? '38px' : '44px',
             backgroundColor: t.surfaceContainerHighest,
-            border: 'none', borderRadius: '12px',
-            padding: showToggle ? '0 48px 0 16px' : '0 16px',
-            fontSize: '15px', fontFamily: "'Inter', sans-serif",
+            border: 'none', borderRadius: '10px',
+            padding: showToggle ? '0 40px 0 13px' : '0 13px',
+            fontSize: compact ? '12px' : '13px', fontFamily: "'Inter', sans-serif",
             color: t.onSurface, outline: 'none', boxSizing: 'border-box',
             transition: 'background-color 0.2s',
             ...style,
@@ -102,7 +103,7 @@ export const AuthInput: React.FC<
             onClick={() => setVisible(v => !v)}
             aria-label={visible ? 'Hide password' : 'Show password'}
             style={{
-              position: 'absolute', right: '14px', top: '50%',
+              position: 'absolute', right: '12px', top: '50%',
               transform: 'translateY(-50%)',
               background: 'none', border: 'none', cursor: 'pointer',
               color: t.outline, display: 'flex', alignItems: 'center', padding: '2px',
@@ -130,7 +131,7 @@ export const AuthInput: React.FC<
 };
 
 // ─── GoogleButton ─────────────────────────────────────────────────────────────
-export const GoogleButton: React.FC<{ label: string }> = ({ label }) => {
+export const GoogleButton: React.FC<{ label: string; compact?: boolean }> = ({ label, compact }) => {
   const { isDark } = useTheme();
   const t = isDark ? tokens.dark : tokens.light;
   const [hovered, setHovered] = useState(false);
@@ -141,20 +142,20 @@ export const GoogleButton: React.FC<{ label: string }> = ({ label }) => {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        width: '100%', height: '52px',
+        width: '100%', height: compact ? '38px' : '44px',
         backgroundColor: hovered ? t.surfaceContainerHigh : t.surfaceContainer,
         border: `1px solid ${t.outlineVariant}`,
-        borderRadius: '12px',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+        borderRadius: '10px',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px',
         cursor: 'pointer',
-        fontFamily: "'Inter', sans-serif", fontSize: '15px', fontWeight: 500,
+        fontFamily: "'Inter', sans-serif", fontSize: compact ? '12px' : '13px', fontWeight: 500,
         color: t.onSurface,
       }}
     >
       <img 
         src="https://www.gstatic.com/images/branding/product/2x/googleg_96dp.png" 
         alt="Google Logo" 
-        style={{ width: '30px', height: '30px' }} 
+        style={{ width: '25px', height: '25px' }} 
       />
       {label}
     </button>
@@ -162,7 +163,7 @@ export const GoogleButton: React.FC<{ label: string }> = ({ label }) => {
 };
 
 // ─── AuthButton ───────────────────────────────────────────────────────────────
-export const AuthButton: React.FC<{ children: React.ReactNode; isLoading?: boolean }> = ({ children, isLoading }) => {
+export const AuthButton: React.FC<{ children: React.ReactNode; isLoading?: boolean; compact?: boolean }> = ({ children, isLoading, compact }) => {
   const { isDark } = useTheme();
   const t = isDark ? tokens.dark : tokens.light;
 
@@ -172,14 +173,14 @@ export const AuthButton: React.FC<{ children: React.ReactNode; isLoading?: boole
       disabled={isLoading}
       className="primary-gradient"
       style={{
-        width: '100%', height: '52px',
-        border: 'none', borderRadius: '12px',
+        width: '100%', height: compact ? '38px' : '44px',
+        border: 'none', borderRadius: '10px',
         fontFamily: "'Plus Jakarta Sans', sans-serif",
-        fontSize: '16px', fontWeight: 700,
+        fontSize: compact ? '13px' : '14px', fontWeight: 700,
         color: t.onPrimary,
         cursor: isLoading ? 'not-allowed' : 'pointer',
         opacity: isLoading ? 0.6 : 1,
-        boxShadow: '0 8px 24px rgba(131,79,255,0.3)',
+        boxShadow: '0 6px 20px rgba(131,79,255,0.28)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}
       onMouseEnter={e => { if (!isLoading) (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.01)'; }}
@@ -207,7 +208,7 @@ export const AuthDivider: React.FC<{ label: string }> = ({ label }) => {
     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
       <div style={{ flex: 1, height: '1px', backgroundColor: `${t.outlineVariant}50` }} />
       <span style={{
-        fontFamily: "'Inter', sans-serif", fontSize: '11px', fontWeight: 500,
+        fontFamily: "'Inter', sans-serif", fontSize: '10px', fontWeight: 500,
         textTransform: 'uppercase', letterSpacing: '0.1em',
         color: t.outline, whiteSpace: 'nowrap',
       }}>
@@ -226,7 +227,7 @@ export const PasswordStrength: React.FC<{ level: number }> = ({ level }) => {
   const labels = ['', 'Weak', 'Fair', 'Strong'];
 
   return (
-    <div style={{ marginTop: '8px' }}>
+    <div style={{ marginTop: '4px' }}>
       <div style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
         {[1, 2, 3].map(s => (
           <div key={s} style={{
