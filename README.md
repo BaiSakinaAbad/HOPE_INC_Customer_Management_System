@@ -16,6 +16,6 @@ Once the browser opens, you should see a **"WELCOME TO HOPE, INC."** screen.
 # IMPORTANT
 make sure the branch you are cloning is the dev branch and not main branch. When Pull request, make sure to read the guidelines in .github/Branch_Prreq_Guide.md
 
-When you create your own branch, use a meaningful branch name and always git pull origin main to make sure you pull any latest update in main. 
+When you create your own branch, use a meaningful branch name and always git pull origin dev to make sure you pull any latest update in dev. 
 
-Make sure you always push on your own branch and on github, pull request to dev branch.
+Make sure you always push on your own branch and on github, create a pull request to dev branch.
