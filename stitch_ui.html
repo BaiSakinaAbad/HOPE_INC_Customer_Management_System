@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Luminous Curator - Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-surface": "#e5e3fe",
+              "error": "#ff6e84",
+              "on-surface-variant": "#aaa8c2",
+              "on-primary-fixed": "#000000",
+              "secondary-fixed-dim": "#d7b5ff",
+              "outline": "#74738b",
+              "on-primary": "#37008e",
+              "on-error-container": "#ffb2b9",
+              "primary-container": "#ac8eff",
+              "inverse-surface": "#fcf8ff",
+              "inverse-primary": "#6d23f9",
+              "primary": "#b89fff",
+              "surface-bright": "#292947",
+              "on-tertiary-fixed": "#00463f",
+              "surface-container-highest": "#23233f",
+              "surface-container-lowest": "#000000",
+              "on-error": "#490013",
+              "surface": "#0c0c1f",
+              "tertiary-fixed": "#4af8e3",
+              "secondary-fixed": "#e2c7ff",
+              "tertiary-container": "#4af8e3",
+              "surface-container-high": "#1d1d36",
+              "tertiary": "#a0fff0",
+              "secondary-dim": "#ba85fb",
+              "on-background": "#e5e3fe",
+              "secondary-container": "#5e289b",
+              "primary-fixed": "#ac8eff",
+              "on-tertiary-container": "#005b51",
+              "on-secondary-fixed": "#4a0b87",
+              "inverse-on-surface": "#545369",
+              "on-secondary": "#340064",
+              "on-tertiary-fixed-variant": "#00655b",
+              "surface-container-low": "#111126",
+              "background": "#0c0c1f",
+              "primary-dim": "#834fff",
+              "on-primary-container": "#2a0070",
+              "surface-dim": "#0c0c1f",
+              "secondary": "#bc87fe",
+              "on-primary-fixed-variant": "#350088",
+              "error-container": "#a70138",
+              "tertiary-fixed-dim": "#33e9d5",
+              "surface-tint": "#b89fff",
+              "surface-variant": "#23233f",
+              "error-dim": "#d73357",
+              "on-secondary-fixed-variant": "#6834a6",
+              "outline-variant": "#46465c",
+              "surface-container": "#17172e",
+              "on-tertiary": "#00645a",
+              "tertiary-dim": "#2de7d2",
+              "on-secondary-container": "#e1c5ff",
+              "primary-fixed-dim": "#a07dff"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .glass-card {
+        background: rgba(35, 35, 63, 0.6);
+        backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(184, 159, 255, 0.15);
+      }
+      .asymmetric-split {
+        grid-template-columns: 1.2fr 0.8fr;
+      }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary/30 min-h-screen overflow-hidden">
+<main class="grid lg:grid-cols-2 min-h-screen">
+<!-- Left Pane: Visual Hero -->
+<section class="hidden lg:flex flex-col justify-between p-16 bg-surface-container-low relative overflow-hidden">
+<!-- Decorative Elements -->
+<div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary/10 rounded-full blur-[120px]"></div>
+<div class="absolute bottom-[-5%] right-[-5%] w-80 h-80 bg-tertiary/5 rounded-full blur-[100px]"></div>
+<div class="relative z-10">
+<div class="flex items-center gap-3 mb-24">
+<div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-dim flex items-center justify-center shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-white text-2xl" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<span class="font-headline font-bold text-2xl tracking-tight bg-gradient-to-r from-primary to-primary-dim bg-clip-text text-transparent">Luminous Curator</span>
+</div>
+<div class="max-w-xl">
+<h1 class="font-headline text-6xl font-bold text-on-surface tracking-tight leading-[1.1] mb-8">
+                        Customer Management, Reimagined
+                    </h1>
+<p class="text-on-surface-variant text-lg leading-relaxed max-w-md">
+                        Transform your operational data into a high-fidelity editorial experience. Experience the next generation of relationship intelligence.
+                    </p>
+</div>
+</div>
+<!-- Pipeline Stats Visualization -->
+<div class="relative z-10 mt-12 grid grid-cols-2 gap-6">
+<div class="glass-card p-8 rounded-xl shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
+<div class="flex justify-between items-start mb-6">
+<span class="text-label text-xs font-bold uppercase tracking-widest text-tertiary">Pipeline Growth</span>
+<span class="material-symbols-outlined text-tertiary" data-icon="trending_up">trending_up</span>
+</div>
+<div class="text-4xl font-headline font-bold mb-2">+42.8%</div>
+<div class="h-16 flex items-end gap-1.5 overflow-hidden">
+<div class="flex-1 bg-surface-container-highest h-8 rounded-t-sm"></div>
+<div class="flex-1 bg-surface-container-highest h-12 rounded-t-sm"></div>
+<div class="flex-1 bg-primary/40 h-10 rounded-t-sm"></div>
+<div class="flex-1 bg-primary/60 h-14 rounded-t-sm"></div>
+<div class="flex-1 bg-primary h-16 rounded-t-sm"></div>
+</div>
+</div>
+<div class="glass-card p-8 rounded-xl shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
+<div class="flex justify-between items-start mb-6">
+<span class="text-label text-xs font-bold uppercase tracking-widest text-secondary">Active Deals</span>
+<span class="material-symbols-outlined text-secondary" data-icon="hub">hub</span>
+</div>
+<div class="text-4xl font-headline font-bold mb-2">1,284</div>
+<div class="flex -space-x-3 mt-4">
+<div class="w-10 h-10 rounded-full border-2 border-surface-container-high overflow-hidden">
+<img alt="Avatar" class="w-full h-full object-cover" data-alt="Close-up portrait of a young professional woman with a soft confident smile in a studio setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAdOAvD2h43E6ieGPz4M4sXgVjEhwfN12BU4-J_zk6Xm06gXc6Ye4ZxOvPmEZOSQoNVkaFQApA__xMzrf19p2FO-itxjSvfAhBEZhnljY6HfmaGOrMeRbkcop8QleXYAfgyWSKP4Zayjzyeerp5gWmqsj3m-T0SAGp5JPaxfFbFTbrZlnFPuFq8JspYGwi17QA0QQFXEAt4oUlpp67HZDM5rCb_H0AKEzaXGY887ZA-CWrAmNkx2N4z57mTEH8T9-zHMkTEyl9rOkv1"/>
+</div>
+<div class="w-10 h-10 rounded-full border-2 border-surface-container-high overflow-hidden">
+<img alt="Avatar" class="w-full h-full object-cover" data-alt="Portrait of a smiling man with neat beard in a professional navy blue suit jacket" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCIGMfkv2xJcSMuMGBgIjpNniO60CcCwIdB7lRPHihDRwiBEr-DM1UG2kYxRedxRwG2SJvF5UMIxyFQfoS9gdVi87Ws1AZD_eOe3swcS0oR9scj04gySQUTNcld5Z-U_0ze2t1OkJk7LnIz8ZhIiFmY3BBU_73AMYc3ckCHcJYvUN_20VaCTE0IM9el86IrXtXaJdecVu3YTqZbtNwerIbqT99k2vOUWJJ97GJJ0PGpNd6R3bVtE2Hd3W1Tf0XrjGQ6DdIadcDQS9R"/>
+</div>
+<div class="w-10 h-10 rounded-full border-2 border-surface-container-high overflow-hidden">
+<img alt="Avatar" class="w-full h-full object-cover" data-alt="Headshot of a creative professional woman with vibrant energy and soft studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAINTU2KNmIxxx4QGcMfvv_piz75pxQyIDy8RtJxYA0KcR4PvVo9fcMh-nuQA73dDuPZxvzqr3pCQA5RtjOJcXMlXXSN173Z9LZIwi_75n33J-ynrkF8Z1jaQIl8f5WqwMhFYYa5YaTwC_2CzH4-Vegp1OElYmBlQfJb9VRacU5SfyMNHrncb-N5BQZNaSEElhY7IUWL_xwnoiLZbj3iA2zh6If11vNqrKDz5xsWLP9L31svSGJYrpVHS5r8EZhiX79AyaCVPFov7X-"/>
+</div>
+<div class="w-10 h-10 rounded-full border-2 border-surface-container-high bg-surface-container-highest flex items-center justify-center text-[10px] font-bold">+12</div>
+</div>
+</div>
+</div>
+<!-- Background Image Integration -->
+<div class="absolute bottom-0 left-0 w-full h-1/2 opacity-20 pointer-events-none">
+<img alt="Tech Background" class="w-full h-full object-cover" data-alt="Deep blue and purple digital landscape with abstract tech patterns and glowing network lines in a cinematic style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4BC62cBfy4V3daXgEh6YjcLXHchHzgXb2FLVdUtTPHD0Mlq3piRhNVO6RkL1e1Xd9zf3HQz_I9M6Jqc53PwBvnhjv3-CcjE3387k4amURE_lvbp9uMivlevCfX_vdGtPzEtSQg9RLeWeld1QZUo-QI0CHhq9Qnotifqw_XBz3uW17gf75-prfy-MDSyEjjgAhAAbMXF07zcsUi0Ov3ylock8T59gjhYIQrDxQhn20aThQD3DmIt1vDDh7MP-bp63Ghud6mjipf5bq"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-low via-surface-container-low/80 to-transparent"></div>
+</div>
+</section>
+<!-- Right Pane: Login Form -->
+<section class="flex items-center justify-center p-8 bg-surface relative">
+<!-- Mobile Header (Visible only on small screens) -->
+<div class="lg:hidden absolute top-12 left-8 flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-dim flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-xl" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<span class="font-headline font-bold text-xl tracking-tight bg-gradient-to-r from-primary to-primary-dim bg-clip-text text-transparent">Luminous Curator</span>
+</div>
+<div class="w-full max-w-[420px]">
+<div class="mb-10 text-center lg:text-left">
+<h2 class="font-headline text-3xl font-bold text-on-surface mb-3">Welcome back</h2>
+<p class="text-on-surface-variant font-body">Please enter your details to sign in.</p>
+</div>
+<!-- Google SSO -->
+<button class="w-full flex items-center justify-center gap-3 py-3.5 px-4 bg-surface-container-highest hover:bg-surface-variant rounded-xl transition-all duration-300 group">
+<svg class="w-5 h-5" fill="none" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
+<path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
+<path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"></path>
+<path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
+</svg>
+<span class="font-medium text-on-surface">Continue with Google</span>
+</button>
+<div class="relative my-8">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-outline-variant/30"></div>
+</div>
+<div class="relative flex justify-center text-xs uppercase tracking-widest text-outline">
+<span class="px-4 bg-surface">Or continue with email</span>
+</div>
+</div>
+<!-- Form -->
+<form class="space-y-6">
+<div class="space-y-2">
+<label class="text-label text-[10px] uppercase tracking-widest font-bold text-outline ml-1" for="email">Email Address</label>
+<div class="relative group">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline text-xl group-focus-within:text-tertiary transition-colors" data-icon="alternate_email">alternate_email</span>
+<input class="w-full pl-12 pr-4 py-3.5 bg-surface-container-highest border-none rounded-xl focus:ring-0 text-on-surface placeholder:text-outline/50" id="email" placeholder="name@company.com" type="email"/>
+<div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-[2px] bg-tertiary group-focus-within:w-full transition-all duration-300"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-center ml-1">
+<label class="text-label text-[10px] uppercase tracking-widest font-bold text-outline" for="password">Password</label>
+<a class="text-xs font-medium text-secondary hover:text-primary transition-colors" href="#">Forgot password?</a>
+</div>
+<div class="relative group">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline text-xl group-focus-within:text-tertiary transition-colors" data-icon="lock">lock</span>
+<input class="w-full pl-12 pr-12 py-3.5 bg-surface-container-highest border-none rounded-xl focus:ring-0 text-on-surface placeholder:text-outline/50" id="password" placeholder="••••••••" type="password"/>
+<button class="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline text-xl hover:text-on-surface transition-colors" data-icon="visibility" type="button">visibility</button>
+<div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-[2px] bg-tertiary group-focus-within:w-full transition-all duration-300"></div>
+</div>
+</div>
+<div class="flex items-center gap-2 pt-2">
+<input class="w-4 h-4 rounded bg-surface-container-highest border-outline-variant text-primary focus:ring-offset-surface focus:ring-primary" id="remember" type="checkbox"/>
+<label class="text-sm text-on-surface-variant cursor-pointer select-none" for="remember">Remember for 30 days</label>
+</div>
+<button class="w-full py-4 bg-gradient-to-r from-primary to-primary-dim text-on-primary-fixed font-bold text-lg rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:scale-[1.01] active:scale-95 transition-all duration-300" type="submit">
+                        Sign In
+                    </button>
+</form>
+<p class="mt-8 text-center text-sm text-on-surface-variant">
+                    Don't have an account? 
+                    <a class="text-secondary font-bold hover:underline underline-offset-4 ml-1" href="#">Sign up for free</a>
+</p>
+</div>
+<!-- Footer Meta -->
+<div class="absolute bottom-8 w-full px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] uppercase tracking-widest text-slate-500 font-label">
+<span>© 2024 Luminous Curator. Reimagining data utility.</span>
+<div class="flex gap-6">
+<a class="hover:text-purple-300 transition-colors" href="#">Privacy</a>
+<a class="hover:text-purple-300 transition-colors" href="#">Terms</a>
+<a class="hover:text-purple-300 transition-colors" href="#">Support</a>
+</div>
+</div>
+</section>
+</main>
+</body></html>
