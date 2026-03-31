@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ThemeProvider } from './components/ThemeContext';
-import Login from './components/Login';
-import Register from './components/Register';
+import LoginPage from './components/pages/LoginPage';
+import RegisterPage from './components/pages/RegisterPage';
 
 function App() {
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
@@ -10,9 +10,9 @@ function App() {
     <ThemeProvider>
       <main className="min-h-screen">
         {authMode === 'login' ? (
-          <Login onSwitch={() => setAuthMode('register')} />
+          <LoginPage onSwitch={() => setAuthMode('register')} />
         ) : (
-          <Register onSwitch={() => setAuthMode('login')} />
+          <RegisterPage onSwitch={() => setAuthMode('login')} />
         )}
       </main>
     </ThemeProvider>

@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { AuthLayout } from './AuthLayout';
-import { GoogleButton, AuthButton, AuthInput, AuthDivider, tokens } from './AuthComponents';
-import { useTheme } from './ThemeContext';
+import { AuthLayout } from '../shells/AuthLayout';
+import { GoogleButton } from '../composites/AuthComposites';
+import { AuthButton, AuthInput, AuthDivider, tokens } from '../elements/AuthElements';
+import { useTheme } from '../ThemeContext';
 
-interface LoginProps {
+interface LoginPageProps {
   onSwitch: () => void;
 }
 
-const Login: React.FC<LoginProps> = ({ onSwitch }) => {
+const LoginPage: React.FC<LoginPageProps> = ({ onSwitch }) => {
   const { isDark } = useTheme();
   const t = isDark ? tokens.dark : tokens.light;
   const [isLoading, setIsLoading] = useState(false);
@@ -117,4 +118,4 @@ const Login: React.FC<LoginProps> = ({ onSwitch }) => {
   );
 };
 
-export default Login;
+export default LoginPage;
