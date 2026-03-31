@@ -1,27 +1,20 @@
 import React, { useState } from 'react';
-import { AuthLayout } from './AuthLayout';
-import { GoogleButton, AuthButton, AuthInput, AuthDivider, PasswordStrength, tokens } from './AuthComponents';
-import { useTheme } from './ThemeContext';
+import { AuthLayout } from '../shells/AuthLayout';
+import { GoogleButton, PasswordStrength } from '../composites/AuthComposites';
+import { AuthButton, AuthInput, AuthDivider, tokens } from '../elements/AuthElements';
+import { useTheme } from '../ThemeContext';
 
-interface RegisterProps {
+interface RegisterPageProps {
   onSwitch: () => void;
 }
 
-const Register: React.FC<RegisterProps> = ({ onSwitch }) => {
+const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitch }) => {
   const { isDark } = useTheme();
   const t = isDark ? tokens.dark : tokens.light;
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
-  const getStrength = (p: string): number => {
-    if (!p) return 0;
-    let s = 0;
-    if (p.length >= 8) s++;
-    if (/[A-Z]/.test(p) && /[0-9]/.test(p)) s++;
-    if (/[^A-Za-z0-9]/.test(p)) s++;
-    return Math.min(s, 3);
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +36,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitch }) => {
           {/* Name row */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
             <AuthInput compact id="reg-firstname" label="First Name" placeholder="John" autoComplete="given-name" required />
-            <AuthInput compact id="reg-lastname"  label="Last Name"  placeholder="Doe" autoComplete="family-name" required />
+            <AuthInput compact id="reg-lastname"  label="Last Name"  placeholder="Doe"  autoComplete="family-name" required />
           </div>
 
           <AuthInput compact id="reg-username" label="Username" placeholder="johndoe123" autoComplete="username" required />
@@ -63,7 +56,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitch }) => {
               autoComplete="new-password"
               required
             />
-            <PasswordStrength level={getStrength(password)} />
+            <PasswordStrength password={password} />
           </div>
 
           {/* Terms */}
@@ -124,4 +117,4 @@ const Register: React.FC<RegisterProps> = ({ onSwitch }) => {
   );
 };
 
-export default Register;
+export default RegisterPage;
