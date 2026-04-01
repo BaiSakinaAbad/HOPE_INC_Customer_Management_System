@@ -1,15 +1,26 @@
 import React, { useState } from 'react';
 import { useTheme } from '../ThemeContext';
 import { tokens } from '../elements/AuthElements';
+import { supabase } from '../../lib/supabase';
 
 export const GoogleButton: React.FC<{ label: string; compact?: boolean }> = ({ label, compact }) => {
   const { isDark } = useTheme();
   const t = isDark ? tokens.dark : tokens.light;
   const [hovered, setHovered] = useState(false);
 
+  const handleGoogleLogin = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin 
+      }
+    });
+  };
+
   return (
     <button
       type="button"
+      onClick={handleGoogleLogin}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
@@ -21,6 +32,7 @@ export const GoogleButton: React.FC<{ label: string; compact?: boolean }> = ({ l
         cursor: 'pointer',
         fontFamily: "'Inter', sans-serif", fontSize: compact ? '12px' : '13px', fontWeight: 500,
         color: t.onSurface,
+        transition: 'background-color 0.2s ease',
       }}
     >
       <img 
@@ -42,7 +54,7 @@ const calcStrength = (password: string): number => {
   if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++; // mixed case
   if (/[0-9]/.test(password))                        score++; // contains digit
   if (/[^A-Za-z0-9]/.test(password))                 score++; // special character
-  // Map score 0-5 → level 0-3
+  
   if (score === 0)       return 0; // empty / no criteria met
   if (score <= 1)        return 1; // Weak
   if (score <= 3)        return 2; // Fair
@@ -95,6 +107,7 @@ export const ThemeToggle: React.FC = () => {
         border: `1px solid ${t.outlineVariant}60`,
         color: t.onSurfaceVariant, cursor: 'pointer',
         fontFamily: "'Inter', sans-serif", fontSize: '12px', fontWeight: 500,
+        transition: 'all 0.2s ease',
       }}
     >
       {isDark ? 'Light mode' : 'Dark mode'}

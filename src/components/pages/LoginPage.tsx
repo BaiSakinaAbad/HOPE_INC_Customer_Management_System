@@ -3,6 +3,7 @@ import { AuthLayout } from '../shells/AuthLayout';
 import { GoogleButton } from '../composites/AuthComposites';
 import { AuthButton, AuthInput, AuthDivider, tokens } from '../elements/AuthElements';
 import { useTheme } from '../ThemeContext';
+import { supabase } from '../../lib/supabase';
 
 interface LoginPageProps {
   onSwitch: () => void;
@@ -11,13 +12,33 @@ interface LoginPageProps {
 const LoginPage: React.FC<LoginPageProps> = ({ onSwitch }) => {
   const { isDark } = useTheme();
   const t = isDark ? tokens.dark : tokens.light;
-  const [isLoading, setIsLoading] = useState(false);
+  
+  // Form State
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
+  
+  // UI State
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 1800);
+    setError(null);
+
+    const { error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (authError) {
+      setError(authError.message);
+    } 
+    // If successful, the AuthProvider session listener will catch the state change 
+    // and automatically render the logged-in view.
+
+    setIsLoading(false);
   };
 
   return (
@@ -28,6 +49,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitch }) => {
 
         <AuthDivider label="or email address" />
 
+        {/* --- Error Message --- */}
+        {error && (
+          <div style={{ padding: '8px', borderRadius: '6px', backgroundColor: `${t.error}15`, border: `1px solid ${t.error}30`, color: t.error, fontSize: '12px', textAlign: 'center', fontFamily: "'Inter', sans-serif" }}>
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
           <AuthInput
@@ -36,6 +64,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitch }) => {
             type="email"
             placeholder="johndoe@gmail.com"
             autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
 
@@ -45,6 +75,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitch }) => {
             showToggle
             placeholder="••••••••••••"
             autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             required
             rightLabel={
               <button
@@ -58,11 +90,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitch }) => {
                 onMouseEnter={e => (e.currentTarget.style.opacity = '0.7')}
                 onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
               >
+                Forgot password?
               </button>
             }
           />
 
-          {/* Remember me */}
+          {/* Remember me (Note: Supabase handles session persistence via local storage automatically, but this keeps your UI intact) */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0 4px' }}>
             <input
               type="checkbox"
