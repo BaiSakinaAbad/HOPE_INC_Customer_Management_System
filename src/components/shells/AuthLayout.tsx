@@ -1,6 +1,7 @@
 import React from 'react';
-import { useTheme } from './ThemeContext';
-import { tokens, ThemeToggle } from './AuthComponents';
+import { useTheme } from '../ThemeContext';
+import { tokens } from '../elements/AuthElements';
+import { ThemeToggle } from '../composites/AuthComposites';
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -18,8 +19,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
       className="auth-shell"
       style={{ backgroundColor: t.surface, color: t.onSurface, fontFamily: "'Inter', sans-serif" }}
     >
-
-      {/* ── Left Hero Pane (desktop only via CSS) ─────────── */}
+      {/* ── Left Hero Pane ─────────────────────────────────── */}
       <section
         className="auth-hero"
         style={{ background: isDark ? t.heroBg : tokens.light.heroBg }}
@@ -90,7 +90,9 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
             fontSize: '14px', lineHeight: 1.6,
             color: t.onSurfaceVariant, maxWidth: '400px', marginBottom: '28px',
           }}>
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.          </p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+            incididunt ut labore et dolore magna aliqua.
+          </p>
 
           {/* Glass data card */}
           <div style={{
@@ -100,7 +102,6 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
             borderTop: `1px solid ${t.glassBorderTop}`,
             boxShadow: isDark ? '0 20px 40px rgba(0,0,0,0.4)' : '0 20px 40px rgba(184,159,255,0.15)',
           }}>
-            {/* Card header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
               <div>
                 <p style={{
@@ -136,7 +137,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
               {[
                 { h: 40, alpha: '33' }, { h: 65, alpha: '33' },
                 { h: 55, alpha: '4d' }, { h: 85, alpha: '66' },
-                { h: 100, teal: true  },
+                { h: 100, teal: true },
               ].map((bar, i) => (
                 <div key={i} style={{
                   flex: 1, height: `${bar.h}%`, borderRadius: '3px 3px 0 0',
@@ -157,7 +158,6 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
           </div>
         </div>
 
-        {/* Bottom spacer */}
         <div />
       </section>
 
@@ -166,9 +166,8 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
         className="auth-form-pane"
         style={{ backgroundColor: t.surface }}
       >
-        {/* Top bar: mobile logo (hidden on desktop) + theme toggle */}
+        {/* Top bar */}
         <div className="auth-topbar">
-          {/* Mobile-only logo */}
           <div className="auth-mobile-logo" style={{ margin: 0 }}>
             <div className="primary-gradient" style={{
               width: '28px', height: '28px', borderRadius: '7px', flexShrink: 0,
@@ -182,7 +181,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
               fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 900,
               fontSize: '16px', letterSpacing: '-0.03em', color: t.primary,
             }}>
-              Luminous Curator
+              HOPE INC
             </span>
           </div>
           <ThemeToggle />
@@ -229,7 +228,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
             marginLeft: 'auto', textTransform: 'none', letterSpacing: 'normal',
             color: `${t.outline}80`, fontSize: '11px',
           }}>
-            © 2026 SaaSy Team
+            © 2026 HOPE INC
           </span>
         </footer>
       </section>
