@@ -1,6 +1,7 @@
 This file is the compilation of our daily standup meetings.
 
 March 28, 2026
+
 1. Yesterday and Today's Progress
 
    Sakina [M1]: Created the initial structure of the project, sets rules for branches and pr. Configured the project to use Tailwind CSS and react vite 18. Revised PRD for readability. Created project repository.
