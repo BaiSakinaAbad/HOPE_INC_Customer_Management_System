@@ -45,7 +45,7 @@ export const GoogleButton: React.FC<{ label: string; compact?: boolean }> = ({ l
   );
 };
 
-/** Calculates 0–3 strength from raw password string. */
+
 const calcStrength = (password: string): number => {
   if (!password) return 0;
   let score = 0;
