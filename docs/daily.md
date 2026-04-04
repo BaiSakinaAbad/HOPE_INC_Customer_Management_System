@@ -3,7 +3,7 @@ This file is the compilation of our daily standup meetings.
 # PROJECT KICKOFF
 ### March 28, 2026
 ### Members Present: All members
-*Prepared by: M1*
+*Prepared by: @BaiSakinaAbad*
 1. Yesterday and Today's Progress
 
    Sakina [M1]: Briefing of the team. Created the initial structure of the project, sets rules for branches and pr. Configured the project to use Tailwind CSS and react vite 18. Revised PRD for readability. Created project repository.
@@ -27,7 +27,7 @@ This file is the compilation of our daily standup meetings.
    # SPRINT 1 WEEK 2 
     April 2, 2026<br>
     Present Members: All members present
-   <br> *Prepared by: M1 and M5*
+   <br> *Prepared by: @BaiSakinaAbad*
     
     ## Role-by-Role Reports
 
@@ -66,7 +66,7 @@ This file is the compilation of our daily standup meetings.
     # SPRINT 2 WEEK 1 
     TBA<br>
     Present Members: 
-   <br> *Prepared by: M1 and M5*
+   <br> *Prepared by:*
 
     ## Role-by-Role Reports
 
