@@ -53,8 +53,6 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitch }) => {
       // Supabase workaround: If identities is empty, the email is already taken
       setError('An account with this email already exists.');
     } else {
-      // Success! Note: If email confirmations are enabled in your Supabase project,
-      // the user won't be fully logged in until they click the link in their email.
       setSuccessMsg('Registration successful! Please check your email to verify your account.');
       
       // Optional: Clear the form
@@ -70,7 +68,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitch }) => {
   };
 
   return (
-    <AuthLayout compact title="Create your account" subtitle="Welcome to the Customer Management System.">
+    <AuthLayout compact title="Create your account" subtitle="Welcome to BiteLog.">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
 
         <GoogleButton compact label="Continue with Google" />

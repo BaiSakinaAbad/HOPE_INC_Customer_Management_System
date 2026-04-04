@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
+const POST_LOGIN_REDIRECT_KEY = 'post-login-redirect-pending';
+
 interface AuthContextType {
   session: Session | null;
   user: User | null;
@@ -34,6 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signOut = async () => {
+    window.sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
     await supabase.auth.signOut();
   };
 

@@ -3,17 +3,25 @@ import { useTheme } from '../ThemeContext';
 import { tokens } from '../elements/AuthElements';
 import { supabase } from '../../lib/supabase';
 
-export const GoogleButton: React.FC<{ label: string; compact?: boolean }> = ({ label, compact }) => {
+interface GoogleButtonProps {
+  label: string;
+  compact?: boolean;
+  onAuthStart?: () => void;
+}
+
+export const GoogleButton: React.FC<GoogleButtonProps> = ({ label, compact, onAuthStart }) => {
   const { isDark } = useTheme();
   const t = isDark ? tokens.dark : tokens.light;
   const [hovered, setHovered] = useState(false);
 
   const handleGoogleLogin = async () => {
+    onAuthStart?.();
+
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin 
-      }
+        redirectTo: window.location.origin,
+      },
     });
   };
 

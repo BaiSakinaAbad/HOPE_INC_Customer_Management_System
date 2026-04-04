@@ -7,9 +7,12 @@ import { supabase } from '../../lib/supabase';
 
 interface LoginPageProps {
   onSwitch: () => void;
+  onLoginSuccess: () => void;
 }
 
-const LoginPage: React.FC<LoginPageProps> = ({ onSwitch }) => {
+const POST_LOGIN_REDIRECT_KEY = 'post-login-redirect-pending';
+
+const LoginPage: React.FC<LoginPageProps> = ({ onSwitch, onLoginSuccess }) => {
   const { isDark } = useTheme();
   const t = isDark ? tokens.dark : tokens.light;
   
@@ -27,31 +30,49 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitch }) => {
     setIsLoading(true);
     setError(null);
 
-    const { error: authError } = await supabase.auth.signInWithPassword({
+    // 1. Attempt Supabase Authentication
+    const { data, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (authError) {
+      // Handle Authentication Error (e.g., Invalid Credentials)
       setError(authError.message);
-    } 
-    // If successful, the AuthProvider session listener will catch the state change 
-    // and automatically render the logged-in view.
-
-    setIsLoading(false);
+      setIsLoading(false);
+    } else if (data.user) {
+      // 2. Success: Trigger the 10-second LoadingSpinner defined in App.tsx
+      onLoginSuccess();
+    
+      
+    }
   };
 
   return (
     <AuthLayout title="Welcome back" subtitle="Enter your credentials.">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
 
-        <GoogleButton label="Continue with Google" />
+        <GoogleButton
+          label="Continue with Google"
+          onAuthStart={() => {
+            window.sessionStorage.setItem(POST_LOGIN_REDIRECT_KEY, String(Date.now()));
+          }}
+        />
 
         <AuthDivider label="or email address" />
 
         {/* --- Error Message --- */}
         {error && (
-          <div style={{ padding: '8px', borderRadius: '6px', backgroundColor: `${t.error}15`, border: `1px solid ${t.error}30`, color: t.error, fontSize: '12px', textAlign: 'center', fontFamily: "'Inter', sans-serif" }}>
+          <div style={{ 
+            padding: '8px', 
+            borderRadius: '6px', 
+            backgroundColor: `${t.error}15`, 
+            border: `1px solid ${t.error}30`, 
+            color: t.error, 
+            fontSize: '12px', 
+            textAlign: 'center', 
+            fontFamily: "'Inter', sans-serif" 
+          }}>
             {error}
           </div>
         )}
@@ -90,12 +111,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitch }) => {
                 onMouseEnter={e => (e.currentTarget.style.opacity = '0.7')}
                 onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
               >
-                Forgot password?
               </button>
             }
           />
 
-          {/* Remember me (Note: Supabase handles session persistence via local storage automatically, but this keeps your UI intact) */}
+          {/* Remember me UI */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0 4px' }}>
             <input
               type="checkbox"
