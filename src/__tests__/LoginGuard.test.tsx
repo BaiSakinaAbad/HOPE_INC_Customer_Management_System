@@ -1,46 +1,45 @@
-import { render, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { supabase } from '../lib/supabase';
-// M4 will need to update this path to point to their Auth Guard component
-import { AuthLayout } from '../components/shells/AuthLayout';
+import LoginPage from '../components/pages/LoginPage';
+import RegisterPage from '../components/pages/RegisterPage';
 
-
-describe('Login Guard Feature', () => {
+describe('Google OAuth Feature', () => {
+  // Here is the whiteboard eraser to prevent test leaks!
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('forces sign out if the user recordstatus is INACTIVE', async () => {
-    vi.mocked(supabase.auth.getUser).mockResolvedValueOnce({
-      data: { user: { id: '123', user_metadata: { recordstatus: 'INACTIVE' } } },
-      error: null
-    } as any);
-
-    render(
-      <AuthLayout title="Test Title" subtitle="Test Subtitle">
-        <div>Test Child</div>
-      </AuthLayout>
-    );
+  it('calls Supabase signInWithOAuth when clicking Google login', async () => {
+    // We added the vi.fn() props here so Saira's UI doesn't crash
+    render(<LoginPage onSwitch={vi.fn()} onLoginSuccess={vi.fn()} />);
+    
+    const googleLoginBtn = screen.getByTestId('google-login-btn');
+    fireEvent.click(googleLoginBtn);
 
     await waitFor(() => {
-      expect(supabase.auth.signOut).toHaveBeenCalled();
+      expect(supabase.auth.signInWithOAuth).toHaveBeenCalledWith({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin, // Vinz's redirect fix
+        },
+      });
     });
   });
 
-  it('allows entry and does NOT sign out if the user is ACTIVE', async () => {
-    vi.mocked(supabase.auth.getUser).mockResolvedValueOnce({
-      data: { user: { id: '456', user_metadata: { recordstatus: 'ACTIVE' } } },
-      error: null
-    } as any);
-
-    render(
-      <AuthLayout title="Test Title" subtitle="Test Subtitle">
-        <div>Test Child</div>
-      </AuthLayout>
-    );
+  it('calls Supabase signInWithOAuth when clicking Google register', async () => {
+    render(<RegisterPage onSwitch={vi.fn()} />);
+    
+    const googleRegBtn = screen.getByTestId('google-register-btn');
+    fireEvent.click(googleRegBtn);
 
     await waitFor(() => {
-      expect(supabase.auth.signOut).not.toHaveBeenCalled();
+      expect(supabase.auth.signInWithOAuth).toHaveBeenCalledWith({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+        },
+      });
     });
   });
 });

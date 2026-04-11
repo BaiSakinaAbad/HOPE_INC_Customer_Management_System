@@ -1,12 +1,14 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { supabase } from '../lib/supabase';
-// M2 will need to fix these import paths when they build the components
 import LoginPage from '../components/pages/LoginPage';
 
-
-
 describe('Email Login Feature', () => {
+  // Our whiteboard eraser is now properly inside the single describe block!
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('calls Supabase signInWithPassword when submitting the login form', async () => {
     render(<LoginPage onSwitch={vi.fn()} onLoginSuccess={vi.fn()} />);
 
