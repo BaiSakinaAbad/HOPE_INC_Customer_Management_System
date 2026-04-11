@@ -54,6 +54,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitch, onLoginSuccess }) => {
 
         <GoogleButton
           label="Continue with Google"
+          testId="google-login-btn"
           onAuthStart={() => {
             window.sessionStorage.setItem(POST_LOGIN_REDIRECT_KEY, String(Date.now()));
           }}
@@ -81,6 +82,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitch, onLoginSuccess }) => {
 
           <AuthInput
             id="login-email"
+            data-testid="login-email-input"
             label="Email Address"
             type="email"
             placeholder="johndoe@gmail.com"
@@ -92,6 +94,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitch, onLoginSuccess }) => {
 
           <AuthInput
             id="login-password"
+            data-testid="login-password-input"
             label="Password"
             showToggle
             placeholder="••••••••••••"
@@ -137,7 +140,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitch, onLoginSuccess }) => {
           </div>
 
           <div style={{ marginTop: '2px' }}>
-            <AuthButton isLoading={isLoading}>Sign In</AuthButton>
+            <AuthButton isLoading={isLoading} data-testid="login-submit-btn">
+              Sign In
+            </AuthButton>
           </div>
         </form>
 

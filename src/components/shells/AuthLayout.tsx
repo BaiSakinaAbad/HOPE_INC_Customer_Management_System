@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useTheme } from '../ThemeContext';
 import { tokens } from '../elements/AuthElements';
 import { ThemeToggle } from '../composites/AuthComposites';
+import { supabase } from '../../lib/supabase';
+
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -13,6 +15,18 @@ interface AuthLayoutProps {
 export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitle, compact }) => {
   const { isDark } = useTheme();
   const t = isDark ? tokens.dark : tokens.light;
+
+  useEffect(() => {
+    const enforceActiveUser = async () => {
+      const { data, error } = await supabase.auth.getUser();
+      
+      if (!error && data?.user?.user_metadata?.record_status === 'INACTIVE') {
+        await supabase.auth.signOut();
+      }
+    };
+
+    enforceActiveUser();
+  }, []);
 
   return (
     <div

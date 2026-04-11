@@ -67,9 +67,11 @@ interface TopbarProps {
   onMenuOpen: () => void;
   onLogout: () => Promise<void>;
   isSigningOut: boolean;
+  displayName: string;
+  avatarUrl: string;
 }
 
-export const Topbar: React.FC<TopbarProps> = ({ isMobile, onMenuOpen, onLogout, isSigningOut }) => {
+export const Topbar: React.FC<TopbarProps> = ({ isMobile, onMenuOpen, onLogout, isSigningOut, displayName, avatarUrl }) => {
   const { isDark, toggle } = useTheme();
   const C = getDashboardTokens(isDark);
   const [activeTab, setActiveTab] = useState('Overview');
@@ -112,10 +114,10 @@ export const Topbar: React.FC<TopbarProps> = ({ isMobile, onMenuOpen, onLogout, 
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', paddingLeft: '16px', borderLeft: `1px solid ${C.outlineVariant}33` }}>
           <Bell size={20} style={{ color: C.onSurfaceVariant, cursor: 'pointer' }} />
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alex" alt="User" style={{ width: '32px', height: '32px', borderRadius: '999px', border: `2px solid ${C.primary}33` }} />
+            <img src={avatarUrl} alt={displayName} style={{ width: '32px', height: '32px', borderRadius: '999px', border: `2px solid ${C.primary}33` }} />
             {!isMobile && (
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: isDark ? '#fff' : '#000', lineHeight: 1 }}>Sakiki Presidad Ola</span>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: isDark ? '#fff' : '#000', lineHeight: 1 }}>{displayName}</span>
                 <span style={{ fontSize: '9px', color: C.primary, textTransform: 'uppercase', fontWeight: 800 }}>Superadmin</span>
               </div>
             )}
@@ -130,9 +132,10 @@ export const Topbar: React.FC<TopbarProps> = ({ isMobile, onMenuOpen, onLogout, 
 // ─── MainContent ──────────────────────────────────────────────────────────────
 interface MainContentProps {
   isMobile: boolean;
+  firstName: string;
 }
 
-export const MainContent: React.FC<MainContentProps> = ({ isMobile }) => {
+export const MainContent: React.FC<MainContentProps> = ({ isMobile, firstName }) => {
   const { isDark } = useTheme();
   const C = getDashboardTokens(isDark);
   return (
@@ -153,7 +156,9 @@ export const MainContent: React.FC<MainContentProps> = ({ isMobile }) => {
              </div>
           </div>
         </div>
-        <h2 style={{ fontFamily: C.font.headline, fontSize: isMobile ? '32px' : '48px', fontWeight: 900, color: isDark ? '#fff' : '#000', marginBottom: '16px' }}>Welcome back, Sakiki</h2>
+        <h2 style={{ fontFamily: C.font.headline, fontSize: isMobile ? '32px' : '48px', fontWeight: 900, color: isDark ? '#fff' : '#000', marginBottom: '16px' }}>
+          Welcome back, {firstName}
+        </h2>
         <p style={{ fontFamily: C.font.body, fontSize: '16px', color: C.onSurfaceVariant, maxWidth: '560px', lineHeight: 1.6 }}>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
       </div>
     </div>

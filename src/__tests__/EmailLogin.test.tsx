@@ -1,14 +1,14 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
-import { createClient } from '@supabase/supabase-js';
+import { describe, it, expect, vi } from 'vitest';
+import { supabase } from '../lib/supabase';
 // M2 will need to fix these import paths when they build the components
 import LoginPage from '../components/pages/LoginPage';
 
-const supabase = createClient('fake-url', 'fake-key');
+
 
 describe('Email Login Feature', () => {
   it('calls Supabase signInWithPassword when submitting the login form', async () => {
-    render(<LoginPage />);
+    render(<LoginPage onSwitch={vi.fn()} onLoginSuccess={vi.fn()} />);
 
     const emailInput = screen.getByTestId('login-email-input');
     const passwordInput = screen.getByTestId('login-password-input');

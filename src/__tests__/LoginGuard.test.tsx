@@ -1,10 +1,9 @@
 import { render, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase';
 // M4 will need to update this path to point to their Auth Guard component
 import { AuthLayout } from '../components/shells/AuthLayout';
 
-const supabase = createClient('fake-url', 'fake-key');
 
 describe('Login Guard Feature', () => {
   beforeEach(() => {
@@ -17,7 +16,11 @@ describe('Login Guard Feature', () => {
       error: null
     } as any);
 
-    render(<AuthLayout />);
+    render(
+      <AuthLayout title="Test Title" subtitle="Test Subtitle">
+        <div>Test Child</div>
+      </AuthLayout>
+    );
 
     await waitFor(() => {
       expect(supabase.auth.signOut).toHaveBeenCalled();
@@ -30,7 +33,11 @@ describe('Login Guard Feature', () => {
       error: null
     } as any);
 
-    render(<AuthLayout />);
+    render(
+      <AuthLayout title="Test Title" subtitle="Test Subtitle">
+        <div>Test Child</div>
+      </AuthLayout>
+    );
 
     await waitFor(() => {
       expect(supabase.auth.signOut).not.toHaveBeenCalled();

@@ -11,12 +11,20 @@ import { Sidebar, Topbar, MainContent, DashboardFooter } from '../composites/Das
  * or wrapping additional children as the feature grows.
  */
 export const DashboardLayout: React.FC = () => {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const { isDark } = useTheme();
   const C = getDashboardTokens(isDark);
   const width = useWindowWidth();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const metadata = user?.user_metadata || {};
+
+  const fullName = metadata.full_name || `${metadata.first_name || ''} ${metadata.last_name || ''}`.trim();
+  const displayName = fullName || metadata.username || user?.email || 'Unknown User';
+  const firstName = metadata.first_name || displayName.split(' ')[0];
+
+  const avatarUrl = metadata.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${metadata.username || displayName}&backgroundColor=834fff`;
 
   const handleLogout = async () => {
     if (isSigningOut) return;
@@ -38,8 +46,13 @@ export const DashboardLayout: React.FC = () => {
           onMenuOpen={() => setDrawerOpen(true)}
           onLogout={handleLogout}
           isSigningOut={isSigningOut}
+          displayName={displayName} 
+          avatarUrl={avatarUrl}
         />
-        <MainContent isMobile={width < BP.mobile} />
+        <MainContent 
+          isMobile={width < BP.mobile}
+          firstName={firstName}
+        />
         <DashboardFooter />
       </main>
     </div>
