@@ -10,9 +10,9 @@ describe('Login Guard Feature', () => {
     vi.clearAllMocks();
   });
 
-  it('forces sign out if the user record_status is INACTIVE', async () => {
+  it('forces sign out if the user recordstatus is INACTIVE', async () => {
     vi.mocked(supabase.auth.getUser).mockResolvedValueOnce({
-      data: { user: { id: '123', user_metadata: { record_status: 'INACTIVE' } } },
+      data: { user: { id: '123', user_metadata: { recordstatus: 'INACTIVE' } } },
       error: null
     } as any);
 
@@ -29,7 +29,7 @@ describe('Login Guard Feature', () => {
 
   it('allows entry and does NOT sign out if the user is ACTIVE', async () => {
     vi.mocked(supabase.auth.getUser).mockResolvedValueOnce({
-      data: { user: { id: '456', user_metadata: { record_status: 'ACTIVE' } } },
+      data: { user: { id: '456', user_metadata: { recordstatus: 'ACTIVE' } } },
       error: null
     } as any);
 
