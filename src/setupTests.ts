@@ -20,7 +20,15 @@ vi.mock('@supabase/supabase-js', () => {
         insert: vi.fn().mockReturnThis(),
         update: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnThis(), // Added so sorting queries don't crash the tests
         single: vi.fn().mockResolvedValue({ data: null, error: null }),
+        
+        // THE ULTIMATE QA FLEX: 
+        // If any developer tries to use a hard delete, the test will instantly fail 
+        // and print this exact error message in their terminal!
+        delete: vi.fn().mockImplementation(() => {
+          throw new Error("QA ALERT: Hard deletes are strictly forbidden by the Project Guide! You must use an update() to set record_status = 'INACTIVE' instead.");
+        }),
       })),
     })),
   };
