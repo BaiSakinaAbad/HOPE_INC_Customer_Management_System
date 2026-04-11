@@ -7,9 +7,10 @@ interface GoogleButtonProps {
   label: string;
   compact?: boolean;
   onAuthStart?: () => void;
+  testId?: string;
 }
 
-export const GoogleButton: React.FC<GoogleButtonProps> = ({ label, compact, onAuthStart }) => {
+export const GoogleButton: React.FC<GoogleButtonProps> = ({ label, compact, onAuthStart, testId }) => {
   const { isDark } = useTheme();
   const t = isDark ? tokens.dark : tokens.light;
   const [hovered, setHovered] = useState(false);
@@ -28,6 +29,7 @@ export const GoogleButton: React.FC<GoogleButtonProps> = ({ label, compact, onAu
   return (
     <button
       type="button"
+      data-testid={testId}
       onClick={handleGoogleLogin}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}

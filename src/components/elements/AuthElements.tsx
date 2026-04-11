@@ -126,7 +126,9 @@ export const AuthInput: React.FC<
   );
 };
 
-export const AuthButton: React.FC<{ children: React.ReactNode; isLoading?: boolean; compact?: boolean }> = ({ children, isLoading, compact }) => {
+// components/elements/AuthElements.tsx
+
+export const AuthButton: React.FC<{ children: React.ReactNode; isLoading?: boolean; compact?: boolean; 'data-testid'?: string }> = ({ children, isLoading, compact, 'data-testid': dataTestId }) => {
   const { isDark } = useTheme();
   const t = isDark ? tokens.dark : tokens.light;
 
@@ -134,6 +136,7 @@ export const AuthButton: React.FC<{ children: React.ReactNode; isLoading?: boole
     <button
       type="submit"
       disabled={isLoading}
+      data-testid={dataTestId} // <-- Add this here
       className="primary-gradient"
       style={{
         width: '100%', height: compact ? '38px' : '44px',

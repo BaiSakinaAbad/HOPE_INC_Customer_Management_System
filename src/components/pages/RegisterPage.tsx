@@ -71,7 +71,11 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitch }) => {
     <AuthLayout compact title="Create your account" subtitle="Welcome to BiteLog.">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
 
-        <GoogleButton compact label="Continue with Google" />
+        <GoogleButton 
+          compact 
+          label="Continue with Google" 
+          testId="google-register-btn"
+        />
 
         <AuthDivider label="or register with email" />
 
