@@ -37,5 +37,14 @@ All notable changes to the HOPE, INC. CMS project will be documented here.
 - Feat: adjusted AuthComposites -> @solanov
 - Successfully Added Super Admin Dashboard and Loading Spinner UI -> @sairarat
 
+## [v0.7] - April 12 2026
+### Added
+- Feat: We added a new account state called "blocked"
+Blocked accounts will not be able to access the application.
+This is different from "inactive" as inactive accounts are just not logged in (for 30 days), while blocked accounts are banned from using the application.
+- Feat: "for approval" status is added for new registered accounts. This is only applicable for accounts that registered (not sign in). 
+- all members are consulted with this changes.
 
+### Fixed
+- Feat: adjusted AuthComposites -> @solanov
 

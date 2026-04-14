@@ -105,44 +105,88 @@ This file is the compilation of our daily standup meetings.
       Working on: test cases for sprint 2 and 3
       Blockers: none
    ```
+--- 
 
+   # SPRINT 2 WEEK 1 
+   APRIL 12 2026
+   <br>
+   Time duration: 3:07pm - 3:20pm <br>
+   Present Members: All members present
+   <br> *Prepared by:* @BaiSakinaAbad
 
-   --- 
-    # SPRINT 2 WEEK 1 
-    TBA<br>
-    Present Members: 
-   <br> *Prepared by:*
+   ## Role-by-Role Reports
 
-    ## Role-by-Role Reports
-
-      **Sakina [M1]**<br>
-      ```
-      Completed: 
-      Working on:
-      Blockers:
-      ```
+   **Sakina [M1]**<br>
+   ```
+      Completed: Task dissimenation for sprint 2 and 3, project board management and reviewing pr.
+      Working on: Tasks assigned on this [docs](docs/sprint 2 and 3 tasks.pdf)
+      Blockers: Waiting M4 to finish the user and admin routing pages.
+   ```
    
-      **Saira [M2]**<br>
-      ```
+  **Saira [M2]**<br>
+   ```
+      Completed: 
+      Working on: Logo, Admin and user dashboard
+      Blockers: Placeholder for admin and user dashboard -> M4 
+   ```
+   **Peja [M3]**<br>
+   ```
+      Completed: Refine policies, trigger functions for database.
+      Working on: Additional account state "blocked"
+      Blockers: none
+   ```
+   **Vinz [M4]**<br>
+   ```
+      Completed: Completion of registry, changed placeholders
+      Working on: Placeolder dashboards as assigned by m2.
+      Blockers: Supabase admin access -> resolved
+   ```
+   **Klyne [M5]**<br>
+   ```
+      Completed: Revised test cases for sprint 1, 2, and 3.
+      Working on: Test cases for sprint 3 and sprint 2 log.
+      Blockers: none
+   ```
+   ---
+   # SPRINT 2 WEEK 2
+   tba
+   <br>
+   Time duration: tba <br>
+   Present Members: tba
+   <br> *Prepared by:* @BaiSakinaAbad
+
+   ## Role-by-Role Reports
+
+   **Sakina [M1]**<br>
+   ```
+      Completed:
+      Working on: 
+      Blockers: 
+   ```
+   
+  **Saira [M2]**<br>
+   ```
+      Completed: 
+      Working on: 
+      Blockers: 
+   ```
+   **Peja [M3]**<br>
+   ```
+      Completed: 
+      Working on: 
+      Blockers: 
+   ```
+   **Vinz [M4]**<br>
+   ```
       Completed: 
       Working on:
-      Blockers:
-      ```
-      **Peja [M3]**<br>
-      ```
+      Blockers: 
+   ```
+   **Klyne [M5]**<br>
+   ```
       Completed: 
-      Working on:
-      Blockers:
-      ```
-      **Vinz [M4]**<br>
-      ```
-      Completed: 
-      Working on:
-      Blockers:
-      ```
-      **Klyne [M5]**<br>
-      ```
-      Completed: 
-      Working on:
-      Blockers:
-      ```
+      Working on: 
+      Blockers: 
+   ```
+   --- 
+   
