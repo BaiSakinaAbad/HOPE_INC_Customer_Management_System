@@ -16,10 +16,11 @@ interface TopbarProps {
   onLogout: () => Promise<void>;
   isSigningOut: boolean;
   displayName: string;
+  role: string;
   avatarUrl: string;
 }
 
-export const Topbar: React.FC<TopbarProps> = ({ isMobile, onMenuOpen, onLogout, isSigningOut, displayName, avatarUrl }) => {
+export const Topbar: React.FC<TopbarProps> = ({ isMobile, onMenuOpen, onLogout, isSigningOut, displayName, avatarUrl, role }) => {
   const { isDark, toggle } = useTheme();
   const C = getDashboardTokens(isDark);
   const [activeTab, setActiveTab] = useState('Overview');
@@ -66,7 +67,7 @@ export const Topbar: React.FC<TopbarProps> = ({ isMobile, onMenuOpen, onLogout, 
             {!isMobile && (
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <span style={{ fontSize: '13px', fontWeight: 700, color: isDark ? '#fff' : '#000', lineHeight: 1 }}>{displayName}</span>
-                <span style={{ fontSize: '9px', color: C.primary, textTransform: 'uppercase', fontWeight: 800 }}>Superadmin</span>
+                <span style={{ fontSize: '9px', color: C.primary, textTransform: 'uppercase', fontWeight: 800 }}>{role}</span>
               </div>
             )}
           </div>

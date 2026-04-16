@@ -18,9 +18,9 @@ export const MainContent: React.FC<MainContentProps> = ({ isMobile, firstName })
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '40px 24px', alignItems: 'center', position: 'relative' }}>
       <div style={{ width: '100%', maxWidth: '1200px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: C.onSurfaceVariant, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '60px' }}>
-        <HoverLink color={C.onSurfaceVariant} hoverColor={C.primary}>System</HoverLink>
+        {/*<HoverLink color={C.onSurfaceVariant} hoverColor={C.primary}>System</HoverLink>
         <ChevronRight size={12} style={{ opacity: 0.5 }} />
-        <HoverLink color={C.primary} hoverColor={C.primary} style={{ fontWeight: 700 }}>Admin Dashboard</HoverLink>
+        <HoverLink color={C.primary} hoverColor={C.primary} style={{ fontWeight: 700 }}>Admin Dashboard</HoverLink>*/} 
       </div>
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>

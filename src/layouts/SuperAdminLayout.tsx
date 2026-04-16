@@ -2,10 +2,7 @@ import React, { useState } from 'react';
 import { useTheme, getDashboardTokens } from '../providers/ThemeProvider';
 import { useAuth } from '../providers/AuthProvider';
 import { useWindowWidth, BP } from '../hooks/useWindowWidth';
-import { Sidebar } from '../components/common/Sidebar'
-import { Topbar } from '../components/common/Topbar'
-import { MainContent } from '../components/common/MainContent'
-import { Footer } from '../components/common/Footer';
+import { Sidebar, Topbar, MainContent, Footer } from '../components/common';
 
 /**
  * DashboardLayout — Shell
@@ -14,7 +11,7 @@ import { Footer } from '../components/common/Footer';
  * or wrapping additional children as the feature grows.
  */
 export const DashboardLayout: React.FC = () => {
-  const { signOut, user } = useAuth();
+  const { signOut, user, role } = useAuth();
   const { isDark } = useTheme();
   const C = getDashboardTokens(isDark);
   const width = useWindowWidth();
@@ -49,6 +46,7 @@ export const DashboardLayout: React.FC = () => {
           onMenuOpen={() => setDrawerOpen(true)}
           onLogout={handleLogout}
           isSigningOut={isSigningOut}
+          role={role || 'LOADING...'}
           displayName={displayName} 
           avatarUrl={avatarUrl}
         />
