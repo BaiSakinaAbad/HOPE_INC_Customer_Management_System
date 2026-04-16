@@ -1,8 +1,7 @@
 import React, { useEffect } from 'react';
-import { useTheme } from '../ThemeContext';
-import { tokens } from '../elements/AuthElements';
-import { ThemeToggle } from '../composites/AuthComposites';
-import { supabase } from '../../lib/supabase';
+import { useTheme, tokens } from '../providers/ThemeProvider';
+import { ThemeToggle } from '../components/ui/ThemeToggle';
+import { supabase } from '../lib/supabase';
 
 
 interface AuthLayoutProps {

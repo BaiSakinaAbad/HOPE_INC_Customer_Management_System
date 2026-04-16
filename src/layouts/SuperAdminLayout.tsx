@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
-import { useTheme } from '../ThemeContext';
-import { useAuth } from '../AuthContext';
-import { getDashboardTokens, useWindowWidth, BP } from '../elements/DashboardElements';
-import { Sidebar, Topbar, MainContent, DashboardFooter } from '../composites/DashboardComposites';
+import { useTheme, getDashboardTokens } from '../providers/ThemeProvider';
+import { useAuth } from '../providers/AuthProvider';
+import { useWindowWidth, BP } from '../hooks/useWindowWidth';
+import { Sidebar } from '../components/common/Sidebar'
+import { Topbar } from '../components/common/Topbar'
+import { MainContent } from '../components/common/MainContent'
+import { Footer } from '../components/common/Footer';
 
 /**
  * DashboardLayout — Shell
@@ -53,7 +56,7 @@ export const DashboardLayout: React.FC = () => {
           isMobile={width < BP.mobile}
           firstName={firstName}
         />
-        <DashboardFooter />
+        <Footer />
       </main>
     </div>
   );
