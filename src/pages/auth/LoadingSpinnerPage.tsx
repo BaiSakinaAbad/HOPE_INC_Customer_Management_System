@@ -1,7 +1,6 @@
 import React from 'react';
 import { Key, ShieldCheck } from 'lucide-react';
-import { useTheme } from '../ThemeContext';
-import { getDashboardTokens } from '../elements/DashboardElements';
+import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
 
 /**
  * LoadingSpinnerPage — Page

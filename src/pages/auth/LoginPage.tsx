@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { AuthLayout } from '../shells/AuthLayout';
-import { GoogleButton } from '../composites/AuthComposites';
-import { AuthButton, AuthInput, AuthDivider, tokens } from '../elements/AuthElements';
-import { useTheme } from '../ThemeContext';
+import { AuthLayout } from '../../layouts/AuthLayout';
+import { GoogleButton } from '../../features/auth';
+import { Button, Input, Divider } from '../../components/ui';
+import { useTheme, tokens } from '../../providers/ThemeProvider';
 import { supabase } from '../../lib/supabase';
 
 interface LoginPageProps {
@@ -60,7 +60,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitch, onLoginSuccess }) => {
           }}
         />
 
-        <AuthDivider label="or email address" />
+        <Divider label="or email address" />
 
         {/* --- Error Message --- */}
         {error && (
@@ -80,7 +80,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitch, onLoginSuccess }) => {
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
-          <AuthInput
+          <Input
             id="login-email"
             data-testid="login-email-input"
             label="Email Address"
@@ -92,7 +92,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitch, onLoginSuccess }) => {
             required
           />
 
-          <AuthInput
+          <Input
             id="login-password"
             data-testid="login-password-input"
             label="Password"
@@ -140,9 +140,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitch, onLoginSuccess }) => {
           </div>
 
           <div style={{ marginTop: '2px' }}>
-            <AuthButton isLoading={isLoading} data-testid="login-submit-btn">
+            <Button isLoading={isLoading} data-testid="login-submit-btn">
               Sign In
-            </AuthButton>
+            </Button>
           </div>
         </form>
 

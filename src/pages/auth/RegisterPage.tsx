@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { AuthLayout } from '../shells/AuthLayout';
-import { GoogleButton, PasswordStrength } from '../composites/AuthComposites';
-import { AuthButton, AuthInput, AuthDivider, tokens } from '../elements/AuthElements';
-import { useTheme } from '../ThemeContext';
+import { AuthLayout } from '../../layouts/AuthLayout';
+import { GoogleButton, PasswordStrength } from '../../features/auth';
+import { Button, Input, Divider } from '../../components/ui';
+import { useTheme, tokens } from '../../providers/ThemeProvider';
 import { supabase } from '../../lib/supabase';
 
 interface RegisterPageProps {
@@ -77,7 +77,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitch }) => {
           testId="google-register-btn"
         />
 
-        <AuthDivider label="or register with email" />
+        <Divider label="or register with email" />
 
         {/* --- Error / Success Messages --- */}
         {error && (
@@ -95,7 +95,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitch }) => {
 
           {/* Name row */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-            <AuthInput 
+            <Input 
               compact 
               id="reg-firstname" 
               label="First Name" 
@@ -105,7 +105,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitch }) => {
               onChange={(e) => setFirstName(e.target.value)}
               required 
             />
-            <AuthInput 
+            <Input 
               compact 
               id="reg-lastname"  
               label="Last Name"  
@@ -117,7 +117,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitch }) => {
             />
           </div>
 
-          <AuthInput 
+          <Input 
             compact 
             id="reg-username" 
             label="Username" 
@@ -128,7 +128,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitch }) => {
             required 
           />
 
-          <AuthInput 
+          <Input 
             compact 
             id="reg-email" 
             label="Email Address" 
@@ -142,7 +142,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitch }) => {
 
           {/* Password + strength */}
           <div>
-            <AuthInput
+            <Input
               compact
               id="reg-password"
               label="Password"
@@ -181,7 +181,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitch }) => {
             </label>
           </div>
 
-          <AuthButton compact isLoading={isLoading}>Create Account</AuthButton>
+          <Button compact isLoading={isLoading}>Create Account</Button>
         </form>
 
         <p style={{

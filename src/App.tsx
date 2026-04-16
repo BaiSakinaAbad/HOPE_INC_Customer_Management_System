@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import './App.css';
-import { AuthProvider, useAuth } from './components/AuthContext';
-import LoadingSpinner from './components/pages/LoadingSpinnerPage';
-import SuperAdminDashboard from './components/pages/SuperAdminDashboardPage';
-import { ThemeProvider } from './components/ThemeContext';
-import LoginPage from './components/pages/LoginPage';
-import RegisterPage from './components/pages/RegisterPage';
+import { AuthProvider, useAuth } from './providers/AuthProvider';
+import SuperAdminDashboard from './pages/superadmin/Dashboard';
+import { ThemeProvider } from './providers/ThemeProvider';
+import LoadingSpinner from './pages/auth/LoadingSpinnerPage';
+import LoginPage from './pages/auth/LoginPage';
+import RegisterPage from './pages/auth/RegisterPage';
 
 const POST_LOGIN_REDIRECT_KEY = 'post-login-redirect-pending';
 const POST_LOGIN_REDIRECT_TTL_MS = 60_000;

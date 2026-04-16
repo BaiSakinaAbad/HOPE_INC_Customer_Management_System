@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { useTheme } from '../ThemeContext';
-import { useAuth } from '../AuthContext';
-import { getDashboardTokens, useWindowWidth, BP } from '../elements/DashboardElements';
-import { Sidebar, Topbar, MainContent, DashboardFooter } from '../composites/DashboardComposites';
+import { useTheme, getDashboardTokens } from '../providers/ThemeProvider';
+import { useAuth } from '../providers/AuthProvider';
+import { useWindowWidth, BP } from '../hooks/useWindowWidth';
+import { Sidebar, Topbar, MainContent, Footer } from '../components/common';
 
 /**
  * DashboardLayout — Shell
@@ -11,7 +11,7 @@ import { Sidebar, Topbar, MainContent, DashboardFooter } from '../composites/Das
  * or wrapping additional children as the feature grows.
  */
 export const DashboardLayout: React.FC = () => {
-  const { signOut, user } = useAuth();
+  const { signOut, user, role } = useAuth();
   const { isDark } = useTheme();
   const C = getDashboardTokens(isDark);
   const width = useWindowWidth();
@@ -46,6 +46,7 @@ export const DashboardLayout: React.FC = () => {
           onMenuOpen={() => setDrawerOpen(true)}
           onLogout={handleLogout}
           isSigningOut={isSigningOut}
+          role={role || 'LOADING...'}
           displayName={displayName} 
           avatarUrl={avatarUrl}
         />
@@ -53,7 +54,7 @@ export const DashboardLayout: React.FC = () => {
           isMobile={width < BP.mobile}
           firstName={firstName}
         />
-        <DashboardFooter />
+        <Footer />
       </main>
     </div>
   );

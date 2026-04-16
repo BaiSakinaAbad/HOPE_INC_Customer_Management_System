@@ -1,5 +1,5 @@
 import React from 'react';
-import { DashboardLayout } from '../shells/DashboardLayout';
+import { DashboardLayout } from '../../layouts/SuperAdminLayout';
 
 /**
  * SuperAdminDashboardPage — Page
@@ -7,8 +7,8 @@ import { DashboardLayout } from '../shells/DashboardLayout';
  * Renders the DashboardLayout shell, which composes all
  * dashboard composites and elements internally.
  */
-const SuperAdminDashboardPage: React.FC = () => {
+const SuperAdminDashboard: React.FC = () => {
   return <DashboardLayout />;
 };
 
-export default SuperAdminDashboardPage;
+export default SuperAdminDashboard;
