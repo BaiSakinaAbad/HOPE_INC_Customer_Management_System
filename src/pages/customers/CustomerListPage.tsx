@@ -11,25 +11,27 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Search, Trash2, RefreshCw, X,
-  AlertTriangle, Users,
+  AlertTriangle, Users, ChevronUp, ChevronDown,
+  Plus, Eye, Edit2
 } from 'lucide-react';
 import { useTheme, getDashboardTokens, type DashboardTokens } from '../../providers/ThemeProvider';
 import { useAuth } from '../../providers/AuthProvider';
 import { useRights } from '../../hooks/useRights';
 import { getCustomers, softDeleteCustomer } from '../../services/customerService';
 import type { Customer } from '../../types/customer';
+import { DefaultTable, Button } from '../../components/ui';
 
 // ── Skeleton cell ─────────────────────────────────────────────────────────────
 const SkeletonCell: React.FC<{ width?: string; C: DashboardTokens; isDark: boolean }> = ({
   width = '80px', C, isDark,
 }) => (
-  <td style={{ padding: '14px 16px', borderBottom: `1px solid ${C.outlineVariant}22` }}>
+  <DefaultTable.Td>
     <div style={{
       height: '13px', borderRadius: '6px', width,
       backgroundColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)',
       animation: 'pulse 1.4s ease-in-out infinite',
     }} />
-  </td>
+  </DefaultTable.Td>
 );
 
 // ── Status badge ──────────────────────────────────────────────────────────────
@@ -67,82 +69,103 @@ interface RowProps {
 const CustomerRow: React.FC<RowProps> = ({
   customer: c, idx, C, isDark, canViewStamp, canSoftDelete, onDelete,
 }) => {
-  const [rowHovered, setRowHovered] = useState(false);
   const [btnHovered, setBtnHovered] = useState(false);
-
-  const tdBase: React.CSSProperties = {
-    padding: '13px 16px',
-    borderBottom: `1px solid ${C.outlineVariant}1a`,
-    color: C.onSurface,
-    verticalAlign: 'middle',
-    fontFamily: 'Inter, sans-serif',
-    fontSize: '13px',
-  };
+  const [viewHovered, setViewHovered] = useState(false);
+  const [editHovered, setEditHovered] = useState(false);
 
   return (
-    <tr
-      onMouseEnter={() => setRowHovered(true)}
-      onMouseLeave={() => setRowHovered(false)}
-      style={{
-        backgroundColor: rowHovered
-          ? (isDark ? `${C.surfaceContainerHigh}cc` : '#f5f4ff')
-          : idx % 2 !== 0
-            ? (isDark ? `${C.surfaceContainerHigh}40` : '#faf9ff')
-            : 'transparent',
-        transition: 'background-color 0.12s ease',
-      }}
-    >
+    <DefaultTable.Tr>
       {/* Cust No */}
-      <td style={{ ...tdBase, fontFamily: 'monospace', fontSize: '12px', fontWeight: 700, color: C.primary }}>
+      <DefaultTable.Td style={{ fontFamily: 'monospace', fontSize: '12px', fontWeight: 700, color: C.primary }}>
         {c.custno}
-      </td>
+      </DefaultTable.Td>
       {/* Name */}
-      <td style={{ ...tdBase, fontWeight: 600 }}>{c.custname}</td>
+      <DefaultTable.Td style={{ fontWeight: 600 }}>{c.custname}</DefaultTable.Td>
       {/* Address */}
-      <td
-        style={{ ...tdBase, color: C.onSurfaceVariant, maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+      <DefaultTable.Td
+        style={{ color: C.onSurfaceVariant, maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
         title={c.address ?? ''}
       >
         {c.address || '—'}
-      </td>
+      </DefaultTable.Td>
       {/* Pay Term */}
-      <td style={{ ...tdBase, color: C.onSurfaceVariant }}>{c.payterm || '—'}</td>
+      <DefaultTable.Td style={{ color: C.onSurfaceVariant }}>{c.payterm || '—'}</DefaultTable.Td>
       {/* Status */}
-      <td style={tdBase}><StatusBadge status={c.recordstatus} /></td>
+      <DefaultTable.Td><StatusBadge status={c.recordstatus} /></DefaultTable.Td>
       {/* Stamp (admin / superadmin only) */}
       {canViewStamp && (
-        <td
-          style={{ ...tdBase, fontFamily: 'monospace', fontSize: '11px', color: C.onSurfaceVariant, maxWidth: '260px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+        <DefaultTable.Td
+          style={{ fontFamily: 'monospace', fontSize: '11px', color: C.onSurfaceVariant, maxWidth: '260px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
           title={c.stamp ?? ''}
         >
           {c.stamp || '—'}
-        </td>
+        </DefaultTable.Td>
       )}
       {/* Actions */}
-      {canSoftDelete && (
-        <td style={{ ...tdBase, textAlign: 'center' }}>
+      <DefaultTable.Td style={{ textAlign: 'center' }}>
+        <div style={{ display: 'inline-flex', gap: '6px', justifyContent: 'center' }}>
           <button
             type="button"
-            onClick={onDelete}
-            onMouseEnter={() => setBtnHovered(true)}
-            onMouseLeave={() => setBtnHovered(false)}
-            title="Archive this customer"
+            onMouseEnter={() => setViewHovered(true)}
+            onMouseLeave={() => setViewHovered(false)}
+            title="View customer details"
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '5px',
-              padding: '6px 12px', borderRadius: '7px', border: 'none',
-              backgroundColor: btnHovered ? C.error : `${C.error}18`,
-              color: btnHovered ? '#fff' : C.error,
+              padding: '6px 10px', borderRadius: '7px', border: 'none',
+              backgroundColor: viewHovered ? C.primary : `${C.primary}18`,
+              color: viewHovered ? '#fff' : C.primary,
               fontSize: '12px', fontWeight: 600,
               cursor: 'pointer', transition: 'all 0.18s ease',
               fontFamily: 'Inter, sans-serif',
             }}
           >
-            <Trash2 size={13} />
-            Delete
+            <Eye size={13} />
+            View
           </button>
-        </td>
-      )}
-    </tr>
+          
+          <button
+            type="button"
+            onMouseEnter={() => setEditHovered(true)}
+            onMouseLeave={() => setEditHovered(false)}
+            title="Edit customer details"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '5px',
+              padding: '6px 10px', borderRadius: '7px', border: 'none',
+              backgroundColor: editHovered ? '#f59e0b' : 'rgba(245, 158, 11, 0.1)',
+              color: editHovered ? '#fff' : '#f59e0b',
+              fontSize: '12px', fontWeight: 600,
+              cursor: 'pointer', transition: 'all 0.18s ease',
+              fontFamily: 'Inter, sans-serif',
+            }}
+          >
+            <Edit2 size={13} />
+            Edit
+          </button>
+
+          {canSoftDelete && (
+            <button
+              type="button"
+              onClick={onDelete}
+              onMouseEnter={() => setBtnHovered(true)}
+              onMouseLeave={() => setBtnHovered(false)}
+              title="Archive this customer"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '5px',
+                padding: '6px 10px', borderRadius: '7px', border: 'none',
+                backgroundColor: btnHovered ? C.error : `${C.error}18`,
+                color: btnHovered ? '#fff' : C.error,
+                fontSize: '12px', fontWeight: 600,
+                cursor: 'pointer', transition: 'all 0.18s ease',
+                fontFamily: 'Inter, sans-serif',
+              }}
+            >
+              <Trash2 size={13} />
+              Delete
+            </button>
+          )}
+        </div>
+      </DefaultTable.Td>
+    </DefaultTable.Tr>
   );
 };
 
@@ -269,6 +292,7 @@ export const CustomerListPage: React.FC = () => {
   const [confirmDelete, setConfirmDelete] = useState<Customer | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [sortAsc, setSortAsc] = useState<boolean | null>(null);
 
   // ── 300 ms debounce ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -288,20 +312,31 @@ export const CustomerListPage: React.FC = () => {
 
   useEffect(() => { void load(); }, [load]);
 
-  // ── Client-side search filter ──────────────────────────────────────────────
+  // ── Client-side search filter & Sort ───────────────────────────────────────
   const filtered = useMemo(() => {
+    let result = customers;
     const q = debouncedSearch.trim().toLowerCase();
-    if (!q) return customers;
-    return customers.filter(cust => {
-      const hay = [
-        cust.custno,
-        cust.custname,
-        cust.address ?? '',
-        cust.payterm ?? '',
-      ].join(' ').toLowerCase();
-      return hay.includes(q);
-    });
-  }, [customers, debouncedSearch]);
+    if (q) {
+      result = result.filter(cust => {
+        const hay = [
+          cust.custno,
+          cust.custname,
+          cust.address ?? '',
+          cust.payterm ?? '',
+        ].join(' ').toLowerCase();
+        return hay.includes(q);
+      });
+    }
+
+    if (sortAsc !== null) {
+      result = [...result].sort((a, b) => {
+        if (a.custno < b.custno) return sortAsc ? -1 : 1;
+        if (a.custno > b.custno) return sortAsc ? 1 : -1;
+        return 0;
+      });
+    }
+    return result;
+  }, [customers, debouncedSearch, sortAsc]);
 
   // ── Soft-delete handler ────────────────────────────────────────────────────
   const performedBy: string =
@@ -326,17 +361,7 @@ export const CustomerListPage: React.FC = () => {
   };
 
   // ── Derived values ─────────────────────────────────────────────────────────
-  const colCount = 5 + (canViewStamp ? 1 : 0) + (canSoftDelete ? 1 : 0);
-
-  const thStyle: React.CSSProperties = {
-    padding: '12px 16px', textAlign: 'left',
-    fontSize: '11px', fontWeight: 700,
-    textTransform: 'uppercase', letterSpacing: '0.08em',
-    color: C.onSurfaceVariant,
-    backgroundColor: C.surfaceContainerHigh,
-    borderBottom: `1px solid ${C.outlineVariant}33`,
-    whiteSpace: 'nowrap',
-  };
+  const colCount = 5 + (canViewStamp ? 1 : 0) + 1; // 1 for Actions
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -364,24 +389,31 @@ export const CustomerListPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Refresh button */}
-        <button
-          type="button"
-          onClick={() => void load()}
-          disabled={loading}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '7px',
-            padding: '9px 16px', borderRadius: '10px',
-            border: `1px solid ${C.outlineVariant}55`,
-            backgroundColor: 'transparent', color: C.onSurfaceVariant,
-            fontSize: '13px', fontWeight: 600,
-            cursor: loading ? 'not-allowed' : 'pointer',
-            opacity: loading ? 0.6 : 1, transition: 'all 0.2s',
-          }}
-        >
-          <RefreshCw size={13} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
-          Refresh
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          {/* Refresh button */}
+          <button
+            type="button"
+            onClick={() => void load()}
+            disabled={loading}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '7px',
+              padding: '9px 16px', borderRadius: '10px',
+              border: `1px solid ${C.outlineVariant}55`,
+              backgroundColor: 'transparent', color: C.onSurfaceVariant,
+              fontSize: '13px', fontWeight: 600,
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.6 : 1, transition: 'all 0.2s',
+            }}
+          >
+            <RefreshCw size={13} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+            Refresh
+          </button>
+          
+          <Button compact style={{ width: 'auto', padding: '0 20px', height: 'auto' }}>
+            <Plus size={16} style={{ marginRight: '6px' }} />
+            Add Customer
+          </Button>
+        </div>
       </div>
 
       {/* ── Search bar ── */}
@@ -470,42 +502,47 @@ export const CustomerListPage: React.FC = () => {
       )}
 
       {/* ── Table card ── */}
-      <div style={{
-        backgroundColor: C.surfaceContainer, borderRadius: '14px',
-        border: `1px solid ${C.outlineVariant}33`, overflow: 'hidden',
-        boxShadow: isDark ? '0 4px 32px rgba(0,0,0,0.25)' : '0 2px 16px rgba(0,0,0,0.05)',
-      }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
+      <DefaultTable.Container>
             <thead>
               <tr>
-                <th style={thStyle}>Cust No</th>
-                <th style={thStyle}>Name</th>
-                <th style={thStyle}>Address</th>
-                <th style={thStyle}>Pay Term</th>
-                <th style={thStyle}>Status</th>
-                {canViewStamp && <th style={thStyle}>Stamp</th>}
-                {canSoftDelete && <th style={{ ...thStyle, textAlign: 'center' }}>Actions</th>}
+                <DefaultTable.Th 
+                  style={{ cursor: 'pointer', userSelect: 'none' }}
+                  onClick={() => setSortAsc(prev => prev === null ? true : !prev)}
+                  title="Sort by Customer ID"
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    Customer ID
+                    {sortAsc === true && <ChevronUp size={14} />}
+                    {sortAsc === false && <ChevronDown size={14} />}
+                    {sortAsc === null && <ChevronUp size={14} style={{ opacity: 0.3 }} />}
+                  </div>
+                </DefaultTable.Th>
+                <DefaultTable.Th>Name</DefaultTable.Th>
+                <DefaultTable.Th>Address</DefaultTable.Th>
+                <DefaultTable.Th>Pay Term</DefaultTable.Th>
+                <DefaultTable.Th>Status</DefaultTable.Th>
+                {canViewStamp && <DefaultTable.Th>Stamp</DefaultTable.Th>}
+                <DefaultTable.Th style={{ textAlign: 'center' }}>Actions</DefaultTable.Th>
               </tr>
             </thead>
             <tbody>
               {/* Skeleton rows while loading */}
               {loading && Array.from({ length: 6 }, (_, i) => (
-                <tr key={`skel-${i}`}>
+                <DefaultTable.Tr key={`skel-${i}`}>
                   <SkeletonCell width="60px"  C={C} isDark={isDark} />
                   <SkeletonCell width="140px" C={C} isDark={isDark} />
                   <SkeletonCell width="170px" C={C} isDark={isDark} />
                   <SkeletonCell width="70px"  C={C} isDark={isDark} />
                   <SkeletonCell width="75px"  C={C} isDark={isDark} />
                   {canViewStamp  && <SkeletonCell width="200px" C={C} isDark={isDark} />}
-                  {canSoftDelete && <SkeletonCell width="65px"  C={C} isDark={isDark} />}
-                </tr>
+                  <SkeletonCell width="160px"  C={C} isDark={isDark} />
+                </DefaultTable.Tr>
               ))}
 
               {/* Empty state */}
               {!loading && filtered.length === 0 && (
-                <tr>
-                  <td colSpan={colCount} style={{ padding: '64px 32px', textAlign: 'center' }}>
+                <DefaultTable.Tr>
+                  <DefaultTable.Td colSpan={colCount} style={{ padding: '64px 32px', textAlign: 'center' }}>
                     <div style={{
                       display: 'flex', flexDirection: 'column',
                       alignItems: 'center', gap: '12px',
@@ -533,8 +570,8 @@ export const CustomerListPage: React.FC = () => {
                         </button>
                       )}
                     </div>
-                  </td>
-                </tr>
+                  </DefaultTable.Td>
+                </DefaultTable.Tr>
               )}
 
               {/* Data rows */}
@@ -551,9 +588,7 @@ export const CustomerListPage: React.FC = () => {
                 />
               ))}
             </tbody>
-          </table>
-        </div>
-      </div>
+      </DefaultTable.Container>
 
       {/* ── Confirm modal ── */}
       {confirmDelete && (
