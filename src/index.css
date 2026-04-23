@@ -178,3 +178,9 @@ button, a, input, section, header, footer, div {
 button, a {
   transition-property: background-color, color, border-color, opacity, transform, box-shadow;
 }
+
+/* ── Skeleton-row pulse animation ────────────────────────────────── */
+@keyframes pulse {
+  0%, 100% { opacity: 1;    }
+  50%       { opacity: 0.4; }
+}
