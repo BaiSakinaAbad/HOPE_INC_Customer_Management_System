@@ -14,9 +14,13 @@ const COLS = 'custno, custname, address, payterm, recordstatus, stamp';
 /** Roles that may fetch ALL records (including INACTIVE). */
 const ELEVATED = ['admin', 'superadmin'] as const;
 
-/** Build a human-readable audit stamp. */
-const buildStamp = (action: string, role: string, performedBy: string) =>
-  `${action} by ${role.toUpperCase()}:${performedBy} @ ${new Date().toISOString()}`;
+/** Build a human-readable audit stamp under 60 chars. */
+const buildStamp = (action: string, role: string, performedBy: string) => {
+  const user = performedBy.split('@')[0].substring(0, 15);
+  const dateStr = new Date().toISOString().replace('T', ' ').substring(0, 16);
+  const stamp = `${action} by ${role.toUpperCase()}:${user} @ ${dateStr}`;
+  return stamp.substring(0, 60);
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -84,6 +88,25 @@ export async function activateCustomer(
   const { error } = await supabase
     .from('customers')
     .update({ recordstatus: 'ACTIVE', stamp })
+    .eq('custno', custno);
+
+  if (error) return { data: null, error: error.message };
+  return { data: null, error: null };
+}
+
+/**
+ * Update a customer's information.
+ */
+export async function updateCustomer(
+  custno: string,
+  updates: Partial<Pick<Customer, 'custname' | 'address' | 'payterm'>>,
+  performedBy: string,
+  role: string,
+): Promise<CustomerServiceResult<null>> {
+  const stamp = buildStamp('Updated', role, performedBy);
+  const { error } = await supabase
+    .from('customers')
+    .update({ ...updates, stamp })
     .eq('custno', custno);
 
   if (error) return { data: null, error: error.message };

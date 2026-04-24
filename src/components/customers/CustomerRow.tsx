@@ -31,6 +31,7 @@ interface CustomerRowProps {
   isDark: boolean;
   canViewStamp: boolean;
   canSoftDelete: boolean;
+  onEdit: (customer: Customer) => void;
   onDelete: (customer: Customer) => void;
 }
 
@@ -70,7 +71,7 @@ const DropdownItem: React.FC<{
 
 // React.memo prevents re-renders if props haven't changed
 export const CustomerRow: React.FC<CustomerRowProps> = React.memo(({
-  customer: c, C, isDark, canViewStamp, canSoftDelete, onDelete,
+  customer: c, C, isDark, canViewStamp, canSoftDelete, onEdit, onDelete,
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -150,7 +151,7 @@ export const CustomerRow: React.FC<CustomerRowProps> = React.memo(({
               <DropdownItem 
                 icon={<Edit2 size={15} />} 
                 label="Edit" 
-                onClick={() => setDropdownOpen(false)} 
+                onClick={() => { setDropdownOpen(false); onEdit(c); }} 
                 C={C} 
               />
               {canSoftDelete && (

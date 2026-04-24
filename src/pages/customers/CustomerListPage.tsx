@@ -3,13 +3,14 @@ import { RefreshCw, AlertTriangle, Users, ChevronUp, ChevronDown, Plus, Trash2 }
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
 import { useAuth } from '../../providers/AuthProvider';
 import { useRights } from '../../hooks/useRights';
-import { getCustomers, softDeleteCustomer } from '../../services/customerService';
+import { getCustomers, softDeleteCustomer, updateCustomer } from '../../services/customerService';
 import type { Customer } from '../../types/customer';
 import { DefaultTable, Button, SearchBar, DashboardHeader } from '../../components/ui';
 
 // Import our new Feature Components
 import { CustomerRow } from '../../components/customers/CustomerRow';
 import { ActionModal } from '../../components/customers/ActionModal';
+import { EditCustomerModal } from '../../components/customers/EditCustomerModal';
 
 export const CustomerListPage: React.FC = () => {
   const { isDark } = useTheme();
@@ -27,6 +28,7 @@ export const CustomerListPage: React.FC = () => {
   
   // Modal State
   const [confirmDelete, setConfirmDelete] = useState<Customer | null>(null);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -72,6 +74,22 @@ export const CustomerListPage: React.FC = () => {
       setActionError(svcError);
     } else {
       setConfirmDelete(null);
+      void load();
+    }
+    setActionLoading(false);
+  };
+
+  const handleEditSubmit = async (custno: string, data: Partial<Pick<Customer, 'custname' | 'address' | 'payterm'>>) => {
+    setActionLoading(true);
+    setActionError(null);
+    const performedBy = (user?.user_metadata?.email as string | undefined) ?? user?.email ?? 'unknown';
+    
+    const { error: svcError } = await updateCustomer(custno, data, performedBy, role ?? 'employee');
+    
+    if (svcError) {
+      setActionError(svcError);
+    } else {
+      setEditingCustomer(null);
       void load();
     }
     setActionLoading(false);
@@ -178,7 +196,8 @@ export const CustomerListPage: React.FC = () => {
               isDark={isDark}
               canViewStamp={canViewStamp}
               canSoftDelete={canSoftDelete}
-              onDelete={setConfirmDelete} // Passing the setter directly!
+              onEdit={setEditingCustomer}
+              onDelete={setConfirmDelete}
             />
           ))}
         </tbody>
@@ -205,6 +224,17 @@ export const CustomerListPage: React.FC = () => {
         isDark={isDark}
         onConfirm={handleSoftDelete}
         onCancel={() => { setConfirmDelete(null); setActionError(null); }}
+      />
+
+      <EditCustomerModal
+        isOpen={!!editingCustomer}
+        customer={editingCustomer}
+        onClose={() => { setEditingCustomer(null); setActionError(null); }}
+        onSave={handleEditSubmit}
+        loading={actionLoading}
+        error={actionError}
+        C={C}
+        isDark={isDark}
       />
     </div>
   );
