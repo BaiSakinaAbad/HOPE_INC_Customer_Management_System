@@ -5,11 +5,10 @@ import { useAuth } from '../../providers/AuthProvider';
 import { useRights } from '../../hooks/useRights';
 import { getCustomers, softDeleteCustomer } from '../../services/customerService';
 import type { Customer } from '../../types/customer';
-import { DefaultTable, Button } from '../../components/ui';
+import { DefaultTable, Button, SearchBar } from '../../components/ui';
 
 // Import our new Feature Components
 import { CustomerRow } from '../../components/customers/CustomerRow';
-import { CustomerSearch } from '../../components/customers/CustomerSearch';
 import { ActionModal } from '../../components/customers/ActionModal';
 
 export const CustomerListPage: React.FC = () => {
@@ -101,7 +100,7 @@ export const CustomerListPage: React.FC = () => {
 
       {/* Extracted Search Bar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
-        <CustomerSearch onSearch={setDebouncedSearch} C={C} isDark={isDark} />
+        <SearchBar onSearch={setDebouncedSearch} placeholder="Search by name, address, code, pay term…" />
         {debouncedSearch.trim() && !loading && (
           <span style={{ fontSize: '12px', color: C.onSurfaceVariant, padding: '5px 10px', borderRadius: '7px', backgroundColor: isDark ? `${C.surfaceContainerHigh}88` : `${C.outlineVariant}22` }}>
             {filtered.length} of {customers.length} shown

@@ -5,10 +5,9 @@ import { useAuth } from '../../providers/AuthProvider';
 import { useRights } from '../../hooks/useRights';
 import { getDeletedCustomers, activateCustomer } from '../..//services/customerService';
 import type { Customer } from '../../types/customer';
-import { DefaultTable } from '../../components/ui';
+import { DefaultTable, SearchBar } from '../../components/ui';
 
 // Import our reusable feature components
-import { CustomerSearch } from '../../components/customers/CustomerSearch';
 import { ActionModal } from '../../components/customers/ActionModal';
 import { DeletedRow } from '../../components/customers/DeletedRow';
 
@@ -108,7 +107,7 @@ export const DeletedCustomersPage: React.FC = () => {
 
       {/* Extracted Search Bar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
-        <CustomerSearch onSearch={setDebouncedSearch} C={C} isDark={isDark} />
+        <SearchBar onSearch={setDebouncedSearch} placeholder="Search by name, address, code, pay term…" />
         {debouncedSearch.trim() && !loading && (
           <span style={{ fontSize: '12px', color: C.onSurfaceVariant, padding: '5px 10px', borderRadius: '7px', backgroundColor: isDark ? `${C.surfaceContainerHigh}88` : `${C.outlineVariant}22` }}>
             {filtered.length} of {customers.length} shown
