@@ -3,7 +3,7 @@ import { RefreshCw, AlertTriangle, Users, ChevronUp, ChevronDown, Plus, Trash2 }
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
 import { useAuth } from '../../providers/AuthProvider';
 import { useRights } from '../../hooks/useRights';
-import { getCustomers, softDeleteCustomer, updateCustomer } from '../../services/customerService';
+import { getCustomers, softDeleteCustomer, updateCustomer, createCustomer } from '../../services/customerService';
 import type { Customer } from '../../types/customer';
 import { DefaultTable, Button, SearchBar, DashboardHeader } from '../../components/ui';
 
@@ -11,6 +11,7 @@ import { DefaultTable, Button, SearchBar, DashboardHeader } from '../../componen
 import { CustomerRow } from '../../components/customers/CustomerRow';
 import { ActionModal } from '../../components/customers/ActionModal';
 import { EditCustomerModal } from '../../components/customers/EditCustomerModal';
+import { AddCustomerModal } from '../../components/customers/AddCustomerModal';
 
 export const CustomerListPage: React.FC = () => {
   const { isDark } = useTheme();
@@ -29,6 +30,7 @@ export const CustomerListPage: React.FC = () => {
   // Modal State
   const [confirmDelete, setConfirmDelete] = useState<Customer | null>(null);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -95,6 +97,22 @@ export const CustomerListPage: React.FC = () => {
     setActionLoading(false);
   };
 
+  const handleAddSubmit = async (data: Pick<Customer, 'custname' | 'address' | 'payterm'>) => {
+    setActionLoading(true);
+    setActionError(null);
+    const performedBy = (user?.user_metadata?.email as string | undefined) ?? user?.email ?? 'unknown';
+    
+    const { error: svcError } = await createCustomer(data, performedBy, role ?? 'employee');
+    
+    if (svcError) {
+      setActionError(svcError);
+    } else {
+      setIsAddModalOpen(false);
+      void load();
+    }
+    setActionLoading(false);
+  };
+
   const colCount = 5 + (canViewStamp ? 1 : 0) + 1;
 
   const activeCount = customers.filter(c => c.recordstatus === 'ACTIVE').length;
@@ -136,7 +154,7 @@ export const CustomerListPage: React.FC = () => {
             >
               <RefreshCw size={13} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} /> Refresh
             </button>
-            <Button compact style={{ width: 'auto', padding: '0 20px', height: '35px' }}>
+            <Button compact style={{ width: 'auto', padding: '0 20px', height: '35px' }} onClick={() => setIsAddModalOpen(true)}>
               <Plus size={16} style={{ marginRight: '6px' }} /> Add Customer
             </Button>
           </>
@@ -231,6 +249,16 @@ export const CustomerListPage: React.FC = () => {
         customer={editingCustomer}
         onClose={() => { setEditingCustomer(null); setActionError(null); }}
         onSave={handleEditSubmit}
+        loading={actionLoading}
+        error={actionError}
+        C={C}
+        isDark={isDark}
+      />
+
+      <AddCustomerModal
+        isOpen={isAddModalOpen}
+        onClose={() => { setIsAddModalOpen(false); setActionError(null); }}
+        onAdd={handleAddSubmit}
         loading={actionLoading}
         error={actionError}
         C={C}

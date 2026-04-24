@@ -112,3 +112,40 @@ export async function updateCustomer(
   if (error) return { data: null, error: error.message };
   return { data: null, error: null };
 }
+
+/**
+ * Create a new customer with auto-generated custno.
+ */
+export async function createCustomer(
+  data: Pick<Customer, 'custname' | 'address' | 'payterm'>,
+  performedBy: string,
+  role: string,
+): Promise<CustomerServiceResult<null>> {
+  // Get the highest custno currently in the DB
+  const { data: maxRecord, error: maxError } = await supabase
+    .from('customers')
+    .select('custno')
+    .order('custno', { ascending: false })
+    .limit(1);
+    
+  if (maxError) return { data: null, error: maxError.message };
+
+  let newCustNo = 'C001';
+  if (maxRecord && maxRecord.length > 0) {
+    const lastCustNo = maxRecord[0].custno;
+    // Extract numbers from something like "C001"
+    const match = lastCustNo.match(/\d+/);
+    if (match) {
+      const num = parseInt(match[0], 10);
+      newCustNo = `C${String(num + 1).padStart(3, '0')}`;
+    }
+  }
+
+  const stamp = buildStamp('Created', role, performedBy);
+  const { error } = await supabase
+    .from('customers')
+    .insert({ ...data, custno: newCustNo, recordstatus: 'ACTIVE', stamp });
+
+  if (error) return { data: null, error: error.message };
+  return { data: null, error: null };
+}
