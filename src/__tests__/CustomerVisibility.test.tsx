@@ -33,8 +33,8 @@ describe('Customer Visibility & React Query Enforcement', () => {
   describe('Data Visibility: INACTIVE Customers', () => {
     // We create fake database data containing one ACTIVE and one INACTIVE customer
     const mockDbData = [
-      { id: 1, name: 'Active Customer', record_status: 'ACTIVE' },
-      { id: 2, name: 'Hidden Inactive Customer', record_status: 'INACTIVE' }
+      { id: 1, name: 'Active Customer', recordstatus: 'ACTIVE' },
+      { id: 2, name: 'Hidden Inactive Customer', recordstatus: 'INACTIVE' }
     ];
 
     beforeEach(() => {
@@ -71,7 +71,7 @@ describe('Customer Visibility & React Query Enforcement', () => {
   // NEW: THE RECOVERY TEST SECTION
   describe('Data Recovery: ADMIN Action Rights', () => {
     it('shows a "Recover" button ONLY for ADMIN/SUPERADMIN on INACTIVE rows', async () => {
-      const inactiveData = [{ id: 99, name: 'Deleted Corp', record_status: 'INACTIVE' }];
+      const inactiveData = [{ id: 99, name: 'Deleted Corp', recordstatus: 'INACTIVE' }];
       
       vi.mocked(supabase.from).mockReturnValue({
         select: vi.fn().mockReturnValue({
