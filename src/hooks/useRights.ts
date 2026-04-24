@@ -23,6 +23,8 @@ export interface Rights {
   canViewStamp: boolean;
   /** Can see the "Deleted Customers" sidebar link (admin / superadmin only). */
   canViewDeletedNav: boolean;
+
+  canManageEmployees: boolean;
 }
 
 const ELEVATED_ROLES = ['admin', 'superadmin'] as const;
@@ -38,5 +40,6 @@ export function useRights(): Rights {
     canSoftDelete:     true,        // all authenticated roles
     canViewStamp:      isElevated,
     canViewDeletedNav: isElevated,
+    canManageEmployees: isElevated,
   };
 }

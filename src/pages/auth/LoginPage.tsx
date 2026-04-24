@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AuthLayout } from '../../layouts/AuthLayout';
-import { GoogleButton } from '../../features/auth';
+import { GoogleButton } from '../../components/auth';
 import { Button, Input, Divider } from '../../components/ui';
 import { useTheme, tokens } from '../../providers/ThemeProvider';
 import { supabase } from '../../lib/supabase';
@@ -140,7 +140,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitch, onLoginSuccess }) => {
           </div>
 
           <div style={{ marginTop: '2px' }}>
-            <Button isLoading={isLoading} data-testid="login-submit-btn">
+            <Button type="submit" isLoading={isLoading} data-testid="login-submit-btn">
               Sign In
             </Button>
           </div>

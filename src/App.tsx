@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import './App.css';
 import { AuthProvider, useAuth } from './providers/AuthProvider';
-import SuperAdminDashboard from './pages/superadmin/Dashboard';
+import Dashboard from './pages/superadmin/Dashboard';
 import { ThemeProvider } from './providers/ThemeProvider';
 import LoadingSpinner from './pages/auth/LoadingSpinnerPage';
 import LoginPage from './pages/auth/LoginPage';
@@ -32,14 +32,21 @@ const hasValidPendingRedirect = () => {
 };
 
 const AppContent = () => {
-  const { user } = useAuth();
+  // 1. Grab 'role' alongside 'user'
+  const { user, role } = useAuth(); 
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [pendingRedirect, setPendingRedirect] = useState(hasValidPendingRedirect);
 
+  // 2. SMART DISMISSAL: Drop the spinner the moment BOTH user and role are ready
   useEffect(() => {
-    setPendingRedirect(hasValidPendingRedirect());
-  }, [user]);
+    if (user && role && pendingRedirect) {
+      window.sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
+      setPendingRedirect(false);
+    }
+  }, [user, role, pendingRedirect]);
 
+  // 3. FALLBACK SAFETY NET: If role fetching fails or takes too long, 
+  // don't leave them stranded. Release them after 3 seconds, not 10.
   useEffect(() => {
     if (!user || !pendingRedirect) {
       return;
@@ -48,7 +55,7 @@ const AppContent = () => {
     const timer = window.setTimeout(() => {
       window.sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
       setPendingRedirect(false);
-    }, 10000);
+    }, 3000); // Changed from 10000ms to 3000ms
 
     return () => window.clearTimeout(timer);
   }, [user, pendingRedirect]);
@@ -63,7 +70,8 @@ const AppContent = () => {
   }
 
   if (user) {
-    return <SuperAdminDashboard />;
+    // Note: Assuming you've already updated this to point to the new Dashboard routing!
+    return <Dashboard />; 
   }
 
   return authMode === 'login' ? (
