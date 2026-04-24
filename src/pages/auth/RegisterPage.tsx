@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AuthLayout } from '../../layouts/AuthLayout';
-import { GoogleButton, PasswordStrength } from '../../features/auth';
+import { GoogleButton, PasswordStrength } from '../../components/auth';
 import { Button, Input, Divider } from '../../components/ui';
 import { useTheme, tokens } from '../../providers/ThemeProvider';
 import { supabase } from '../../lib/supabase';
@@ -181,7 +181,9 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitch }) => {
             </label>
           </div>
 
-          <Button compact isLoading={isLoading}>Create Account</Button>
+          <Button type="submit" isLoading={isLoading} data-testid="register-submit-btn">
+            Create Account
+          </Button>
         </form>
 
         <p style={{

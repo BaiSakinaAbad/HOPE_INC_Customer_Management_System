@@ -8,7 +8,7 @@
  */
 import React, { createContext, useContext, useState } from 'react';
 
-export type PageId = 'dashboard' | 'customers' | 'deleted' | 'sales' | 'products';
+export type PageId = 'dashboard' | 'customers' | 'deleted' | 'sales' | 'products' | 'employees';
 
 interface NavigationContextType {
   currentPage: PageId;

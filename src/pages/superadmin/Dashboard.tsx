@@ -1,14 +1,49 @@
 import React from 'react';
-import { DashboardLayout } from '../../layouts/SuperAdminLayout';
+import { NavigationProvider, useNavigation } from '../../providers/NavigationProvider';
+import { DashboardLayout } from '../../layouts/DashboardLayout';
+import { MainContent } from '../../components/common/MainContent';
+import { useWindowWidth, BP } from '../../hooks/useWindowWidth';
+import { useAuth } from '../../providers/AuthProvider';
+import { EmployeeListPage } from '../employees/EmployeeListPage';
 
-/**
- * SuperAdminDashboardPage — Page
- * Entry-point page for the Super Admin Dashboard.
- * Renders the DashboardLayout shell, which composes all
- * dashboard composites and elements internally.
- */
-const SuperAdminDashboard: React.FC = () => {
-  return <DashboardLayout />;
+// Import your newly structured feature pages
+import { CustomerListPage, DeletedCustomersPage } from '../customers';
+
+const DashboardRouter: React.FC = () => {
+  const { currentPage } = useNavigation();
+  const { user } = useAuth();
+  const width = useWindowWidth();
+
+  // Extract first name for the welcome screen
+  const metadata = user?.user_metadata ?? {};
+  const fullName = (metadata.full_name as string | undefined)
+    || `${(metadata.first_name as string | undefined) ?? ''} ${(metadata.last_name as string | undefined) ?? ''}`.trim();
+  const displayName = fullName || (metadata.username as string | undefined) || user?.email || 'User';
+  const firstName = (metadata.first_name as string | undefined) || displayName.split(' ')[0] || 'User';
+
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'customers': return <CustomerListPage />;
+      case 'deleted':   return <DeletedCustomersPage />;
+      case 'employees': return <EmployeeListPage />;
+      default:          return <MainContent isMobile={width < BP.mobile} firstName={firstName} />;
+    }
+  };
+
+  return (
+    <DashboardLayout>
+      {renderPage()}
+    </DashboardLayout>
+  );
 };
 
-export default SuperAdminDashboard;
+// Wrap the router in the Navigation Provider
+const Dashboard: React.FC = () => {
+  return (
+    <NavigationProvider>
+      <DashboardRouter />
+    </NavigationProvider>
+  );
+};
+
+export default Dashboard;

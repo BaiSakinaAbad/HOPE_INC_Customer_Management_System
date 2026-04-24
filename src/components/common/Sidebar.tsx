@@ -18,6 +18,7 @@ import {
   Zap,
   X,
   Sparkles,
+  UserCog, // <-- Added new icon for Employees
 } from 'lucide-react';
 import { useTheme, getDashboardTokens, type DashboardTokens } from '../../providers/ThemeProvider';
 import { useNavigation, type PageId } from '../../providers/NavigationProvider';
@@ -32,7 +33,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerOpen, onClose }) => {
   const { isDark } = useTheme();
   const C = getDashboardTokens(isDark);
   const { currentPage, navigate } = useNavigation();
-  const { canViewDeletedNav } = useRights();
+  
+  // Extract both capability flags
+  const { canViewDeletedNav, canManageEmployees } = useRights();
 
   const handleNav = (page: PageId) => {
     navigate(page);
@@ -112,6 +115,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerOpen, onClose }) => {
               isDark={isDark}
             />
           ))}
+          
+          {/* Role-gated: only admin / superadmin */}
+          {canManageEmployees && (
+            <SidebarItem
+              label="Employees (Temp)"
+              icon={UserCog}
+              active={currentPage === 'employees'}
+              onClick={() => handleNav('employees')}
+              C={C}
+              isDark={isDark}
+            />
+          )}
+
           {/* Role-gated: only admin / superadmin */}
           {canViewDeletedNav && (
             <SidebarItem
