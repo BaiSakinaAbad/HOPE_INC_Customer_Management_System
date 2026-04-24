@@ -7,6 +7,7 @@ export interface Product {
   recordstatus: string;
   stamp: string;
   current_price?: number;
+  priceHistory?: { effdate: string; unitprice: number }[];
 }
 
 export async function getProducts(): Promise<{ data: Product[] | null; error: string | null }> {
@@ -25,7 +26,11 @@ export async function getProducts(): Promise<{ data: Product[] | null; error: st
   if (prError) return { data: null, error: prError.message };
 
   const latestPrices: Record<string, number> = {};
+  const historyMap: Record<string, { effdate: string; unitprice: number }[]> = {};
   for (const p of (prices || [])) {
+    if (!historyMap[p.prodcode]) historyMap[p.prodcode] = [];
+    historyMap[p.prodcode].push({ effdate: p.effdate, unitprice: p.unitprice });
+    
     if (latestPrices[p.prodcode] === undefined) {
       latestPrices[p.prodcode] = p.unitprice;
     }
@@ -33,7 +38,8 @@ export async function getProducts(): Promise<{ data: Product[] | null; error: st
 
   const enriched = products.map(prod => ({
     ...prod,
-    current_price: latestPrices[prod.prodcode] ?? 0
+    current_price: latestPrices[prod.prodcode] ?? 0,
+    priceHistory: historyMap[prod.prodcode] || []
   }));
 
   return { data: enriched, error: null };
