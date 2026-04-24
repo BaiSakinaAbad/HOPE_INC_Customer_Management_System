@@ -5,7 +5,7 @@ import { useAuth } from '../../providers/AuthProvider';
 import { useRights } from '../../hooks/useRights';
 import { getCustomers, softDeleteCustomer } from '../../services/customerService';
 import type { Customer } from '../../types/customer';
-import { DefaultTable, Button, SearchBar } from '../../components/ui';
+import { DefaultTable, Button, SearchBar, DashboardHeader } from '../../components/ui';
 
 // Import our new Feature Components
 import { CustomerRow } from '../../components/customers/CustomerRow';
@@ -79,24 +79,51 @@ export const CustomerListPage: React.FC = () => {
 
   const colCount = 5 + (canViewStamp ? 1 : 0) + 1;
 
+  const activeCount = customers.filter(c => c.recordstatus === 'ACTIVE').length;
+  const inactiveCount = customers.filter(c => c.recordstatus === 'INACTIVE').length;
+  const roleDisplay = role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Unknown';
+
   return (
     <div style={{ flex: 1, padding: '32px 24px 48px', fontFamily: 'Inter, sans-serif' }}>
       
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
-        <div>
-          <h2 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '28px', fontWeight: 800, color: isDark ? '#fff' : '#1a1a2e', margin: 0, lineHeight: 1.1 }}>Customers</h2>
-          <p style={{ fontSize: '13px', color: C.onSurfaceVariant, margin: '6px 0 0' }}>{loading ? 'Loading records…' : `${customers.length} records total`}</p>
-        </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button type="button" onClick={() => void load()} disabled={loading} style={{ /* ...refresh styles */ }}>
-            <RefreshCw size={13} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} /> Refresh
-          </button>
-          <Button compact style={{ width: 'auto', padding: '0 20px', height: 'auto' }}>
-            <Plus size={16} style={{ marginRight: '6px' }} /> Add Customer
-          </Button>
-        </div>
-      </div>
+      <DashboardHeader
+        title="Customer Registry"
+        description="The central hub for your customer data. View detailed profiles, onboard new customers, or manage by deleting customers."
+        note="* Note: Deletion is a soft-delete mechanism and can be reversed by an administrator."
+        statsTitle="Registered Customers"
+        totalCount={customers.length}
+        activeCount={activeCount}
+        inactiveCount={inactiveCount}
+        roleDisplay={roleDisplay}
+        policyDescription={
+          canViewStamp 
+            ? 'Stamp columns and administrative modifications are enabled for your current session.' 
+            : 'You can view and manage active customers.'
+        }
+        actions={
+          <>
+            <button
+              type="button"
+              onClick={() => void load()}
+              disabled={loading}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '7px',
+                padding: '9px 16px', borderRadius: '10px',
+                border: `1px solid ${C.outlineVariant}55`,
+                backgroundColor: 'transparent', color: C.onSurfaceVariant,
+                fontSize: '13px', fontWeight: 600,
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.6 : 1, transition: 'all 0.2s',
+              }}
+            >
+              <RefreshCw size={13} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} /> Refresh
+            </button>
+            <Button compact style={{ width: 'auto', padding: '0 20px', height: '35px' }}>
+              <Plus size={16} style={{ marginRight: '6px' }} /> Add Customer
+            </Button>
+          </>
+        }
+      />
 
       {/* Extracted Search Bar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
