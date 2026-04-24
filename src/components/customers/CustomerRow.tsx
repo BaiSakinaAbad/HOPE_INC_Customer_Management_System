@@ -3,6 +3,7 @@ import { Edit2, Trash2, MoreHorizontal, ShoppingCart } from 'lucide-react';
 import { type DashboardTokens } from '../../providers/ThemeProvider';
 import { type Customer } from '../../types/customer';
 import { DefaultTable } from '../../components/ui/DefaultTable';
+import { useNavigation } from '../../providers/NavigationProvider';
 
 // Local StatusBadge helper
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
@@ -73,6 +74,7 @@ const DropdownItem: React.FC<{
 export const CustomerRow: React.FC<CustomerRowProps> = React.memo(({
   customer: c, C, isDark, canViewStamp, canSoftDelete, onEdit, onDelete,
 }) => {
+  const { navigate } = useNavigation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -145,7 +147,7 @@ export const CustomerRow: React.FC<CustomerRowProps> = React.memo(({
               <DropdownItem 
                 icon={<ShoppingCart size={15} />} 
                 label="View Sales" 
-                onClick={() => setDropdownOpen(false)} 
+                onClick={() => { setDropdownOpen(false); navigate('sales', { customerNo: c.custno }); }} 
                 C={C} 
               />
               <DropdownItem 
