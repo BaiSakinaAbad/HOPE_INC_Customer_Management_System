@@ -9,8 +9,8 @@ export interface DashboardHeaderProps {
   actions?: React.ReactNode;
   statsTitle: string;
   totalCount: number;
-  activeCount: number;
-  inactiveCount: number;
+  activeCount?: number;
+  inactiveCount?: number;
   roleDisplay: string;
   policyDescription: React.ReactNode;
 }
@@ -72,16 +72,18 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '42px', fontWeight: 800, color: isDark ? '#fff' : '#1a1a2e', lineHeight: 1 }}>
             {totalCount.toLocaleString()}
           </span>
-          <div style={{ display: 'flex', gap: '16px', marginTop: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#22c55e' }} />
-              <span style={{ fontSize: '13px', color: C.onSurfaceVariant, fontWeight: 600 }}>Active: <span style={{ color: C.onSurface }}>{activeCount}</span></span>
+          {(activeCount !== undefined && inactiveCount !== undefined) && (
+            <div style={{ display: 'flex', gap: '16px', marginTop: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#22c55e' }} />
+                <span style={{ fontSize: '13px', color: C.onSurfaceVariant, fontWeight: 600 }}>Active: <span style={{ color: C.onSurface }}>{activeCount}</span></span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#f59e0b' }} />
+                <span style={{ fontSize: '13px', color: C.onSurfaceVariant, fontWeight: 600 }}>Inactive: <span style={{ color: C.onSurface }}>{inactiveCount}</span></span>
+              </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#f59e0b' }} />
-              <span style={{ fontSize: '13px', color: C.onSurfaceVariant, fontWeight: 600 }}>Inactive: <span style={{ color: C.onSurface }}>{inactiveCount}</span></span>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Access Policy Card */}

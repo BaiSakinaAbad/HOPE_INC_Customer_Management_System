@@ -5,7 +5,7 @@ import { useAuth } from '../../providers/AuthProvider';
 import { useRights } from '../../hooks/useRights';
 import { getDeletedCustomers, activateCustomer } from '../..//services/customerService';
 import type { Customer } from '../../types/customer';
-import { DefaultTable, SearchBar } from '../../components/ui';
+import { DefaultTable, SearchBar, DashboardHeader } from '../../components/ui';
 
 // Import our reusable feature components
 import { ActionModal } from '../../components/customers/ActionModal';
@@ -23,6 +23,12 @@ export const DeletedCustomersPage: React.FC = () => {
   
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sortAsc, setSortAsc] = useState<boolean | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch]);
   
   // Modal State
   const [confirmActivate, setConfirmActivate] = useState<Customer | null>(null);
@@ -59,6 +65,11 @@ export const DeletedCustomersPage: React.FC = () => {
     return result;
   }, [customers, debouncedSearch, sortAsc]);
 
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage]);
+
   const handleActivate = async () => {
     if (!confirmActivate) return;
     setActionLoading(true);
@@ -94,16 +105,32 @@ export const DeletedCustomersPage: React.FC = () => {
   return (
     <div style={{ flex: 1, padding: '32px 24px 48px', fontFamily: 'Inter, sans-serif' }}>
       
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
-        <div>
-          <h2 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '28px', fontWeight: 800, color: isDark ? '#fff' : '#1a1a2e', margin: 0, lineHeight: 1.1 }}>Deleted Customers</h2>
-          <p style={{ fontSize: '13px', color: C.onSurfaceVariant, margin: '6px 0 0' }}>{loading ? 'Loading records…' : `${customers.length} archived records`}</p>
-        </div>
-        <button type="button" onClick={() => void load()} disabled={loading} style={{ /* ...refresh styles */ }}>
-          <RefreshCw size={13} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} /> Refresh
-        </button>
-      </div>
+      <DashboardHeader
+        title="Deleted Customers"
+        description="View and manage soft-deleted customer records. These records are hidden from regular users but remain in the database for auditing and recovery."
+        statsTitle="Archived Customers"
+        totalCount={customers.length}
+        roleDisplay={role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Unknown'}
+        policyDescription="You have access to view and restore archived customer records."
+        actions={
+          <button
+            type="button"
+            onClick={() => void load()}
+            disabled={loading}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '7px',
+              padding: '9px 16px', borderRadius: '10px',
+              border: `1px solid ${C.outlineVariant}55`,
+              backgroundColor: 'transparent', color: C.onSurfaceVariant,
+              fontSize: '13px', fontWeight: 600,
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.6 : 1, transition: 'all 0.2s',
+            }}
+          >
+            <RefreshCw size={13} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} /> Refresh
+          </button>
+        }
+      />
 
       {/* Extracted Search Bar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
@@ -124,7 +151,15 @@ export const DeletedCustomersPage: React.FC = () => {
       )}
 
       {/* Table */}
-      <DefaultTable.Container>
+      <DefaultTable.Container
+        pagination={{
+          currentPage,
+          totalPages: Math.ceil(filtered.length / itemsPerPage),
+          totalItems: filtered.length,
+          itemsPerPage,
+          onPageChange: setCurrentPage,
+        }}
+      >
         <thead>
           <tr>
             <DefaultTable.Th onClick={() => setSortAsc(prev => prev === null ? true : !prev)} style={{ cursor: 'pointer', userSelect: 'none' }}>
@@ -150,7 +185,7 @@ export const DeletedCustomersPage: React.FC = () => {
              </DefaultTable.Tr>
           )}
 
-          {!loading && filtered.map((cust) => (
+          {!loading && paginated.map((cust) => (
             <DeletedRow
               key={cust.custno}
               customer={cust}

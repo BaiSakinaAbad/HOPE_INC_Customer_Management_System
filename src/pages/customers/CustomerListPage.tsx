@@ -26,6 +26,13 @@ export const CustomerListPage: React.FC = () => {
   // Search state is much simpler now
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sortAsc, setSortAsc] = useState<boolean | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  
+  // Reset page to 1 when search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch]);
   
   // Modal State
   const [confirmDelete, setConfirmDelete] = useState<Customer | null>(null);
@@ -46,7 +53,7 @@ export const CustomerListPage: React.FC = () => {
   useEffect(() => { void load(); }, [load]);
 
   const filtered = useMemo(() => {
-    let result = customers;
+    let result = customers.filter(c => c.recordstatus === 'ACTIVE');
     const q = debouncedSearch.trim().toLowerCase();
     if (q) {
       result = result.filter(cust => 
@@ -63,6 +70,11 @@ export const CustomerListPage: React.FC = () => {
     }
     return result;
   }, [customers, debouncedSearch, sortAsc]);
+
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage]);
 
   const handleSoftDelete = async () => {
     if (!confirmDelete) return;
@@ -180,7 +192,15 @@ export const CustomerListPage: React.FC = () => {
       )}
 
       {/* Table */}
-      <DefaultTable.Container>
+      <DefaultTable.Container
+        pagination={{
+          currentPage,
+          totalPages: Math.ceil(filtered.length / itemsPerPage),
+          totalItems: filtered.length,
+          itemsPerPage,
+          onPageChange: setCurrentPage,
+        }}
+      >
         <thead>
           <tr>
             <DefaultTable.Th onClick={() => setSortAsc(prev => prev === null ? true : !prev)} style={{ cursor: 'pointer', userSelect: 'none' }}>
@@ -206,7 +226,7 @@ export const CustomerListPage: React.FC = () => {
              </DefaultTable.Tr>
           )}
 
-          {!loading && filtered.map((cust) => (
+          {!loading && paginated.map((cust) => (
             <CustomerRow
               key={cust.custno}
               customer={cust}
@@ -224,18 +244,14 @@ export const CustomerListPage: React.FC = () => {
       {/* Unified Action Modal */}
       <ActionModal
         isOpen={!!confirmDelete}
-        title="Archive Customer?"
+        title="Soft Delete Customer"
         description={
           <>
-            <strong style={{ color: C.onSurface }}>{confirmDelete?.custname}</strong>{' '}
-            <span style={{ fontFamily: 'monospace', fontSize: '12px', opacity: 0.8 }}>({confirmDelete?.custno})</span>{' '}
-            will be moved to the deleted list. An Admin or SuperAdmin can restore this record at any time.
+            This will soft-delete the customer "{confirmDelete?.custname}". The record will be hidden from regular users but can be recovered by Admin or SuperAdmin.
           </>
         }
-        icon={<AlertTriangle size={26} style={{ color: C.error }} />}
-        iconBg={`${C.error}18`}
-        confirmText="Archive"
-        confirmColor={C.error}
+        confirmText="Delete"
+        confirmColor="#e60000"
         loading={actionLoading}
         error={actionError}
         C={C}
