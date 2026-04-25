@@ -2,8 +2,9 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Package, History, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
 import { useAuth } from '../../providers/AuthProvider';
-import { DefaultTable, SearchBar, DashboardHeader } from '../../components/ui';
+import { DefaultTable, SearchBar, DashboardHeader, Button } from '../../components/ui';
 import { getProducts, type Product } from '../../services/productService';
+import { PriceHistoryModal } from '../../components/products/PriceHistoryModal';
 
 export const ProductCataloguePage: React.FC = () => {
   const { isDark } = useTheme();
@@ -17,6 +18,8 @@ export const ProductCataloguePage: React.FC = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -153,24 +156,28 @@ export const ProductCataloguePage: React.FC = () => {
                 {formatPrice(prod.current_price)}
               </DefaultTable.Td>
               <DefaultTable.Td style={{ textAlign: 'center' }}>
-                <button
-                  type="button"
-                  style={{
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    color: C.onSurfaceVariant, padding: '6px 10px', borderRadius: '6px',
-                    display: 'inline-flex', alignItems: 'center', gap: '6px',
-                    fontSize: '13px', fontWeight: 600, transition: 'background 0.2s',
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = `${C.primary}15`}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                >
-                  <History size={14} /> View
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Button
+                    compact
+                    onClick={() => setSelectedProduct(prod)}
+                    style={{ width: 'auto', padding: '0 12px', gap: '6px' }}
+                  >
+                    <History size={14} /> View
+                  </Button>
+                </div>
               </DefaultTable.Td>
             </DefaultTable.Tr>
           ))}
         </tbody>
       </DefaultTable.Container>
+
+      {/* Price History Modal Overlay */}
+      {selectedProduct && (
+        <PriceHistoryModal
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+        />
+      )}
     </div>
   );
 };

@@ -70,7 +70,10 @@ export const SalesPage: React.FC = () => {
   };
 
   const formatCurrency = (amount: number) => {
-    return `$${amount.toFixed(2)}`;
+    return amount.toLocaleString('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    });
   };
 
   return (

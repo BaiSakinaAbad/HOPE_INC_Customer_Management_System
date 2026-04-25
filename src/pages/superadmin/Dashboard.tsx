@@ -7,8 +7,8 @@ import { useAuth } from '../../providers/AuthProvider';
 import { EmployeeListPage } from '../employees/EmployeeListPage';
 
 import { CustomerListPage, DeletedCustomersPage } from '../customers';
-import { ProductCataloguePage } from '../products';
-import { SalesPage } from '../sales';
+import { ProductCataloguePage } from '../products/ProductCataloguePage';
+import { SalesPage } from '../sales/SalesPage';
 
 const DashboardRouter: React.FC = () => {
   const { currentPage } = useNavigation();
