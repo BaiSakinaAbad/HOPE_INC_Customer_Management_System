@@ -5,8 +5,8 @@ interface ActionModalProps {
   isOpen: boolean;
   title: string;
   description: React.ReactNode;
-  icon: React.ReactNode;
-  iconBg: string;
+  icon?: React.ReactNode;
+  iconBg?: string;
   confirmText: string;
   confirmColor: string;
   loading: boolean;
@@ -40,14 +40,16 @@ export const ActionModal: React.FC<ActionModalProps> = ({
         boxShadow: '0 24px 80px rgba(0,0,0,0.35)',
         animation: 'authFadeIn 0.2s cubic-bezier(0.22,1,0.36,1) both',
       }}>
-        <div style={{
-          width: '52px', height: '52px', borderRadius: '14px',
-          backgroundColor: iconBg,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          marginBottom: '20px',
-        }}>
-          {icon}
-        </div>
+        {icon && (
+          <div style={{
+            width: '52px', height: '52px', borderRadius: '14px',
+            backgroundColor: iconBg,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            marginBottom: '20px',
+          }}>
+            {icon}
+          </div>
+        )}
 
         <h3 style={{
           fontFamily: "'Plus Jakarta Sans', sans-serif",

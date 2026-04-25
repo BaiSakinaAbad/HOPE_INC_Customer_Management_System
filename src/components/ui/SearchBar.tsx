@@ -1,23 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { Search, X } from 'lucide-react';
-import { type DashboardTokens } from '../../providers/ThemeProvider';
+import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
 
-interface CustomerSearchProps {
+interface SearchBarProps {
   onSearch: (query: string) => void;
-  C: DashboardTokens;
-  isDark: boolean;
+  placeholder?: string;
+  debounceMs?: number;
 }
 
-export const CustomerSearch: React.FC<CustomerSearchProps> = ({ onSearch, C, isDark }) => {
+export const SearchBar: React.FC<SearchBarProps> = ({ 
+  onSearch, 
+  placeholder = "Search...", 
+  debounceMs = 300 
+}) => {
+  const { isDark } = useTheme();
+  const C = getDashboardTokens(isDark);
   const [inputValue, setInputValue] = useState('');
 
   // Local debounce
   useEffect(() => {
     const timer = setTimeout(() => {
       onSearch(inputValue);
-    }, 300);
+    }, debounceMs);
     return () => clearTimeout(timer);
-  }, [inputValue, onSearch]);
+  }, [inputValue, onSearch, debounceMs]);
 
   const handleClear = () => {
     setInputValue('');
@@ -35,7 +41,7 @@ export const CustomerSearch: React.FC<CustomerSearchProps> = ({ onSearch, C, isD
       />
       <input
         type="search"
-        placeholder="Search by name, address, code, pay term…"
+        placeholder={placeholder}
         value={inputValue}
         onChange={e => setInputValue(e.target.value)}
         style={{

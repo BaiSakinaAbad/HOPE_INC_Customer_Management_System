@@ -6,8 +6,9 @@ import { useWindowWidth, BP } from '../../hooks/useWindowWidth';
 import { useAuth } from '../../providers/AuthProvider';
 import { EmployeeListPage } from '../employees/EmployeeListPage';
 
-// Import your newly structured feature pages
 import { CustomerListPage, DeletedCustomersPage } from '../customers';
+import { ProductCataloguePage } from '../products';
+import { SalesPage } from '../sales';
 
 const DashboardRouter: React.FC = () => {
   const { currentPage } = useNavigation();
@@ -26,6 +27,8 @@ const DashboardRouter: React.FC = () => {
       case 'customers': return <CustomerListPage />;
       case 'deleted':   return <DeletedCustomersPage />;
       case 'employees': return <EmployeeListPage />;
+      case 'products':  return <ProductCataloguePage />;
+      case 'sales':     return <SalesPage />;
       default:          return <MainContent isMobile={width < BP.mobile} firstName={firstName} />;
     }
   };

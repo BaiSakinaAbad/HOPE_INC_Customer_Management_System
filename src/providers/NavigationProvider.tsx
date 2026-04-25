@@ -12,19 +12,27 @@ export type PageId = 'dashboard' | 'customers' | 'deleted' | 'sales' | 'products
 
 interface NavigationContextType {
   currentPage: PageId;
-  navigate: (page: PageId) => void;
+  navParams: Record<string, any>;
+  navigate: (page: PageId, params?: Record<string, any>) => void;
 }
 
 const NavigationContext = createContext<NavigationContextType>({
   currentPage: 'dashboard',
+  navParams: {},
   navigate: () => {},
 });
 
 export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentPage, setCurrentPage] = useState<PageId>('dashboard');
+  const [navParams, setNavParams] = useState<Record<string, any>>({});
+
+  const navigate = (page: PageId, params?: Record<string, any>) => {
+    setCurrentPage(page);
+    setNavParams(params || {});
+  };
 
   return (
-    <NavigationContext.Provider value={{ currentPage, navigate: setCurrentPage }}>
+    <NavigationContext.Provider value={{ currentPage, navParams, navigate }}>
       {children}
     </NavigationContext.Provider>
   );

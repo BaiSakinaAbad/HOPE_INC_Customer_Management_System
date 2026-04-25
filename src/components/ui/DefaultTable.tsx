@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
 
-export const DefaultTableContainer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export interface PaginationProps {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  onPageChange: (page: number) => void;
+}
+
+export const DefaultTableContainer: React.FC<{ children: React.ReactNode; pagination?: PaginationProps }> = ({ children, pagination }) => {
   const { isDark } = useTheme();
   const C = getDashboardTokens(isDark);
 
@@ -16,6 +25,74 @@ export const DefaultTableContainer: React.FC<{ children: React.ReactNode }> = ({
           {children}
         </table>
       </div>
+
+      {pagination && pagination.totalPages > 0 && (
+        <div style={{
+          padding: '16px 20px',
+          borderTop: `1px solid ${C.outlineVariant}33`,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          fontSize: '13px',
+          color: C.onSurfaceVariant,
+          flexWrap: 'wrap',
+          gap: '12px'
+        }}>
+          <div>
+            Showing <strong style={{ color: C.onSurface }}>{Math.min((pagination.currentPage - 1) * pagination.itemsPerPage + 1, pagination.totalItems)}</strong> to <strong style={{ color: C.onSurface }}>{Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems)}</strong> of <strong style={{ color: C.onSurface }}>{pagination.totalItems}</strong> entries
+          </div>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <button
+              onClick={() => pagination.onPageChange(Math.max(1, pagination.currentPage - 1))}
+              disabled={pagination.currentPage === 1}
+              style={{
+                width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                borderRadius: '6px', border: `1px solid ${C.outlineVariant}55`,
+                backgroundColor: 'transparent', color: C.onSurface,
+                cursor: pagination.currentPage === 1 ? 'not-allowed' : 'pointer',
+                opacity: pagination.currentPage === 1 ? 0.5 : 1,
+              }}
+            >
+              <ChevronLeft size={16} />
+            </button>
+            
+            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(page => {
+              const isActive = page === pagination.currentPage;
+              return (
+                <button
+                  key={page}
+                  onClick={() => pagination.onPageChange(page)}
+                  style={{
+                    minWidth: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    borderRadius: '6px',
+                    border: isActive ? 'none' : `1px solid ${C.outlineVariant}55`,
+                    backgroundColor: isActive ? (isDark ? '#fff' : '#1a1a2e') : 'transparent',
+                    color: isActive ? (isDark ? '#000' : '#fff') : C.onSurface,
+                    fontWeight: isActive ? 700 : 500,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {page}
+                </button>
+              );
+            })}
+
+            <button
+              onClick={() => pagination.onPageChange(Math.min(pagination.totalPages, pagination.currentPage + 1))}
+              disabled={pagination.currentPage === pagination.totalPages}
+              style={{
+                width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                borderRadius: '6px', border: `1px solid ${C.outlineVariant}55`,
+                backgroundColor: 'transparent', color: C.onSurface,
+                cursor: pagination.currentPage === pagination.totalPages ? 'not-allowed' : 'pointer',
+                opacity: pagination.currentPage === pagination.totalPages ? 0.5 : 1,
+              }}
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
