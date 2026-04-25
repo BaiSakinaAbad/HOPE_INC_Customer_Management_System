@@ -37,7 +37,13 @@ export async function getCustomers(role: string): Promise<CustomerServiceResult<
   ).order('custname', { ascending: true });
 
   if (error) return { data: null, error: error.message };
-  return { data: data as Customer[], error: null };
+  const rows = (data as Customer[]) ?? [];
+  if (isRestricted) return { data: rows, error: null };
+
+  // Elevated roles can view inactive records, but deleted records belong only
+  // in the Deleted Customers page.
+  const visibleRows = rows.filter((row) => !(row.stamp ?? '').toLowerCase().startsWith('deleted by'));
+  return { data: visibleRows, error: null };
 }
 
 /**
@@ -56,7 +62,9 @@ export async function getDeletedCustomers(role: string): Promise<CustomerService
     .order('custname', { ascending: true });
 
   if (error) return { data: null, error: error.message };
-  return { data: data as Customer[], error: null };
+  const rows = (data as Customer[]) ?? [];
+  const deletedRows = rows.filter((row) => (row.stamp ?? '').toLowerCase().startsWith('deleted by'));
+  return { data: deletedRows, error: null };
 }
 
 /**
@@ -72,6 +80,28 @@ export async function softDeleteCustomer(
     return { data: null, error: 'Only superadmin can soft-delete.' };
   }
   const stamp = buildStamp('Deleted', role, performedBy);
+  const { error } = await supabase
+    .from('customers')
+    .update({ recordstatus: 'INACTIVE', stamp })
+    .eq('custno', custno);
+
+  if (error) return { data: null, error: error.message };
+  return { data: null, error: null };
+}
+
+/**
+ * Toggle-like deactivation for normal status management.
+ * Admin / superadmin only.
+ */
+export async function deactivateCustomer(
+  custno: string,
+  performedBy: string,
+  role: string,
+): Promise<CustomerServiceResult<null>> {
+  if (!(ELEVATED as readonly string[]).includes(role.toLowerCase())) {
+    return { data: null, error: 'Only admin and superadmin can deactivate.' };
+  }
+  const stamp = buildStamp('Deactivated', role, performedBy);
   const { error } = await supabase
     .from('customers')
     .update({ recordstatus: 'INACTIVE', stamp })
