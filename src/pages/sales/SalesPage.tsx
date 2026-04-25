@@ -86,6 +86,10 @@ export const SalesPage: React.FC = () => {
         totalCount={sales.length}
         roleDisplay={role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Unknown'}
         policyDescription="No edit permissions on this module."
+        allowedActions={[
+          'View Sales Transactions',
+          'View Analytics'
+        ]}
         actions={
           <button
             type="button"

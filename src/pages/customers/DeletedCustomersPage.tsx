@@ -38,11 +38,11 @@ export const DeletedCustomersPage: React.FC = () => {
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const { data, error: svcError } = await getDeletedCustomers();
+    const { data, error: svcError } = await getDeletedCustomers(role ?? 'employee');
     setCustomers(svcError ? [] : (data ?? []));
     setError(svcError);
     setLoading(false);
-  }, []);
+  }, [role]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -112,6 +112,11 @@ export const DeletedCustomersPage: React.FC = () => {
         totalCount={customers.length}
         roleDisplay={role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Unknown'}
         policyDescription="You have access to view and restore archived customer records."
+        allowedActions={[
+          'View Archived Customers',
+          ...(canViewStamp ? ['View Audit Stamps'] : []),
+          ...(canActivate ? ['Restore Customers'] : [])
+        ]}
         actions={
           <button
             type="button"

@@ -27,7 +27,7 @@ const buildStamp = (action: string, role: string, performedBy: string) => {
 /**
  * Fetch customers.
  * - `employee` (any non-elevated role): ACTIVE records only.
- * - `admin` / `superadmin`: all records.
+ * - `admin` / `superadmin`: all records (UI filters table, but header uses counts).
  */
 export async function getCustomers(role: string): Promise<CustomerServiceResult<Customer[]>> {
   const isRestricted = !(ELEVATED as readonly string[]).includes(role.toLowerCase());
@@ -45,7 +45,10 @@ export async function getCustomers(role: string): Promise<CustomerServiceResult<
  * UI must gate access; this function fetches without role check as an
  * additional safety layer is provided by Supabase RLS policies.
  */
-export async function getDeletedCustomers(): Promise<CustomerServiceResult<Customer[]>> {
+export async function getDeletedCustomers(role: string): Promise<CustomerServiceResult<Customer[]>> {
+  if (!(ELEVATED as readonly string[]).includes(role.toLowerCase())) {
+    return { data: null, error: 'Access denied' };
+  }
   const { data, error } = await supabase
     .from('customers')
     .select(COLS)
@@ -65,6 +68,9 @@ export async function softDeleteCustomer(
   performedBy: string,
   role: string,
 ): Promise<CustomerServiceResult<null>> {
+  if (role.toLowerCase() !== 'superadmin') {
+    return { data: null, error: 'Only superadmin can soft-delete.' };
+  }
   const stamp = buildStamp('Deleted', role, performedBy);
   const { error } = await supabase
     .from('customers')
@@ -84,6 +90,9 @@ export async function activateCustomer(
   performedBy: string,
   role: string,
 ): Promise<CustomerServiceResult<null>> {
+  if (!(ELEVATED as readonly string[]).includes(role.toLowerCase())) {
+    return { data: null, error: 'Only admin and superadmin can restore.' };
+  }
   const stamp = buildStamp('Restored', role, performedBy);
   const { error } = await supabase
     .from('customers')
@@ -103,6 +112,9 @@ export async function updateCustomer(
   performedBy: string,
   role: string,
 ): Promise<CustomerServiceResult<null>> {
+  if (!(ELEVATED as readonly string[]).includes(role.toLowerCase())) {
+    return { data: null, error: 'Only admin and superadmin can edit customers.' };
+  }
   const stamp = buildStamp('Updated', role, performedBy);
   const { error } = await supabase
     .from('customers')
@@ -121,6 +133,9 @@ export async function createCustomer(
   performedBy: string,
   role: string,
 ): Promise<CustomerServiceResult<null>> {
+  if (!(ELEVATED as readonly string[]).includes(role.toLowerCase())) {
+    return { data: null, error: 'Only admin and superadmin can add customers.' };
+  }
   // Get the highest custno currently in the DB
   const { data: maxRecord, error: maxError } = await supabase
     .from('customers')

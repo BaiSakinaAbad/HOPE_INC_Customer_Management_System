@@ -17,7 +17,9 @@ export const CustomerListPage: React.FC = () => {
   const { isDark } = useTheme();
   const C = getDashboardTokens(isDark);
   const { role, user } = useAuth();
-  const { canViewStamp, canSoftDelete } = useRights();
+  const { canViewStamp } = useRights();
+  const canSoftDelete = role === 'superadmin';
+  const canEdit = role === 'admin' || role === 'superadmin';
 
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -148,6 +150,12 @@ export const CustomerListPage: React.FC = () => {
             ? 'Stamp columns and administrative modifications are enabled for your current session.' 
             : 'You can view and manage active customers.'
         }
+        allowedActions={[
+          'View Active Customers',
+          ...(canViewStamp ? ['View Audit Stamps'] : []),
+          ...(canEdit ? ['Add Customers', 'Edit Customers'] : []),
+          ...(canSoftDelete ? ['Delete Customers'] : [])
+        ]}
         actions={
           <>
             <button
@@ -166,9 +174,11 @@ export const CustomerListPage: React.FC = () => {
             >
               <RefreshCw size={13} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} /> Refresh
             </button>
-            <Button compact style={{ width: 'auto', padding: '0 20px', height: '35px' }} onClick={() => setIsAddModalOpen(true)}>
-              <Plus size={16} style={{ marginRight: '6px' }} /> Add Customer
-            </Button>
+            {canEdit && (
+              <Button compact style={{ width: 'auto', padding: '0 20px', height: '35px' }} onClick={() => setIsAddModalOpen(true)}>
+                <Plus size={16} style={{ marginRight: '6px' }} /> Add Customer
+              </Button>
+            )}
           </>
         }
       />
@@ -234,6 +244,7 @@ export const CustomerListPage: React.FC = () => {
               isDark={isDark}
               canViewStamp={canViewStamp}
               canSoftDelete={canSoftDelete}
+              canEdit={canEdit}
               onEdit={setEditingCustomer}
               onDelete={setConfirmDelete}
             />
