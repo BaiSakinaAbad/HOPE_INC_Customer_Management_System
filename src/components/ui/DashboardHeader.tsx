@@ -13,6 +13,7 @@ export interface DashboardHeaderProps {
   inactiveCount?: number;
   roleDisplay: string;
   policyDescription: React.ReactNode;
+  allowedActions?: string[];
 }
 
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
@@ -26,6 +27,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   inactiveCount,
   roleDisplay,
   policyDescription,
+  allowedActions,
 }) => {
   const { isDark } = useTheme();
   const C = getDashboardTokens(isDark);
@@ -92,7 +94,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           borderRadius: '16px', padding: '24px',
           border: `1px solid ${C.outlineVariant}33`,
           boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.25)' : '0 2px 10px rgba(0,0,0,0.02)',
-          display: 'flex', alignItems: 'center', gap: '20px',
+          display: 'flex', alignItems: 'flex-start', gap: '20px',
         }}>
           <div style={{
             width: '52px', height: '52px', borderRadius: '14px', flexShrink: 0,
@@ -101,14 +103,28 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           }}>
             <Info size={24} style={{ color: C.primary }} />
           </div>
-          <div>
+          <div style={{ flex: 1 }}>
             <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '18px', fontWeight: 700, color: C.primary, margin: '0 0 6px' }}>
               Access Policy
             </h3>
-            <p style={{ fontSize: '13px', color: C.onSurfaceVariant, margin: 0, lineHeight: 1.5 }}>
+            <p style={{ fontSize: '13px', color: C.onSurfaceVariant, margin: '0 0 8px', lineHeight: 1.5 }}>
               You are currently operating under <strong style={{ color: C.onSurface }}>{roleDisplay} Access</strong>. 
               {' '}{policyDescription}
             </p>
+            {allowedActions && allowedActions.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '12px' }}>
+                {allowedActions.map((action, i) => (
+                  <span key={i} style={{
+                    fontSize: '11px', fontWeight: 600, padding: '4px 8px',
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
+                    color: C.onSurfaceVariant, borderRadius: '6px',
+                    border: `1px solid ${C.outlineVariant}40`
+                  }}>
+                    {action}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

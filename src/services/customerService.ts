@@ -26,15 +26,15 @@ const buildStamp = (action: string, role: string, performedBy: string) => {
 
 /**
  * Fetch customers.
- * All roles: ACTIVE records only.
- * Inactive customers are viewed via `getDeletedCustomers`.
+ * - `employee` (any non-elevated role): ACTIVE records only.
+ * - `admin` / `superadmin`: all records (UI filters table, but header uses counts).
  */
-export async function getCustomers(): Promise<CustomerServiceResult<Customer[]>> {
-  const { data, error } = await supabase
-    .from('customers')
-    .select(COLS)
-    .eq('recordstatus', 'ACTIVE')
-    .order('custname', { ascending: true });
+export async function getCustomers(role: string): Promise<CustomerServiceResult<Customer[]>> {
+  const isRestricted = !(ELEVATED as readonly string[]).includes(role.toLowerCase());
+  const qb = supabase.from('customers').select(COLS);
+  const { data, error } = await (
+    isRestricted ? qb.eq('recordstatus', 'ACTIVE') : qb
+  ).order('custname', { ascending: true });
 
   if (error) return { data: null, error: error.message };
   return { data: data as Customer[], error: null };

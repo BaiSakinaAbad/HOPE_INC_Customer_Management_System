@@ -46,7 +46,7 @@ export const CustomerListPage: React.FC = () => {
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const { data, error: svcError } = await getCustomers();
+    const { data, error: svcError } = await getCustomers(role ?? 'employee');
     setCustomers(svcError ? [] : (data ?? []));
     setError(svcError);
     setLoading(false);
@@ -150,6 +150,12 @@ export const CustomerListPage: React.FC = () => {
             ? 'Stamp columns and administrative modifications are enabled for your current session.' 
             : 'You can view and manage active customers.'
         }
+        allowedActions={[
+          'View Active Customers',
+          ...(canViewStamp ? ['View Audit Stamps'] : []),
+          ...(canEdit ? ['Add Customers', 'Edit Customers'] : []),
+          ...(canSoftDelete ? ['Delete Customers'] : [])
+        ]}
         actions={
           <>
             <button

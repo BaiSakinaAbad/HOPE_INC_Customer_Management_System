@@ -112,6 +112,11 @@ export const DeletedCustomersPage: React.FC = () => {
         totalCount={customers.length}
         roleDisplay={role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Unknown'}
         policyDescription="You have access to view and restore archived customer records."
+        allowedActions={[
+          'View Archived Customers',
+          ...(canViewStamp ? ['View Audit Stamps'] : []),
+          ...(canActivate ? ['Restore Customers'] : [])
+        ]}
         actions={
           <button
             type="button"
