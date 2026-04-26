@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { RefreshCw, AlertTriangle, ShieldOff, Power, PowerOff } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { RefreshCw, AlertTriangle, ShieldOff, Power, PowerOff, ShieldBan } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
 import { useAuth } from '../../providers/AuthProvider';
 import { useRights } from '../../hooks/useRights';
-import { getEmployees, toggleEmployeeStatus } from '../../services/employeeService';
-import type { Employee } from '../../types/employee';
-import { DefaultTable } from '../../components/ui';
+import { getEmployees, updateEmployeeStatus, updateEmployeeRole } from '../../services/employeeService';
+import type { Employee, EmployeeRole, EmployeeStatus } from '../../types/employee';
+import { DefaultTable, DashboardHeader } from '../../components/ui';
 import { EmployeeRow } from '../../components/employees/EmployeeRow';
 import { ActionModal } from '../../components/customers/ActionModal'; // Reusing the generic modal!
 
@@ -18,11 +18,14 @@ export const EmployeeListPage: React.FC = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   
   // Modal State
-  const [confirmToggle, setConfirmToggle] = useState<Employee | null>(null);
+  const [pendingStatusAction, setPendingStatusAction] = useState<{ employee: Employee; action: 'deactivate' | 'block' } | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [roleUpdatingEmpno, setRoleUpdatingEmpno] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -35,21 +38,70 @@ export const EmployeeListPage: React.FC = () => {
 
   useEffect(() => { void load(); }, [load]);
 
-  const handleToggle = async () => {
-    if (!confirmToggle) return;
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [employees.length]);
+
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return employees.slice(start, start + itemsPerPage);
+  }, [employees, currentPage]);
+
+  const handleStatusAction = async () => {
+    if (!pendingStatusAction) return;
     setActionLoading(true);
     setActionError(null);
     const performedBy = (user?.user_metadata?.email as string | undefined) ?? user?.email ?? 'unknown';
-    
-    const { error: svcError } = await toggleEmployeeStatus(confirmToggle.empno, confirmToggle.recordstatus, performedBy, role ?? 'admin');
-    
+
+    const { employee, action } = pendingStatusAction;
+    const { error: svcError } = await updateEmployeeStatus(
+      employee.empno,
+      employee.role,
+      employee.user_id,
+      employee.recordstatus,
+      action,
+      performedBy,
+      role ?? 'admin',
+      user?.id ?? '',
+    );
+
     if (svcError) {
       setActionError(svcError);
     } else {
-      setConfirmToggle(null);
-      void load();
+      let nextStatus: EmployeeStatus = employee.recordstatus;
+      if (action === 'deactivate') {
+        nextStatus = employee.recordstatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+      } else {
+        nextStatus = employee.recordstatus === 'BLOCKED' ? 'ACTIVE' : 'BLOCKED';
+      }
+      setEmployees((prev) => prev.map((emp) => (
+        emp.empno === employee.empno ? { ...emp, recordstatus: nextStatus } : emp
+      )));
+      setPendingStatusAction(null);
     }
     setActionLoading(false);
+  };
+
+  const handleRoleChange = async (employee: Employee, newRole: EmployeeRole) => {
+    if (employee.role === newRole) return;
+    setRoleUpdatingEmpno(employee.empno);
+    setActionError(null);
+    const performedBy = (user?.user_metadata?.email as string | undefined) ?? user?.email ?? 'unknown';
+    const { error: svcError } = await updateEmployeeRole(
+      employee.empno,
+      employee.role,
+      newRole,
+      performedBy,
+      role ?? 'admin',
+    );
+    if (svcError) {
+      setActionError(svcError);
+    } else {
+      setEmployees((prev) => prev.map((emp) => (
+        emp.empno === employee.empno ? { ...emp, role: newRole } : emp
+      )));
+    }
+    setRoleUpdatingEmpno(null);
   };
 
   if (!canManageEmployees) {
@@ -64,30 +116,56 @@ export const EmployeeListPage: React.FC = () => {
     );
   }
 
-  const isTogglingActive = confirmToggle?.recordstatus === 'ACTIVE';
+  const activeCount = employees.filter(e => e.recordstatus === 'ACTIVE').length;
+  const inactiveCount = employees.filter(e => e.recordstatus === 'INACTIVE').length;
+  const blockedCount = employees.filter(e => e.recordstatus === 'BLOCKED').length;
+  const roleDisplay = role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Unknown';
+  const isDeactivateAction = pendingStatusAction?.action === 'deactivate';
+  const pendingIsActive = pendingStatusAction?.employee.recordstatus === 'ACTIVE';
+  const pendingIsBlocked = pendingStatusAction?.employee.recordstatus === 'BLOCKED';
 
   return (
     <div style={{ flex: 1, padding: '32px 24px 48px', fontFamily: 'Inter, sans-serif' }}>
-      
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
-        <div>
-          <h2 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '28px', fontWeight: 800, color: isDark ? '#fff' : '#1a1a2e', margin: 0, lineHeight: 1.1 }}>Employees (Temp)</h2>
-          <p style={{ fontSize: '13px', color: C.onSurfaceVariant, margin: '6px 0 0' }}>{loading ? 'Loading records…' : `${employees.length} personnel records`}</p>
-        </div>
-        <button type="button" onClick={() => void load()} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 16px', borderRadius: '10px', border: `1px solid ${C.outlineVariant}55`, backgroundColor: 'transparent', color: C.onSurfaceVariant, fontSize: '13px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1 }}>
-          <RefreshCw size={13} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} /> Refresh
-        </button>
-      </div>
+
+      <DashboardHeader
+        title="Employee Registry"
+        description="Manage employee records and activation status for user accounts."
+        statsTitle="Registered Employees"
+        totalCount={employees.length}
+        activeCount={activeCount}
+        inactiveCount={inactiveCount}
+        blockedCount={blockedCount}
+        roleDisplay={roleDisplay}
+        policyDescription="You can view all employee records and toggle employee activation status."
+        allowedActions={['View Employees', 'Activate Employees', 'Deactivate Employees']}
+        actions={(
+          <button type="button" onClick={() => void load()} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 16px', borderRadius: '10px', border: `1px solid ${C.outlineVariant}55`, backgroundColor: 'transparent', color: C.onSurfaceVariant, fontSize: '13px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1 }}>
+            <RefreshCw size={13} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} /> Refresh
+          </button>
+        )}
+      />
 
       {error && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', borderRadius: '10px', marginBottom: '16px', backgroundColor: `${C.error}18`, border: `1px solid ${C.error}33`, color: C.error, fontSize: '13px' }}>
           <AlertTriangle size={16} /> <span>{error}</span>
         </div>
       )}
+      {actionError && !pendingStatusAction && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', borderRadius: '10px', marginBottom: '16px', backgroundColor: `${C.error}18`, border: `1px solid ${C.error}33`, color: C.error, fontSize: '13px' }}>
+          <AlertTriangle size={16} /> <span>{actionError}</span>
+        </div>
+      )}
 
       {/* Table */}
-      <DefaultTable.Container>
+      <DefaultTable.Container
+        pagination={{
+          currentPage,
+          totalPages: Math.ceil(employees.length / itemsPerPage),
+          totalItems: employees.length,
+          itemsPerPage,
+          onPageChange: setCurrentPage,
+        }}
+      >
         <thead>
           <tr>
             <DefaultTable.Th>Emp No</DefaultTable.Th>
@@ -102,39 +180,69 @@ export const EmployeeListPage: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {!loading && employees.map((emp) => (
+          {!loading && paginated.map((emp) => (
+            (() => {
+              const actorRole = (role ?? '').toLowerCase();
+              const isSelf = (user?.id ?? '') === emp.user_id;
+              const canBlockAction = actorRole === 'superadmin'
+                || (actorRole === 'admin' && (emp.role === 'employee' || (emp.role === 'admin' && isSelf)));
+              const blockActionDisabledReason = actorRole === 'admin' && !canBlockAction
+                ? 'Admins can only block/unblock themselves and employees.'
+                : '';
+              return (
             <EmployeeRow
               key={emp.empno}
               employee={emp}
               C={C}
               isDark={isDark}
-              onToggleStatus={setConfirmToggle}
+              onStatusAction={(employee, actionType) => setPendingStatusAction({ employee, action: actionType })}
+              canEditRole={role === 'superadmin' && emp.role !== 'superadmin'}
+              canBlockAction={canBlockAction}
+              blockActionDisabledReason={blockActionDisabledReason}
+              roleUpdating={roleUpdatingEmpno === emp.empno}
+              onRoleChange={handleRoleChange}
             />
+              );
+            })()
           ))}
         </tbody>
       </DefaultTable.Container>
 
       {/* Reusable Action Modal */}
       <ActionModal
-        isOpen={!!confirmToggle}
-        title={isTogglingActive ? "Deactivate Employee?" : "Activate Employee?"}
+        isOpen={!!pendingStatusAction}
+        title={
+          isDeactivateAction
+            ? (pendingIsActive ? 'Deactivate Employee?' : pendingIsBlocked ? 'Status Update Unavailable' : 'Activate Employee?')
+            : (pendingIsBlocked ? 'Unblock Employee?' : 'Block Employee?')
+        }
         description={
           <>
-            <strong style={{ color: C.onSurface }}>{confirmToggle?.lastname}, {confirmToggle?.firstname}</strong>{' '}
-            <span style={{ fontFamily: 'monospace', fontSize: '12px', opacity: 0.8 }}>({confirmToggle?.empno})</span>{' '}
-            will be marked as {isTogglingActive ? 'INACTIVE' : 'ACTIVE'}.
+            <strong style={{ color: C.onSurface }}>{pendingStatusAction?.employee.lastname}, {pendingStatusAction?.employee.firstname}</strong>{' '}
+            <span style={{ fontFamily: 'monospace', fontSize: '12px', opacity: 0.8 }}>({pendingStatusAction?.employee.empno})</span>{' '}
+            {isDeactivateAction
+              ? (pendingIsActive
+                ? 'will be marked as INACTIVE.'
+                : pendingIsBlocked
+                  ? 'is currently BLOCKED and cannot be deactivated.'
+                  : 'will be marked as ACTIVE.')
+              : (pendingIsBlocked ? 'will be marked as ACTIVE.' : 'will be marked as BLOCKED.')}
           </>
         }
-        icon={isTogglingActive ? <PowerOff size={26} style={{ color: C.error }} /> : <Power size={26} style={{ color: '#22c55e' }} />}
-        iconBg={isTogglingActive ? `${C.error}18` : 'rgba(34,197,94,0.15)'}
-        confirmText={isTogglingActive ? "Deactivate" : "Activate"}
-        confirmColor={isTogglingActive ? C.error : '#22c55e'}
+        icon={
+          isDeactivateAction
+            ? (pendingIsActive ? <PowerOff size={26} style={{ color: C.error }} /> : <Power size={26} style={{ color: '#22c55e' }} />)
+            : <ShieldBan size={26} style={{ color: C.error }} />
+        }
+        iconBg={(isDeactivateAction && !pendingIsActive) ? 'rgba(34,197,94,0.15)' : `${C.error}18`}
+        confirmText={isDeactivateAction ? (pendingIsActive ? 'Deactivate' : 'Activate') : (pendingIsBlocked ? 'Unblock' : 'Block')}
+        confirmColor={isDeactivateAction ? (pendingIsActive ? C.error : '#22c55e') : C.error}
         loading={actionLoading}
         error={actionError}
         C={C}
         isDark={isDark}
-        onConfirm={handleToggle}
-        onCancel={() => { setConfirmToggle(null); setActionError(null); }}
+        onConfirm={handleStatusAction}
+        onCancel={() => { setPendingStatusAction(null); setActionError(null); }}
       />
     </div>
   );

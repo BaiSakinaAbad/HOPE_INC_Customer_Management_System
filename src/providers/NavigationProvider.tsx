@@ -6,9 +6,11 @@
  * The Sidebar consumes this context to highlight the active item and
  * drive navigation on click.
  */
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
 export type PageId = 'dashboard' | 'customers' | 'deleted' | 'sales' | 'products' | 'employees';
+const NAV_STATE_KEY = 'dashboard-nav-state';
+const VALID_PAGES: PageId[] = ['dashboard', 'customers', 'deleted', 'sales', 'products', 'employees'];
 
 interface NavigationContextType {
   currentPage: PageId;
@@ -23,13 +25,41 @@ const NavigationContext = createContext<NavigationContextType>({
 });
 
 export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentPage, setCurrentPage] = useState<PageId>('dashboard');
-  const [navParams, setNavParams] = useState<Record<string, any>>({});
+  const [currentPage, setCurrentPage] = useState<PageId>(() => {
+    try {
+      const raw = window.sessionStorage.getItem(NAV_STATE_KEY);
+      if (!raw) return 'dashboard';
+      const parsed = JSON.parse(raw) as { page?: string };
+      if (parsed.page && VALID_PAGES.includes(parsed.page as PageId)) {
+        return parsed.page as PageId;
+      }
+      return 'dashboard';
+    } catch {
+      return 'dashboard';
+    }
+  });
+  const [navParams, setNavParams] = useState<Record<string, any>>(() => {
+    try {
+      const raw = window.sessionStorage.getItem(NAV_STATE_KEY);
+      if (!raw) return {};
+      const parsed = JSON.parse(raw) as { params?: Record<string, any> };
+      return parsed.params ?? {};
+    } catch {
+      return {};
+    }
+  });
 
   const navigate = (page: PageId, params?: Record<string, any>) => {
     setCurrentPage(page);
     setNavParams(params || {});
   };
+
+  useEffect(() => {
+    window.sessionStorage.setItem(
+      NAV_STATE_KEY,
+      JSON.stringify({ page: currentPage, params: navParams }),
+    );
+  }, [currentPage, navParams]);
 
   return (
     <NavigationContext.Provider value={{ currentPage, navParams, navigate }}>

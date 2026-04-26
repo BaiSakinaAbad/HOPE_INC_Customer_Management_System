@@ -1,4 +1,4 @@
-export type EmployeeStatus = 'ACTIVE' | 'INACTIVE';
+export type EmployeeStatus = 'ACTIVE' | 'INACTIVE' | 'BLOCKED';
 export type EmployeeRole = 'employee' | 'admin' | 'superadmin';
 
 export interface Employee {
