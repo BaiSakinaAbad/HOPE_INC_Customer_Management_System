@@ -1,19 +1,27 @@
 import React, { useState } from 'react';
 import { AuthLayout } from '../../layouts/AuthLayout';
-import { GoogleButton } from '../../components/auth';
+import { GoogleButton, BlockedUserAlert } from '../../components/auth';
 import { Button, Input, Divider } from '../../components/ui';
-import { useTheme, tokens } from '../../providers/ThemeProvider';
+import { useTheme, tokens, getDashboardTokens } from '../../providers/ThemeProvider';
 import { supabase } from '../../lib/supabase';
 
 interface LoginPageProps {
   onSwitch: () => void;
   onLoginSuccess: () => void;
+  showBlockedAlert?: boolean;
+  onDismissBlockedAlert?: () => void;
 }
 
 const POST_LOGIN_REDIRECT_KEY = 'post-login-redirect-pending';
 
-const LoginPage: React.FC<LoginPageProps> = ({ onSwitch, onLoginSuccess }) => {
+const LoginPage: React.FC<LoginPageProps> = ({ 
+  onSwitch, 
+  onLoginSuccess,
+  showBlockedAlert = false,
+  onDismissBlockedAlert = () => {}
+}) => {
   const { isDark } = useTheme();
+  const dashboardTokens = getDashboardTokens(isDark);
   const t = isDark ? tokens.dark : tokens.light;
   
   // Form State
@@ -51,6 +59,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onSwitch, onLoginSuccess }) => {
   return (
     <AuthLayout title="Welcome back" subtitle="Enter your credentials.">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+
+        {/* --- Blocked User Alert --- */}
+        {showBlockedAlert && (
+          <BlockedUserAlert 
+            isDark={isDark} 
+            C={dashboardTokens} 
+            onDismiss={onDismissBlockedAlert}
+          />
+        )}
 
         <GoogleButton
           label="Continue with Google"
