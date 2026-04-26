@@ -1,16 +1,23 @@
 import React, { useState } from 'react';
 import { AuthLayout } from '../../layouts/AuthLayout';
-import { GoogleButton, PasswordStrength } from '../../components/auth';
+import { GoogleButton, PasswordStrength, BlockedUserAlert } from '../../components/auth';
 import { Button, Input, Divider } from '../../components/ui';
-import { useTheme, tokens } from '../../providers/ThemeProvider';
+import { useTheme, tokens, getDashboardTokens } from '../../providers/ThemeProvider';
 import { supabase } from '../../lib/supabase';
 
 interface RegisterPageProps {
   onSwitch: () => void;
+  showBlockedAlert?: boolean;
+  onDismissBlockedAlert?: () => void;
 }
 
-const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitch }) => {
+const RegisterPage: React.FC<RegisterPageProps> = ({ 
+  onSwitch,
+  showBlockedAlert = false,
+  onDismissBlockedAlert = () => {}
+}) => {
   const { isDark } = useTheme();
+  const dashboardTokens = getDashboardTokens(isDark);
   const t = isDark ? tokens.dark : tokens.light;
   
   // Form State
@@ -70,6 +77,15 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onSwitch }) => {
   return (
     <AuthLayout compact title="Create your account" subtitle="Welcome to BiteLog.">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+
+        {/* --- Blocked User Alert --- */}
+        {showBlockedAlert && (
+          <BlockedUserAlert 
+            isDark={isDark} 
+            C={dashboardTokens} 
+            onDismiss={onDismissBlockedAlert}
+          />
+        )}
 
         <GoogleButton 
           compact 

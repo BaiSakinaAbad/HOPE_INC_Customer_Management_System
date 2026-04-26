@@ -3,11 +3,13 @@ import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
 const POST_LOGIN_REDIRECT_KEY = 'post-login-redirect-pending';
+const BLOCKED_USER_KEY = 'blocked-user-email';
 
 interface AuthContextType {
   session: Session | null;
   user: User | null;
   role: string | null;
+  recordstatus: string | null;
   signOut: () => Promise<void>;
 }
 
@@ -15,6 +17,7 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   user: null,
   role: null,
+  recordstatus: null,
   signOut: async () => {},
 });
 
@@ -22,12 +25,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  const [recordstatus, setRecordstatus] = useState<string | null>(null);
 
-  const fetchUserRole = async (userId: string) => {
+  const fetchUserRole = async (userId: string, userEmail?: string) => {
     try {
       const { data, error } = await supabase
         .from('employees') 
-        .select('role') 
+        .select('role, recordstatus') 
         .eq('user_id', userId)
         .single();
 
@@ -36,9 +40,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
       setRole(data?.role || null);
+      setRecordstatus(data?.recordstatus || null);
+
+      // If user is blocked, sign them out immediately
+      if (data?.recordstatus === 'BLOCKED') {
+        window.sessionStorage.setItem(BLOCKED_USER_KEY, userEmail || '');
+        await supabase.auth.signOut();
+      }
     } catch (error) {
       console.error('Error fetching user role:', error);
       setRole(null);
+      setRecordstatus(null);
     }
   };
 
@@ -48,7 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchUserRole(session.user.id);
+        fetchUserRole(session.user.id, session.user.email);
       }
     });
 
@@ -57,9 +69,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        fetchUserRole(session.user.id);
+        fetchUserRole(session.user.id, session.user.email);
       } else {
-        setRole(null); // Clear role on logout
+        setRole(null);
+        setRecordstatus(null);
       }
     });
 
@@ -72,10 +85,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, role, signOut }}>
+    <AuthContext.Provider value={{ session, user, role, recordstatus, signOut }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
 export const useAuth = () => useContext(AuthContext);
+export { BLOCKED_USER_KEY };
