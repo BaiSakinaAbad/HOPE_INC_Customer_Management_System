@@ -7,14 +7,13 @@ import { DefaultTable } from '../../components/ui/DefaultTable';
 interface DeletedRowProps {
   customer: Customer;
   C: DashboardTokens;
-  isDark: boolean;
   canViewStamp: boolean;
   canActivate: boolean;
   onActivate: (customer: Customer) => void;
 }
 
 export const DeletedRow: React.FC<DeletedRowProps> = React.memo(({
-  customer: c, C, isDark, canViewStamp, canActivate, onActivate,
+  customer: c, C, canViewStamp, canActivate, onActivate,
 }) => {
   const [btnHovered, setBtnHovered] = useState(false);
   const green = '#22c55e';

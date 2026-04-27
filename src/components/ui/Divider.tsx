@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useTheme, tokens } from '../../providers/ThemeProvider'; 
 
 export const Divider: React.FC<{ label: string }> = ({ label }) => {

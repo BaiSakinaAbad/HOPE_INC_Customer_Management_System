@@ -81,7 +81,6 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
         {/* --- Blocked User Alert --- */}
         {showBlockedAlert && (
           <BlockedUserAlert 
-            isDark={isDark} 
             C={dashboardTokens} 
             onDismiss={onDismissBlockedAlert}
           />

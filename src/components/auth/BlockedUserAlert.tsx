@@ -2,13 +2,11 @@ import React from 'react';
 import { type DashboardTokens } from '../../providers/ThemeProvider';
 
 interface BlockedUserAlertProps {
-  isDark: boolean;
   C: DashboardTokens;
   onDismiss: () => void;
 }
 
 export const BlockedUserAlert: React.FC<BlockedUserAlertProps> = ({
-  isDark,
   C,
   onDismiss,
 }) => {

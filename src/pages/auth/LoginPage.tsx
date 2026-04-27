@@ -63,7 +63,6 @@ const LoginPage: React.FC<LoginPageProps> = ({
         {/* --- Blocked User Alert --- */}
         {showBlockedAlert && (
           <BlockedUserAlert 
-            isDark={isDark} 
             C={dashboardTokens} 
             onDismiss={onDismissBlockedAlert}
           />

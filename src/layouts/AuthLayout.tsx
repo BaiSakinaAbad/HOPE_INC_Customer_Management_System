@@ -18,8 +18,18 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
   useEffect(() => {
     const enforceActiveUser = async () => {
       const { data, error } = await supabase.auth.getUser();
-      
-      if (!error && data?.user?.user_metadata?.record_status === 'INACTIVE') {
+
+      if (error || !data.user) {
+        return;
+      }
+
+      const { data: appUser, error: appUserError } = await supabase
+        .from('app_user')
+        .select('record_status')
+        .eq('id', data.user.id)
+        .single();
+
+      if (!appUserError && appUser?.record_status === 'INACTIVE') {
         await supabase.auth.signOut();
       }
     };

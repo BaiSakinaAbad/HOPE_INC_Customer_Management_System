@@ -195,7 +195,6 @@ export const DeletedCustomersPage: React.FC = () => {
               key={cust.custno}
               customer={cust}
               C={C}
-              isDark={isDark}
               canViewStamp={canViewStamp}
               canActivate={canActivate}
               onActivate={setConfirmActivate}
