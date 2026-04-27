@@ -3,7 +3,6 @@ import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
 const POST_LOGIN_REDIRECT_KEY = 'post-login-redirect-pending';
-const BLOCKED_USER_KEY = 'blocked-user-email';
 
 interface AuthContextType {
   session: Session | null;
@@ -36,8 +35,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Step 1: Primary lookup by UUID
       let roleValue: string | null = null;
       let statusValue: string | null = null;
-      let blocked = false;
-
       const { data: byId, error: errById } = await supabase
         .from('app_user')
         .select('role, record_status')
@@ -49,7 +46,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else if (byId) {
         roleValue = typeof byId.role === 'string' ? byId.role.toLowerCase() : null;
         statusValue = byId.record_status || null;
-        blocked = byId.record_status === 'BLOCKED';
       }
 
       // Step 2: Fallback — look up by email if id lookup returned nothing
@@ -65,7 +61,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else if (byEmail) {
           roleValue = typeof byEmail.role === 'string' ? byEmail.role.toLowerCase() : null;
           statusValue = byEmail.record_status || null;
-          blocked = byEmail.record_status === 'BLOCKED';
         }
       }
 
@@ -83,11 +78,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setRole(roleValue);
       setRecordstatus(statusValue);
-
-      if (blocked) {
-        window.sessionStorage.setItem(BLOCKED_USER_KEY, userEmail || '');
-        await supabase.auth.signOut();
-      }
     } catch (err) {
       console.error('[AuthProvider] unexpected error in fetchUserRole:', err);
       if (!isMounted.current) return;
@@ -147,4 +137,3 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 };
 
 export const useAuth = () => useContext(AuthContext);
-export { BLOCKED_USER_KEY };

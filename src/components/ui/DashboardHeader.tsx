@@ -11,7 +11,7 @@ export interface DashboardHeaderProps {
   totalCount: number;
   activeCount?: number;
   inactiveCount?: number;
-  blockedCount?: number;
+
   roleDisplay: string;
   policyDescription: React.ReactNode;
   allowedActions?: string[];
@@ -26,7 +26,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   totalCount,
   activeCount,
   inactiveCount,
-  blockedCount,
+
   roleDisplay,
   policyDescription,
   allowedActions,
@@ -86,12 +86,6 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#f59e0b' }} />
                 <span style={{ fontSize: '13px', color: C.onSurfaceVariant, fontWeight: 600 }}>Inactive: <span style={{ color: C.onSurface }}>{inactiveCount}</span></span>
               </div>
-              {blockedCount !== undefined && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: C.error }} />
-                  <span style={{ fontSize: '13px', color: C.onSurfaceVariant, fontWeight: 600 }}>Blocked: <span style={{ color: C.onSurface }}>{blockedCount}</span></span>
-                </div>
-              )}
             </div>
           )}
         </div>

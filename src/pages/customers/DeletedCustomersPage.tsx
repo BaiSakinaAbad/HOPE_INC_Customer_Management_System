@@ -76,7 +76,17 @@ export const DeletedCustomersPage: React.FC = () => {
     setActionError(null);
     const performedBy = (user?.user_metadata?.email as string | undefined) ?? user?.email ?? 'unknown';
     
-    const { error: svcError } = await activateCustomer(confirmActivate.custno, performedBy, role ?? 'admin');
+    let targetStatus: 'ACTIVE' | 'INACTIVE' = 'ACTIVE';
+    if (confirmActivate.stamp && confirmActivate.stamp.includes('Deleted [INACTIVE]')) {
+      targetStatus = 'INACTIVE';
+    }
+
+    const { error: svcError } = await activateCustomer(
+      confirmActivate.custno, 
+      performedBy, 
+      role ?? 'admin',
+      targetStatus
+    );
     
     if (svcError) {
       setActionError(svcError);
@@ -211,7 +221,7 @@ export const DeletedCustomersPage: React.FC = () => {
           <>
             <strong style={{ color: C.onSurface }}>{confirmActivate?.custname}</strong>{' '}
             <span style={{ fontFamily: 'monospace', fontSize: '12px', opacity: 0.8 }}>({confirmActivate?.custno})</span>{' '}
-            will be moved back to the active customers list.
+            will be restored to its previous state ({confirmActivate?.stamp?.includes('Deleted [INACTIVE]') ? 'INACTIVE' : 'ACTIVE'}).
           </>
         }
         icon={<CheckCircle2 size={26} style={{ color: '#22c55e' }} />}

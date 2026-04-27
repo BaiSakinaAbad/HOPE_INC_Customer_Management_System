@@ -49,7 +49,7 @@ export async function getCustomers(role: string): Promise<CustomerServiceResult<
 
   // Elevated roles can view inactive records, but deleted records belong only
   // in the Deleted Customers page.
-  const visibleRows = rows.filter((row) => !(row.stamp ?? '').toLowerCase().startsWith('deleted by'));
+  const visibleRows = rows.filter((row) => !(row.stamp ?? '').toLowerCase().startsWith('deleted'));
   return { data: visibleRows, error: null };
 }
 
@@ -70,7 +70,7 @@ export async function getDeletedCustomers(role: string): Promise<CustomerService
 
   if (error) return { data: null, error: error.message };
   const rows = (data as Customer[]) ?? [];
-  const deletedRows = rows.filter((row) => (row.stamp ?? '').toLowerCase().startsWith('deleted by'));
+  const deletedRows = rows.filter((row) => (row.stamp ?? '').toLowerCase().startsWith('deleted'));
   return { data: deletedRows, error: null };
 }
 
@@ -82,11 +82,12 @@ export async function softDeleteCustomer(
   custno: string,
   performedBy: string,
   role: string,
+  currentStatus: CustomerStatus = 'ACTIVE',
 ): Promise<CustomerServiceResult<null>> {
   if (role.toLowerCase() !== 'superadmin') {
     return { data: null, error: 'Only superadmin can soft-delete.' };
   }
-  const stamp = buildStamp('Deleted', role, performedBy);
+  const stamp = buildStamp(`Deleted [${currentStatus}]`, role, performedBy);
   const { error } = await supabase
     .from('customers')
     .update({ record_status: 'INACTIVE', audit_stamp: stamp })
@@ -126,6 +127,7 @@ export async function activateCustomer(
   custno: string,
   performedBy: string,
   role: string,
+  targetStatus: CustomerStatus = 'ACTIVE',
 ): Promise<CustomerServiceResult<null>> {
   if (!(ELEVATED as readonly string[]).includes(role.toLowerCase())) {
     return { data: null, error: 'Only admin and superadmin can restore.' };
@@ -133,7 +135,7 @@ export async function activateCustomer(
   const stamp = buildStamp('Restored', role, performedBy);
   const { error } = await supabase
     .from('customers')
-    .update({ record_status: 'ACTIVE', audit_stamp: stamp })
+    .update({ record_status: targetStatus, audit_stamp: stamp })
     .eq('customer_no', custno);
 
   if (error) return { data: null, error: error.message };

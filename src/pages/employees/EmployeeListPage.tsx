@@ -177,7 +177,7 @@ export const EmployeeListPage: React.FC = () => {
           <>
             <strong style={{ color: C.onSurface }}>{pendingStatusAction?.username || pendingStatusAction?.email}</strong>{' '}
             <span style={{ fontFamily: 'monospace', fontSize: '12px', opacity: 0.8 }}>
-              ({pendingStatusAction?.id.slice(0, 8)})
+              ({pendingStatusAction?.id?.slice(0, 8)})
             </span>{' '}
             will be marked as {pendingIsActive ? 'INACTIVE' : 'ACTIVE'}.
           </>

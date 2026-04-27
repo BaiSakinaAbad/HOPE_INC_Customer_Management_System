@@ -47,12 +47,16 @@ export const EmployeeRow: React.FC<EmployeeRowProps> = React.memo(({
       border: 'rgba(120,120,140,0.22)',
     },
   };
-  const statusColor = statusStyles[e.recordstatus];
+  const statusColor = statusStyles[e.recordstatus] || {
+    bg: 'rgba(120,120,140,0.10)',
+    fg: '#888898',
+    border: 'rgba(120,120,140,0.22)',
+  };
 
   return (
     <DefaultTable.Tr>
       <DefaultTable.Td style={{ fontFamily: 'monospace', fontSize: '12px', fontWeight: 700, color: C.primary }}>
-        {e.id.slice(0, 8)}
+        {e.id?.slice(0, 8) || 'No ID'}
       </DefaultTable.Td>
       <DefaultTable.Td style={{ fontWeight: 600 }}>
         {e.username || 'No username'}

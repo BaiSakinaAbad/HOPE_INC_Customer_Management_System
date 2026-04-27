@@ -86,7 +86,12 @@ export const CustomerListPage: React.FC = () => {
     setActionError(null);
     const performedBy = (user?.user_metadata?.email as string | undefined) ?? user?.email ?? 'unknown';
     
-    const { error: svcError } = await softDeleteCustomer(confirmDelete.custno, performedBy, role ?? 'employee');
+    const { error: svcError } = await softDeleteCustomer(
+      confirmDelete.custno, 
+      performedBy, 
+      role ?? 'employee',
+      confirmDelete.recordstatus
+    );
     
     if (svcError) {
       setActionError(svcError);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import './App.css';
-import { AuthProvider, useAuth, BLOCKED_USER_KEY } from './providers/AuthProvider';
+import { AuthProvider, useAuth } from './providers/AuthProvider';
 import Dashboard from './pages/superadmin/Dashboard';
 import { ThemeProvider, useTheme, getDashboardTokens } from './providers/ThemeProvider';
 import LoadingSpinner from './pages/auth/LoadingSpinnerPage';
@@ -40,19 +40,8 @@ const AppContent = () => {
   
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [pendingRedirect, setPendingRedirect] = useState(hasValidPendingRedirect);
-  const [showBlockedAlert, setShowBlockedAlert] = useState(false);
-
   // Check if user is inactive
   const isInactive = recordstatus === 'INACTIVE';
-
-  // Check for blocked user on initial load and whenever user changes
-  useEffect(() => {
-    const blockedUserEmail = window.sessionStorage.getItem(BLOCKED_USER_KEY);
-    if (blockedUserEmail) {
-      setShowBlockedAlert(true);
-      window.sessionStorage.removeItem(BLOCKED_USER_KEY);
-    }
-  }, [user]);
 
   // 2. SMART DISMISSAL: Drop the spinner the moment BOTH user and role are ready
   useEffect(() => {
@@ -100,14 +89,10 @@ const AppContent = () => {
     <LoginPage
       onSwitch={() => setAuthMode('register')}
       onLoginSuccess={queuePostLoginRedirect}
-      showBlockedAlert={showBlockedAlert}
-      onDismissBlockedAlert={() => setShowBlockedAlert(false)}
     />
   ) : (
     <RegisterPage 
       onSwitch={() => setAuthMode('login')}
-      showBlockedAlert={showBlockedAlert}
-      onDismissBlockedAlert={() => setShowBlockedAlert(false)}
     />
   );
 };
