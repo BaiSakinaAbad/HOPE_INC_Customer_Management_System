@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ChevronDown, MoreHorizontal, PowerOff, ShieldBan } from 'lucide-react';
+import { ChevronDown, MoreHorizontal, Power, PowerOff } from 'lucide-react';
 import { type DashboardTokens } from '../../providers/ThemeProvider';
 import { type Employee, type EmployeeRole, type EmployeeStatus } from '../../types/employee';
 import { DefaultTable } from '../../components/ui/DefaultTable';
@@ -8,22 +8,18 @@ interface EmployeeRowProps {
   employee: Employee;
   C: DashboardTokens;
   isDark: boolean;
-  onStatusAction: (employee: Employee, actionType: 'deactivate' | 'block') => void;
+  onStatusAction: (employee: Employee) => void;
   canEditRole: boolean;
-  canBlockAction: boolean;
-  blockActionDisabledReason?: string;
   roleUpdating: boolean;
   onRoleChange: (employee: Employee, newRole: EmployeeRole) => void;
 }
 
 export const EmployeeRow: React.FC<EmployeeRowProps> = React.memo(({
-  employee: e, C, isDark, onStatusAction, canEditRole, canBlockAction, blockActionDisabledReason, roleUpdating, onRoleChange,
+  employee: e, C, isDark, onStatusAction, canEditRole, roleUpdating, onRoleChange,
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const isActive = e.recordstatus === 'ACTIVE';
-  const isInactive = e.recordstatus === 'INACTIVE';
-  const isBlocked = e.recordstatus === 'BLOCKED';
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -50,26 +46,20 @@ export const EmployeeRow: React.FC<EmployeeRowProps> = React.memo(({
       fg: '#888898',
       border: 'rgba(120,120,140,0.22)',
     },
-    BLOCKED: {
-      bg: `${C.error}22`,
-      fg: C.error,
-      border: `${C.error}66`,
-    },
   };
   const statusColor = statusStyles[e.recordstatus];
 
   return (
     <DefaultTable.Tr>
       <DefaultTable.Td style={{ fontFamily: 'monospace', fontSize: '12px', fontWeight: 700, color: C.primary }}>
-        {e.empno}
+        {e.id.slice(0, 8)}
       </DefaultTable.Td>
       <DefaultTable.Td style={{ fontWeight: 600 }}>
-        {e.lastname}, {e.firstname}
+        {e.username || 'No username'}
       </DefaultTable.Td>
-      <DefaultTable.Td style={{ color: C.onSurfaceVariant }}>{e.gender}</DefaultTable.Td>
-      <DefaultTable.Td style={{ color: C.onSurfaceVariant, fontSize: '12px' }}>{e.birthdate}</DefaultTable.Td>
-      <DefaultTable.Td style={{ color: C.onSurfaceVariant, fontSize: '12px' }}>{e.hiredate}</DefaultTable.Td>
-      <DefaultTable.Td style={{ color: C.onSurfaceVariant, fontSize: '12px' }}>{e.sepdate || '—'}</DefaultTable.Td>
+      <DefaultTable.Td style={{ color: C.onSurfaceVariant }}>
+        {e.email || 'No email'}
+      </DefaultTable.Td>
       <DefaultTable.Td>
         {canEditRole ? (
           <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
@@ -83,7 +73,7 @@ export const EmployeeRow: React.FC<EmployeeRowProps> = React.memo(({
                 borderRadius: '9px',
                 border: `1px solid ${isDark ? `${C.outlineVariant}88` : `${C.outlineVariant}66`}`,
                 backgroundColor: roleUpdating
-                  ? (isDark ? `${C.surfaceContainerHighest}aa` : '#eef0f3')
+                  ? (isDark ? `${C.surfaceContainerHigh}aa` : '#eef0f3')
                   : (isDark ? C.surfaceContainerHigh : '#ffffff'),
                 color: C.primary,
                 fontSize: '12px',
@@ -95,10 +85,9 @@ export const EmployeeRow: React.FC<EmployeeRowProps> = React.memo(({
                 appearance: 'none',
                 WebkitAppearance: 'none',
                 MozAppearance: 'none',
-                boxShadow: isDark ? 'inset 0 1px 0 rgba(255,255,255,0.03)' : 'inset 0 1px 0 rgba(255,255,255,0.75)',
               }}
             >
-              <option value="employee">EMPLOYEE</option>
+              <option value="user">USER</option>
               <option value="admin">ADMIN</option>
               <option value="superadmin">SUPERADMIN</option>
             </select>
@@ -148,7 +137,7 @@ export const EmployeeRow: React.FC<EmployeeRowProps> = React.memo(({
               justifyContent: 'center',
               transition: 'background 0.2s',
             }}
-            aria-label="Employee actions"
+            aria-label="User actions"
           >
             <MoreHorizontal size={18} />
           </button>
@@ -166,40 +155,20 @@ export const EmployeeRow: React.FC<EmployeeRowProps> = React.memo(({
             }}>
               <button
                 type="button"
-                disabled={isBlocked}
-                onClick={() => { setDropdownOpen(false); onStatusAction(e, 'deactivate'); }}
+                onClick={() => { setDropdownOpen(false); onStatusAction(e); }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '10px',
                   width: '100%', padding: '8px 12px', border: 'none',
                   background: 'transparent',
-                  color: isBlocked ? C.onSurfaceVariant : C.error,
+                  color: isActive ? C.error : '#22c55e',
                   fontSize: '13px', fontWeight: 500,
-                  borderRadius: '6px', cursor: isBlocked ? 'not-allowed' : 'pointer', textAlign: 'left',
-                  opacity: isBlocked ? 0.55 : 1,
+                  borderRadius: '6px', cursor: 'pointer', textAlign: 'left',
                 }}
-                title={isBlocked ? 'Blocked users cannot be deactivated.' : ''}
               >
-                <PowerOff size={15} style={{ color: isBlocked ? C.onSurfaceVariant : C.error }} />
+                {isActive
+                  ? <PowerOff size={15} style={{ color: C.error }} />
+                  : <Power size={15} style={{ color: '#22c55e' }} />}
                 {isActive ? 'Deactivate' : 'Activate'}
-              </button>
-
-              <button
-                type="button"
-                disabled={isInactive || !canBlockAction}
-                onClick={() => { setDropdownOpen(false); onStatusAction(e, 'block'); }}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '10px',
-                  width: '100%', padding: '8px 12px', border: 'none',
-                  background: 'transparent',
-                  color: (isInactive || !canBlockAction) ? C.onSurfaceVariant : C.error,
-                  fontSize: '13px', fontWeight: 500,
-                  borderRadius: '6px', cursor: (isInactive || !canBlockAction) ? 'not-allowed' : 'pointer', textAlign: 'left',
-                  opacity: (isInactive || !canBlockAction) ? 0.55 : 1,
-                }}
-                title={isInactive ? 'Deactivated users cannot be blocked.' : (blockActionDisabledReason ?? '')}
-              >
-                <ShieldBan size={15} style={{ color: (isInactive || !canBlockAction) ? C.onSurfaceVariant : C.error }} />
-                {isBlocked ? 'Unblock' : 'Block'}
               </button>
             </div>
           )}

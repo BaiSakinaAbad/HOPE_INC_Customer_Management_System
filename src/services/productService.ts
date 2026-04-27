@@ -4,8 +4,6 @@ export interface Product {
   prodcode: string;
   description: string;
   unit: string;
-  recordstatus: string;
-  stamp: string;
   current_price?: number;
   priceHistory?: { effdate: string; unitprice: number }[];
 }
@@ -13,15 +11,15 @@ export interface Product {
 export async function getProducts(): Promise<{ data: Product[] | null; error: string | null }> {
   const { data: products, error: pError } = await supabase
     .from('products')
-    .select('*')
-    .order('prodcode', { ascending: true });
+    .select('prodcode:product_code, description, unit')
+    .order('product_code', { ascending: true });
 
   if (pError) return { data: null, error: pError.message };
 
   const { data: prices, error: prError } = await supabase
-    .from('pricehist')
-    .select('prodcode, unitprice, effdate')
-    .order('effdate', { ascending: false });
+    .from('price_history')
+    .select('prodcode:product_code, unitprice:unit_price, effdate:effective_date')
+    .order('effective_date', { ascending: false });
 
   if (prError) return { data: null, error: prError.message };
 

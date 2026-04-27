@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { CircleDollarSign, Eye, BarChart2, AlertTriangle, RefreshCw } from 'lucide-react';
+import { CircleDollarSign, BarChart2, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
 import { useAuth } from '../../providers/AuthProvider';
 import { useNavigation } from '../../providers/NavigationProvider';

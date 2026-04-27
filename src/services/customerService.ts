@@ -9,7 +9,14 @@
 import { supabase } from '../lib/supabase';
 import type { Customer, CustomerServiceResult } from '../types/customer';
 
-const COLS = 'custno, custname, address, payterm, recordstatus, stamp';
+const COLS = `
+  custno:customer_no,
+  custname:customer_name,
+  address,
+  payterm:payment_term,
+  recordstatus:record_status,
+  stamp:audit_stamp
+`;
 
 /** Roles that may fetch ALL records (including INACTIVE). */
 const ELEVATED = ['admin', 'superadmin'] as const;
@@ -33,8 +40,8 @@ export async function getCustomers(role: string): Promise<CustomerServiceResult<
   const isRestricted = !(ELEVATED as readonly string[]).includes(role.toLowerCase());
   const qb = supabase.from('customers').select(COLS);
   const { data, error } = await (
-    isRestricted ? qb.eq('recordstatus', 'ACTIVE') : qb
-  ).order('custname', { ascending: true });
+    isRestricted ? qb.eq('record_status', 'ACTIVE') : qb
+  ).order('customer_name', { ascending: true });
 
   if (error) return { data: null, error: error.message };
   const rows = (data as Customer[]) ?? [];
@@ -58,8 +65,8 @@ export async function getDeletedCustomers(role: string): Promise<CustomerService
   const { data, error } = await supabase
     .from('customers')
     .select(COLS)
-    .eq('recordstatus', 'INACTIVE')
-    .order('custname', { ascending: true });
+    .eq('record_status', 'INACTIVE')
+    .order('customer_name', { ascending: true });
 
   if (error) return { data: null, error: error.message };
   const rows = (data as Customer[]) ?? [];
@@ -82,8 +89,8 @@ export async function softDeleteCustomer(
   const stamp = buildStamp('Deleted', role, performedBy);
   const { error } = await supabase
     .from('customers')
-    .update({ recordstatus: 'INACTIVE', stamp })
-    .eq('custno', custno);
+    .update({ record_status: 'INACTIVE', audit_stamp: stamp })
+    .eq('customer_no', custno);
 
   if (error) return { data: null, error: error.message };
   return { data: null, error: null };
@@ -104,8 +111,8 @@ export async function deactivateCustomer(
   const stamp = buildStamp('Deactivated', role, performedBy);
   const { error } = await supabase
     .from('customers')
-    .update({ recordstatus: 'INACTIVE', stamp })
-    .eq('custno', custno);
+    .update({ record_status: 'INACTIVE', audit_stamp: stamp })
+    .eq('customer_no', custno);
 
   if (error) return { data: null, error: error.message };
   return { data: null, error: null };
@@ -126,8 +133,8 @@ export async function activateCustomer(
   const stamp = buildStamp('Restored', role, performedBy);
   const { error } = await supabase
     .from('customers')
-    .update({ recordstatus: 'ACTIVE', stamp })
-    .eq('custno', custno);
+    .update({ record_status: 'ACTIVE', audit_stamp: stamp })
+    .eq('customer_no', custno);
 
   if (error) return { data: null, error: error.message };
   return { data: null, error: null };
@@ -146,10 +153,14 @@ export async function updateCustomer(
     return { data: null, error: 'Only admin and superadmin can edit customers.' };
   }
   const stamp = buildStamp('Updated', role, performedBy);
+  const dbUpdates: Record<string, string | null> = { audit_stamp: stamp };
+  if (updates.custname !== undefined) dbUpdates.customer_name = updates.custname;
+  if (updates.address !== undefined) dbUpdates.address = updates.address;
+  if (updates.payterm !== undefined) dbUpdates.payment_term = updates.payterm;
   const { error } = await supabase
     .from('customers')
-    .update({ ...updates, stamp })
-    .eq('custno', custno);
+    .update(dbUpdates)
+    .eq('customer_no', custno);
 
   if (error) return { data: null, error: error.message };
   return { data: null, error: null };
@@ -166,30 +177,36 @@ export async function createCustomer(
   if (!(ELEVATED as readonly string[]).includes(role.toLowerCase())) {
     return { data: null, error: 'Only admin and superadmin can add customers.' };
   }
-  // Get the highest custno currently in the DB
+  // Get the highest customer number currently in the DB.
   const { data: maxRecord, error: maxError } = await supabase
     .from('customers')
-    .select('custno')
-    .order('custno', { ascending: false })
+    .select('customer_no')
+    .order('customer_no', { ascending: false })
     .limit(1);
     
   if (maxError) return { data: null, error: maxError.message };
 
-  let newCustNo = 'C001';
+  let newCustNo = 'C0001';
   if (maxRecord && maxRecord.length > 0) {
-    const lastCustNo = maxRecord[0].custno;
-    // Extract numbers from something like "C001"
+    const lastCustNo = maxRecord[0].customer_no;
     const match = lastCustNo.match(/\d+/);
     if (match) {
       const num = parseInt(match[0], 10);
-      newCustNo = `C${String(num + 1).padStart(3, '0')}`;
+      newCustNo = `C${String(num + 1).padStart(4, '0')}`;
     }
   }
 
   const stamp = buildStamp('Created', role, performedBy);
   const { error } = await supabase
     .from('customers')
-    .insert({ ...data, custno: newCustNo, recordstatus: 'ACTIVE', stamp });
+    .insert({
+      customer_no: newCustNo,
+      customer_name: data.custname,
+      address: data.address,
+      payment_term: data.payterm,
+      record_status: 'ACTIVE',
+      audit_stamp: stamp,
+    });
 
   if (error) return { data: null, error: error.message };
   return { data: null, error: null };

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import './App.css';
 import { AuthProvider, useAuth, BLOCKED_USER_KEY } from './providers/AuthProvider';
 import Dashboard from './pages/superadmin/Dashboard';
-import { ThemeProvider, useTheme, tokens, getDashboardTokens } from './providers/ThemeProvider';
+import { ThemeProvider, useTheme, getDashboardTokens } from './providers/ThemeProvider';
 import LoadingSpinner from './pages/auth/LoadingSpinnerPage';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';

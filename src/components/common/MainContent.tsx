@@ -1,11 +1,9 @@
 import React from 'react';
 import {
-  ChevronRight,
   Network,
   Zap
 } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
-import { HoverLink } from '../../components/ui/HoverLink';
 
 interface MainContentProps {
   isMobile: boolean;

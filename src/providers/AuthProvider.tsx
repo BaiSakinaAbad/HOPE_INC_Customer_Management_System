@@ -30,20 +30,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchUserRole = async (userId: string, userEmail?: string) => {
     try {
       const { data, error } = await supabase
-        .from('employees') 
-        .select('role, recordstatus') 
-        .eq('user_id', userId)
+        .from('app_user')
+        .select('role, record_status')
+        .eq('id', userId)
         .single();
 
-      //console.log("RAW SUPABASE DATA:", data); debugging
-      //console.log("SUPABASE ERROR:", error); debugging
-
       if (error) throw error;
-      setRole(data?.role || null);
-      setRecordstatus(data?.recordstatus || null);
+      setRole(typeof data?.role === 'string' ? data.role.toLowerCase() : null);
+      setRecordstatus(data?.record_status || null);
 
-      // If user is blocked, sign them out immediately
-      if (data?.recordstatus === 'BLOCKED') {
+      if (data?.record_status === 'BLOCKED') {
         window.sessionStorage.setItem(BLOCKED_USER_KEY, userEmail || '');
         await supabase.auth.signOut();
       }

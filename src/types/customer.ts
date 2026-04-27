@@ -1,7 +1,7 @@
 /**
  * Shared TypeScript types for the Customer module.
- * `address` and `payterm` are nullable to reflect real-world DB values.
- * `stamp` holds the audit trail and is hidden from employee accounts.
+ * The app keeps these legacy field names in the UI layer while the service
+ * maps them to the updated database columns from `db-config.md`.
  */
 export type CustomerStatus = 'ACTIVE' | 'INACTIVE';
 
