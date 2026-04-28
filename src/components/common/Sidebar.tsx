@@ -119,7 +119,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerOpen, onClose }) => {
           {/* Role-gated: only admin / superadmin */}
           {canManageEmployees && (
             <SidebarItem
-              label="Employees (Temp)"
+              label="Users"
               icon={UserCog}
               active={currentPage === 'employees'}
               onClick={() => handleNav('employees')}

@@ -17,10 +17,10 @@ export const DefaultTableContainer: React.FC<{ children: React.ReactNode; pagina
   return (
     <div style={{
       backgroundColor: C.surfaceContainer, borderRadius: '14px',
-      border: `1px solid ${C.outlineVariant}33`, overflow: 'hidden',
+      border: `1px solid ${C.outlineVariant}33`, overflow: 'visible',
       boxShadow: isDark ? '0 4px 32px rgba(0,0,0,0.25)' : '0 2px 16px rgba(0,0,0,0.05)',
     }}>
-      <div style={{ overflowX: 'auto' }}>
+      <div style={{ overflow: 'visible' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
           {children}
         </table>
