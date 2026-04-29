@@ -23,7 +23,6 @@ interface TopbarProps {
 export const Topbar: React.FC<TopbarProps> = ({ isMobile, onMenuOpen, onLogout, isSigningOut, displayName, avatarUrl, role }) => {
   const { isDark, toggle } = useTheme();
   const C = getDashboardTokens(isDark);
-  const [activeTab, setActiveTab] = useState('Overview');
 
   return (
     <header style={{
@@ -49,15 +48,6 @@ export const Topbar: React.FC<TopbarProps> = ({ isMobile, onMenuOpen, onLogout, 
           <button onClick={toggle} style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.onSurfaceVariant, display: 'flex' }}>
             {isDark ? <Sun size={18} /> : <Moon size={18} />}
           </button>
-          <button onClick={() => setActiveTab('Overview')} style={{
-            background: 'none', border: 'none', cursor: 'pointer', fontFamily: C.font.body, fontSize: '14px',
-            fontWeight: activeTab === 'Overview' ? 700 : 400, color: activeTab === 'Overview' ? C.primary : C.onSurfaceVariant,
-            padding: '4px 0', borderBottom: activeTab === 'Overview' ? `2px solid ${C.primary}` : '2px solid transparent', transition: 'color 0.2s'
-          }}>Overview</button>
-          <button onClick={() => setActiveTab('Logs')} style={{
-            background: 'none', border: 'none', cursor: 'pointer', fontFamily: C.font.body, fontSize: '14px',
-            fontWeight: activeTab === 'Logs' ? 700 : 400, color: activeTab === 'Logs' ? C.primary : C.onSurfaceVariant, transition: 'color 0.2s'
-          }}>Logs</button>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', paddingLeft: '16px', borderLeft: `1px solid ${C.outlineVariant}33` }}>

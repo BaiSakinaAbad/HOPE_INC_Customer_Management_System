@@ -82,7 +82,7 @@ export async function softDeleteCustomer(
   custno: string,
   performedBy: string,
   role: string,
-  currentStatus: CustomerStatus = 'ACTIVE',
+  currentStatus: 'ACTIVE' | 'INACTIVE' = 'ACTIVE',
 ): Promise<CustomerServiceResult<null>> {
   if (role.toLowerCase() !== 'superadmin') {
     return { data: null, error: 'Only superadmin can soft-delete.' };
@@ -127,7 +127,7 @@ export async function activateCustomer(
   custno: string,
   performedBy: string,
   role: string,
-  targetStatus: CustomerStatus = 'ACTIVE',
+  targetStatus: 'ACTIVE' | 'INACTIVE' = 'ACTIVE',
 ): Promise<CustomerServiceResult<null>> {
   if (!(ELEVATED as readonly string[]).includes(role.toLowerCase())) {
     return { data: null, error: 'Only admin and superadmin can restore.' };

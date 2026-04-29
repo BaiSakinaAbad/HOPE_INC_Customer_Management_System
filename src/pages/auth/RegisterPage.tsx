@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { AuthLayout } from '../../layouts/AuthLayout';
 import { GoogleButton, PasswordStrength } from '../../components/auth';
 import { Button, Input, Divider } from '../../components/ui';
-import { useTheme, tokens, getDashboardTokens } from '../../providers/ThemeProvider';
+import { useTheme, tokens } from '../../providers/ThemeProvider';
 import { supabase } from '../../lib/supabase';
 
 interface RegisterPageProps {
@@ -13,7 +13,6 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
   onSwitch
 }) => {
   const { isDark } = useTheme();
-  const dashboardTokens = getDashboardTokens(isDark);
   const t = isDark ? tokens.dark : tokens.light;
   
   // Form State

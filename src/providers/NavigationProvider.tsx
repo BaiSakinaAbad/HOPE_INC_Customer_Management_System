@@ -8,9 +8,9 @@
  */
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-export type PageId = 'dashboard' | 'customers' | 'deleted' | 'sales' | 'products' | 'employees';
+export type PageId = 'dashboard' | 'customers' | 'deleted' | 'sales' | 'products' | 'employees' | 'logs';
 const NAV_STATE_KEY = 'dashboard-nav-state';
-const VALID_PAGES: PageId[] = ['dashboard', 'customers', 'deleted', 'sales', 'products', 'employees'];
+const VALID_PAGES: PageId[] = ['dashboard', 'customers', 'deleted', 'sales', 'products', 'employees', 'logs'];
 
 interface NavigationContextType {
   currentPage: PageId;

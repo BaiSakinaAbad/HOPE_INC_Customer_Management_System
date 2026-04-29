@@ -19,6 +19,7 @@ import {
   X,
   Sparkles,
   UserCog, // <-- Added new icon for Employees
+  ShieldAlert,
 } from 'lucide-react';
 import { useTheme, getDashboardTokens, type DashboardTokens } from '../../providers/ThemeProvider';
 import { useNavigation, type PageId } from '../../providers/NavigationProvider';
@@ -35,7 +36,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerOpen, onClose }) => {
   const { currentPage, navigate } = useNavigation();
   
   // Extract both capability flags
-  const { canViewDeletedNav, canManageEmployees } = useRights();
+  const { canViewDeletedNav, canManageEmployees, canViewLogs } = useRights();
 
   const handleNav = (page: PageId) => {
     navigate(page);
@@ -135,6 +136,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerOpen, onClose }) => {
               icon={Trash2}
               active={currentPage === 'deleted'}
               onClick={() => handleNav('deleted')}
+              C={C}
+              isDark={isDark}
+            />
+          )}
+
+          {/* Role-gated: logs for admin/superadmin */}
+          {canViewLogs && (
+            <SidebarItem
+              label="Logs"
+              icon={ShieldAlert}
+              active={currentPage === 'logs'}
+              onClick={() => handleNav('logs')}
               C={C}
               isDark={isDark}
             />
