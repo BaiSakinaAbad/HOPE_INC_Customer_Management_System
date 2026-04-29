@@ -22,6 +22,11 @@ export const CustomerListPage: React.FC = () => {
   const canDeactivate = role === 'admin' || role === 'superadmin';
   const canEdit = role === 'admin' || role === 'superadmin';
 
+  const metadata = user?.user_metadata ?? {};
+  const fullName = (metadata.full_name as string | undefined)
+    || `${(metadata.first_name as string | undefined) ?? ''} ${(metadata.last_name as string | undefined) ?? ''}`.trim();
+  const displayName = fullName || (metadata.username as string | undefined) || user?.email || 'unknown';
+
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -84,7 +89,7 @@ export const CustomerListPage: React.FC = () => {
     if (!confirmDelete) return;
     setActionLoading(true);
     setActionError(null);
-    const performedBy = (user?.user_metadata?.email as string | undefined) ?? user?.email ?? 'unknown';
+    const performedBy = displayName;
     
     const { error: svcError } = await softDeleteCustomer(
       confirmDelete.custno, 
@@ -106,7 +111,7 @@ export const CustomerListPage: React.FC = () => {
     if (!confirmToggle) return;
     setActionLoading(true);
     setActionError(null);
-    const performedBy = (user?.user_metadata?.email as string | undefined) ?? user?.email ?? 'unknown';
+    const performedBy = displayName;
     const isActive = confirmToggle.recordstatus === 'ACTIVE';
 
     const { error: svcError } = isActive
@@ -125,7 +130,7 @@ export const CustomerListPage: React.FC = () => {
   const handleEditSubmit = async (custno: string, data: Partial<Pick<Customer, 'custname' | 'address' | 'payterm'>>) => {
     setActionLoading(true);
     setActionError(null);
-    const performedBy = (user?.user_metadata?.email as string | undefined) ?? user?.email ?? 'unknown';
+    const performedBy = displayName;
     
     const { error: svcError } = await updateCustomer(custno, data, performedBy, role ?? 'employee');
     
@@ -141,7 +146,7 @@ export const CustomerListPage: React.FC = () => {
   const handleAddSubmit = async (data: Pick<Customer, 'custname' | 'address' | 'payterm'>) => {
     setActionLoading(true);
     setActionError(null);
-    const performedBy = (user?.user_metadata?.email as string | undefined) ?? user?.email ?? 'unknown';
+    const performedBy = displayName;
     
     const { error: svcError } = await createCustomer(data, performedBy, role ?? 'employee');
     

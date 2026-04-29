@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { AuthLayout } from '../../layouts/AuthLayout';
 import { GoogleButton } from '../../components/auth';
 import { Button, Input, Divider } from '../../components/ui';
-import { useTheme, tokens, getDashboardTokens } from '../../providers/ThemeProvider';
+import { useTheme, tokens } from '../../providers/ThemeProvider';
 import { supabase } from '../../lib/supabase';
 
 interface LoginPageProps {
@@ -17,7 +17,6 @@ const LoginPage: React.FC<LoginPageProps> = ({
   onLoginSuccess
 }) => {
   const { isDark } = useTheme();
-  const dashboardTokens = getDashboardTokens(isDark);
   const t = isDark ? tokens.dark : tokens.light;
   
   // Form State

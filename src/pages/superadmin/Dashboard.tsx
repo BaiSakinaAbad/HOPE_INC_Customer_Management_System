@@ -9,6 +9,7 @@ import { EmployeeListPage } from '../employees/EmployeeListPage';
 import { CustomerListPage, DeletedCustomersPage } from '../customers';
 import { ProductCataloguePage } from '../products/ProductCataloguePage';
 import { SalesPage } from '../sales/SalesPage';
+import { LogsPage } from '../logs/LogsPage';
 
 const DashboardRouter: React.FC = () => {
   const { currentPage } = useNavigation();
@@ -29,6 +30,7 @@ const DashboardRouter: React.FC = () => {
       case 'employees': return <EmployeeListPage />;
       case 'products':  return <ProductCataloguePage />;
       case 'sales':     return <SalesPage />;
+      case 'logs':      return <LogsPage />;
       default:          return <MainContent isMobile={width < BP.mobile} firstName={firstName} />;
     }
   };

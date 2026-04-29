@@ -25,6 +25,7 @@ export interface Rights {
   canViewDeletedNav: boolean;
 
   canManageEmployees: boolean;
+  canViewLogs: boolean;
 }
 
 const ELEVATED_ROLES = ['admin', 'superadmin'] as const;
@@ -41,5 +42,6 @@ export function useRights(): Rights {
     canViewStamp:      isElevated,
     canViewDeletedNav: isElevated,
     canManageEmployees: isElevated,
+    canViewLogs:       isElevated,
   };
 }

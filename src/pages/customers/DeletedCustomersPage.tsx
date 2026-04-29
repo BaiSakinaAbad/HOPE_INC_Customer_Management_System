@@ -17,6 +17,11 @@ export const DeletedCustomersPage: React.FC = () => {
   const { role, user } = useAuth();
   const { canViewInactive, canActivate, canViewStamp } = useRights();
 
+  const metadata = user?.user_metadata ?? {};
+  const fullName = (metadata.full_name as string | undefined)
+    || `${(metadata.first_name as string | undefined) ?? ''} ${(metadata.last_name as string | undefined) ?? ''}`.trim();
+  const displayName = fullName || (metadata.username as string | undefined) || user?.email || 'unknown';
+
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -74,7 +79,7 @@ export const DeletedCustomersPage: React.FC = () => {
     if (!confirmActivate) return;
     setActionLoading(true);
     setActionError(null);
-    const performedBy = (user?.user_metadata?.email as string | undefined) ?? user?.email ?? 'unknown';
+    const performedBy = displayName;
     
     let targetStatus: 'ACTIVE' | 'INACTIVE' = 'ACTIVE';
     if (confirmActivate.stamp && confirmActivate.stamp.includes('Deleted [INACTIVE]')) {
