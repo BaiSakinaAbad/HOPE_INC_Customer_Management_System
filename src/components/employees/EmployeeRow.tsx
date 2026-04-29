@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ChevronDown, MoreHorizontal, Power, PowerOff } from 'lucide-react';
+import { ChevronDown, MoreHorizontal, Power, PowerOff, Shield } from 'lucide-react';
 import { type DashboardTokens } from '../../providers/ThemeProvider';
 import { type Employee, type EmployeeRole, type EmployeeStatus } from '../../types/employee';
 import { DefaultTable } from '../../components/ui/DefaultTable';
@@ -12,10 +12,13 @@ interface EmployeeRowProps {
   canEditRole: boolean;
   roleUpdating: boolean;
   onRoleChange: (employee: Employee, newRole: EmployeeRole) => void;
+  canEditStatus: boolean;
+  onViewPermissions: (employee: Employee) => void;
 }
 
 export const EmployeeRow: React.FC<EmployeeRowProps> = React.memo(({
   employee: e, C, isDark, onStatusAction, canEditRole, roleUpdating, onRoleChange,
+  canEditStatus, onViewPermissions,
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -47,12 +50,16 @@ export const EmployeeRow: React.FC<EmployeeRowProps> = React.memo(({
       border: 'rgba(120,120,140,0.22)',
     },
   };
-  const statusColor = statusStyles[e.recordstatus];
+  const statusColor = statusStyles[e.recordstatus] || {
+    bg: 'rgba(120,120,140,0.10)',
+    fg: '#888898',
+    border: 'rgba(120,120,140,0.22)',
+  };
 
   return (
     <DefaultTable.Tr>
       <DefaultTable.Td style={{ fontFamily: 'monospace', fontSize: '12px', fontWeight: 700, color: C.primary }}>
-        {e.id.slice(0, 8)}
+        {e.id?.slice(0, 8) || 'No ID'}
       </DefaultTable.Td>
       <DefaultTable.Td style={{ fontWeight: 600 }}>
         {e.username || 'No username'}
@@ -145,7 +152,7 @@ export const EmployeeRow: React.FC<EmployeeRowProps> = React.memo(({
           {dropdownOpen && (
             <div style={{
               position: 'absolute', right: 0, top: '100%', zIndex: 10,
-              minWidth: '150px', marginTop: '4px',
+              minWidth: '160px', marginTop: '4px',
               backgroundColor: isDark ? C.surfaceContainerHigh : '#ffffff',
               border: `1px solid ${C.outlineVariant}33`,
               borderRadius: '8px',
@@ -155,21 +162,40 @@ export const EmployeeRow: React.FC<EmployeeRowProps> = React.memo(({
             }}>
               <button
                 type="button"
-                onClick={() => { setDropdownOpen(false); onStatusAction(e); }}
+                onClick={() => { setDropdownOpen(false); onViewPermissions(e); }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '10px',
                   width: '100%', padding: '8px 12px', border: 'none',
                   background: 'transparent',
-                  color: isActive ? C.error : '#22c55e',
+                  color: C.onSurface,
                   fontSize: '13px', fontWeight: 500,
                   borderRadius: '6px', cursor: 'pointer', textAlign: 'left',
+                  whiteSpace: 'nowrap',
                 }}
               >
-                {isActive
-                  ? <PowerOff size={15} style={{ color: C.error }} />
-                  : <Power size={15} style={{ color: '#22c55e' }} />}
-                {isActive ? 'Deactivate' : 'Activate'}
+                <Shield size={15} style={{ color: C.onSurfaceVariant }} />
+                View Permissions
               </button>
+              {canEditStatus && (
+                <button
+                  type="button"
+                  onClick={() => { setDropdownOpen(false); onStatusAction(e); }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '10px',
+                    width: '100%', padding: '8px 12px', border: 'none',
+                    background: 'transparent',
+                    color: isActive ? C.error : '#22c55e',
+                    fontSize: '13px', fontWeight: 500,
+                    borderRadius: '6px', cursor: 'pointer', textAlign: 'left',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {isActive
+                    ? <PowerOff size={15} style={{ color: C.error }} />
+                    : <Power size={15} style={{ color: '#22c55e' }} />}
+                  {isActive ? 'Deactivate' : 'Activate'}
+                </button>
+              )}
             </div>
           )}
         </div>

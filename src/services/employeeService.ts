@@ -8,11 +8,11 @@ export async function getEmployees() {
     .order('email', { ascending: true });
 
   const rows = (data ?? []).map((row) => ({
-    id: row.id,
+    id: String(row.id || ''),
     username: row.username,
     email: row.email,
     role: String(row.role ?? 'USER').toLowerCase() as EmployeeRole,
-    recordstatus: row.record_status as EmployeeStatus,
+    recordstatus: String(row.record_status || 'ACTIVE').toUpperCase() as EmployeeStatus,
   }));
 
   return { data: rows as Employee[] | null, error: error?.message || null };

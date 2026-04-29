@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { RefreshCw, AlertTriangle, ShieldOff, Power, PowerOff } from 'lucide-react';
+import { RefreshCw, AlertTriangle, ShieldOff, Power, PowerOff, X, Check } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
 import { useAuth } from '../../providers/AuthProvider';
 import { useRights } from '../../hooks/useRights';
@@ -25,6 +25,26 @@ export const EmployeeListPage: React.FC = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [roleUpdatingUserId, setRoleUpdatingUserId] = useState<string | null>(null);
+
+  const [viewingPermissionsFor, setViewingPermissionsFor] = useState<Employee | null>(null);
+  const [localPermissions, setLocalPermissions] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (viewingPermissionsFor) {
+      const r = viewingPermissionsFor.role;
+      setLocalPermissions({
+        admin_activate_user: r === 'admin' || r === 'superadmin',
+        add_customer: true,
+        soft_delete_customer: r === 'admin' || r === 'superadmin',
+        edit_customer: true,
+        view_customers: true,
+        view_price_history: r === 'admin' || r === 'superadmin',
+        view_products: true,
+        view_sales: true,
+        view_sales_detail: true,
+      });
+    }
+  }, [viewingPermissionsFor]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -165,6 +185,8 @@ export const EmployeeListPage: React.FC = () => {
               canEditRole={role === 'superadmin' && emp.role !== 'superadmin'}
               roleUpdating={roleUpdatingUserId === emp.id}
               onRoleChange={handleRoleChange}
+              canEditStatus={emp.role !== 'superadmin'}
+              onViewPermissions={setViewingPermissionsFor}
             />
           ))}
         </tbody>
@@ -177,7 +199,7 @@ export const EmployeeListPage: React.FC = () => {
           <>
             <strong style={{ color: C.onSurface }}>{pendingStatusAction?.username || pendingStatusAction?.email}</strong>{' '}
             <span style={{ fontFamily: 'monospace', fontSize: '12px', opacity: 0.8 }}>
-              ({pendingStatusAction?.id.slice(0, 8)})
+              ({pendingStatusAction?.id?.slice(0, 8)})
             </span>{' '}
             will be marked as {pendingIsActive ? 'INACTIVE' : 'ACTIVE'}.
           </>
@@ -193,6 +215,72 @@ export const EmployeeListPage: React.FC = () => {
         onConfirm={handleStatusAction}
         onCancel={() => { setPendingStatusAction(null); setActionError(null); }}
       />
+
+      {viewingPermissionsFor && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 100,
+          backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px'
+        }}>
+          <div style={{
+            width: '100%', maxWidth: '600px',
+            backgroundColor: isDark ? C.surfaceContainerHigh : '#ffffff',
+            borderRadius: '20px', border: `1px solid ${C.outlineVariant}33`,
+            boxShadow: isDark ? '0 10px 40px rgba(0,0,0,0.5)' : '0 10px 30px rgba(0,0,0,0.1)',
+            overflow: 'hidden', display: 'flex', flexDirection: 'column'
+          }}>
+            <div style={{ padding: '24px 24px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${C.outlineVariant}33` }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: C.onSurface }}>Permissions (UI no functionality)</h3>
+                <p style={{ margin: '4px 0 0', fontSize: '13px', color: C.onSurfaceVariant }}>
+                  {viewingPermissionsFor.username || viewingPermissionsFor.email} ({viewingPermissionsFor.role.toUpperCase()})
+                </p>
+              </div>
+              <button type="button" onClick={() => setViewingPermissionsFor(null)} style={{ background: 'none', border: 'none', color: C.onSurfaceVariant, cursor: 'pointer', padding: '4px' }}>
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div style={{ padding: '8px 24px 24px', display: 'flex', flexDirection: 'column' }}>
+              {[
+                { id: 'admin_activate_user', label: 'Admin Activate User' },
+                { id: 'add_customer', label: 'Add Customer' },
+                { id: 'soft_delete_customer', label: 'Soft Delete Customer' },
+                { id: 'edit_customer', label: 'Edit Customer' },
+                { id: 'view_customers', label: 'View Customers' },
+                { id: 'view_price_history', label: 'View Price History' },
+                { id: 'view_products', label: 'View Products' },
+                { id: 'view_sales', label: 'View Sales' },
+                { id: 'view_sales_detail', label: 'View Sales Detail' },
+              ].map(perm => (
+                <div key={perm.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0', borderBottom: `1px solid ${C.outlineVariant}15` }}>
+                  <span style={{ color: C.onSurface, fontSize: '14px', fontWeight: 500 }}>{perm.label}</span>
+                  <button 
+                    type="button" 
+                    onClick={() => setLocalPermissions(prev => ({ ...prev, [perm.id]: !prev[perm.id] }))}
+                    style={{
+                      width: '46px', height: '26px', borderRadius: '13px',
+                      backgroundColor: localPermissions[perm.id] ? '#22c55e' : C.error,
+                      position: 'relative', border: 'none', cursor: 'pointer',
+                      transition: 'background-color 0.2s', padding: 0
+                    }}
+                  >
+                    <div style={{
+                      position: 'absolute', top: '2px', left: localPermissions[perm.id] ? '22px' : '2px',
+                      width: '22px', height: '22px', borderRadius: '50%',
+                      backgroundColor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      transition: 'left 0.2s',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+                    }}>
+                      {localPermissions[perm.id] ? <Check size={12} color="#22c55e" strokeWidth={3} /> : <X size={12} color={C.error} strokeWidth={3} />}
+                    </div>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
