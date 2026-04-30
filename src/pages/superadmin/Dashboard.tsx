@@ -9,7 +9,7 @@ import { EmployeeListPage } from '../employees/EmployeeListPage';
 import { CustomerListPage, DeletedCustomersPage } from '../customers';
 import { ProductCataloguePage } from '../products/ProductCataloguePage';
 import { SalesPage } from '../sales/SalesPage';
-import { LogsPage } from '../logs/LogsPage';
+import { LogsPage } from '../audits/LogsPage';
 
 const DashboardRouter: React.FC = () => {
   const { currentPage } = useNavigation();
