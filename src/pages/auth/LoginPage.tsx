@@ -29,7 +29,7 @@ const LoginPage: React.FC<LoginPageProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault(); 
     setIsLoading(true);
     setError(null);
 
