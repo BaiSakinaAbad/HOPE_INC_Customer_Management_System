@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ShieldAlert, Search, RefreshCw } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
 import { auditLogService, formatAuditAction, formatAuditTable, type AuditLog } from '../../services/auditLogService';
-import { LogDetailsModal } from '../../components/logs/LogDetailsModal';
+import { LogDetailsModal } from '../../components/audits/LogDetailsModal';
 
 export const LogsPage: React.FC = () => {
   const { isDark } = useTheme();
