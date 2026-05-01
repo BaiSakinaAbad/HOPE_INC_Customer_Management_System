@@ -75,6 +75,19 @@ export async function getDeletedCustomers(role: string): Promise<CustomerService
 }
 
 /**
+ * Returns the total count of INACTIVE customers — for the stats card.
+ * Admin / superadmin only.
+ */
+export async function getInactiveCustomerCount(role: string): Promise<number> {
+  if (!(ELEVATED as readonly string[]).includes(role.toLowerCase())) return 0;
+  const { count } = await supabase
+    .from('customers')
+    .select('customer_no', { count: 'exact', head: true })
+    .eq('record_status', 'INACTIVE');
+  return count ?? 0;
+}
+
+/**
  * Soft-delete a customer by setting `record_status` to 'INACTIVE'.
  * ⚠️ This NEVER issues a SQL DELETE — only an UPDATE.
  */

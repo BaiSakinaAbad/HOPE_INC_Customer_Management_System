@@ -18,24 +18,34 @@ interface NavigationContextType {
   navigate: (page: PageId, params?: Record<string, any>) => void;
 }
 
+interface NavigationProviderProps {
+  children: React.ReactNode;
+  /** Initial page to land on if no previous nav state exists in sessionStorage. */
+  defaultPage?: PageId;
+}
+
 const NavigationContext = createContext<NavigationContextType>({
   currentPage: 'dashboard',
   navParams: {},
   navigate: () => {},
 });
 
-export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children, defaultPage = 'dashboard' }) => {
   const [currentPage, setCurrentPage] = useState<PageId>(() => {
     try {
+      // If the role requires a specific defaultPage (non-dashboard), always honour it.
+      // This prevents a stale 'dashboard' value in sessionStorage from trapping
+      // restricted roles (e.g. 'user') on the home screen they cannot access.
+      if (defaultPage !== 'dashboard') return defaultPage;
       const raw = window.sessionStorage.getItem(NAV_STATE_KEY);
-      if (!raw) return 'dashboard';
+      if (!raw) return defaultPage;
       const parsed = JSON.parse(raw) as { page?: string };
       if (parsed.page && VALID_PAGES.includes(parsed.page as PageId)) {
         return parsed.page as PageId;
       }
-      return 'dashboard';
+      return defaultPage;
     } catch {
-      return 'dashboard';
+      return defaultPage;
     }
   });
   const [navParams, setNavParams] = useState<Record<string, any>>(() => {
