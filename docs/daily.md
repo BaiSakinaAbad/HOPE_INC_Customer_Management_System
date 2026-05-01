@@ -189,38 +189,43 @@ This file is the compilation of our daily standup meetings.
       Blockers: None
    ```
    ---
+  # SPRINT 3 WEEK 1
+   May 1, 2026
+   <br>
+   Time duration: 3:00 PM - 3:05 PM <br>
+   Present Members: All members are present<br>
+   <br> *Prepared by:* @BaiSakinaAbad
+
    ## Role-by-Role Reports
 
    **Sakina [M1]**<br>
    ```
-      Completed:
-      Working on: 
-      Blockers: 
+      Completed: Fixed routing bugs; restricted dashboards to superadmins only.
+      Working on: Building the customer analytics module.
+      Blockers: Access denied due to a mismatched user authentication table.
    ```
    
   **Saira [M2]**<br>
    ```
-      Completed: 
-      Working on: 
-      Blockers: 
+      Completed: Designed brand logo, text, and initial UI views.
+      Working on: Exporting high-quality SVG and PNG assets.
+      Blockers: Account login issues for new users.
    ```
    **Peja [M3]**<br>
    ```
-      Completed: 
-      Working on: 
-      Blockers: 
+      Completed: Organized database structure and table views.
+      Working on: Collaborating with M4 to fix login and signup flows.
+      Blockers: None
    ```
    **Vinz [M4]**<br>
    ```
-      Completed: 
-      Working on:
-      Blockers: 
+      Completed: Fixed data fetching and implemented audit logs.
+      Working on: Repairing signup and login errors with M3.
+      Blockers: Database synchronization issues.
    ```
    **Klyne [M5]**<br>
    ```
-      Completed: 
-      Working on: 
-      Blockers: 
+      Completed: Monitored and approved pull requests.
+      Working on: Writing the first draft of the user manual.
+      Blockers: None
    ```
-   --- 
-   
