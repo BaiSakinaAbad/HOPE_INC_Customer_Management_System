@@ -35,8 +35,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerOpen, onClose }) => {
   const C = getDashboardTokens(isDark);
   const { currentPage, navigate } = useNavigation();
   
-  // Extract both capability flags
-  const { canViewDeletedNav, canManageEmployees, canViewLogs } = useRights();
+  // Extract capability flags
+  const { canViewDeletedNav, canManageEmployees, canViewLogs, canViewDashboard } = useRights();
 
   const handleNav = (page: PageId) => {
     navigate(page);
@@ -44,7 +44,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerOpen, onClose }) => {
   };
 
   const navItems: { page: PageId; label: string; icon: React.ElementType }[] = [
-    { page: 'dashboard', label: 'Dashboard',     icon: LayoutDashboard },
+    // Dashboard is only visible to superadmin
+    ...(canViewDashboard ? [{ page: 'dashboard' as PageId, label: 'Dashboard', icon: LayoutDashboard }] : []),
     { page: 'customers', label: 'Customers',     icon: Users },
     { page: 'sales',     label: 'Sales',         icon: CircleDollarSign },
     { page: 'products',  label: 'Products',      icon: Package },
