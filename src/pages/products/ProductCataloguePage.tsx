@@ -156,7 +156,7 @@ export const ProductCataloguePage: React.FC = () => {
                   {prod.unit}
                 </span>
               </DefaultTable.Td>
-              <DefaultTable.Td style={{ fontWeight: 700, color: C.onSurface }}>
+              <DefaultTable.Td style={{ fontWeight: 700, color: '#25cbafff' }}>
                 {formatPrice(prod.current_price)}
               </DefaultTable.Td>
               <DefaultTable.Td style={{ textAlign: 'center' }}>

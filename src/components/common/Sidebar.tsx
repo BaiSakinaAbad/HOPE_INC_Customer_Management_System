@@ -24,6 +24,7 @@ import {
 import { useTheme, getDashboardTokens, type DashboardTokens } from '../../providers/ThemeProvider';
 import { useNavigation, type PageId } from '../../providers/NavigationProvider';
 import { useRights } from '../../hooks/useRights';
+import logo from '../../assets/Logo.png';
 
 interface SidebarProps {
   drawerOpen: boolean;
@@ -80,20 +81,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerOpen, onClose }) => {
           padding: '0 24px', marginBottom: '40px',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         }}>
+          
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{
-              width: '32px', height: '32px', borderRadius: '8px',
-              background: isDark ? `linear-gradient(135deg, ${C.primary}, ${C.primaryContainer})` : C.primary,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              {isDark
-                ? <Zap size={16} fill="#000" color="#000" />
-                : <Sparkles size={16} fill="#fff" color="#fff" />}
-            </div>
-            <span style={{
-              fontFamily: C.font.headline, fontSize: '16px', fontWeight: 700, color: C.primary,
-            }}>
-              Hope, Inc.
+            <img 
+              src={logo}
+              alt="Logo"
+              style={{ width: '45px', height: '45px', objectFit: 'contain' , alignItems: 'center'}} 
+            />
+            <span style={{ fontFamily: "'Acquire', sans-serif", fontSize: '18px', fontWeight: 750, letterSpacing: '3px' }}>
+              <span style={{ color: isDark ? '#fff' : C.onSurface }}>BITE</span>
+              <span style={{ color: C.primary }}>LOG</span>
             </span>
           </div>
           <button

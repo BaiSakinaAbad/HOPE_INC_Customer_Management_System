@@ -8,6 +8,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useTheme, getDashboardTokens, type DashboardTokens} from '../../providers/ThemeProvider';
+import logo from '../../assets/Logo.png';
 
 
 interface TopbarProps {
@@ -33,12 +34,16 @@ export const Topbar: React.FC<TopbarProps> = ({ isMobile, onMenuOpen, onLogout, 
       <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
         <button onClick={onMenuOpen} style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.onSurfaceVariant, display: 'flex' }}><Menu size={22} /></button>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', borderLeft: `1px solid ${C.outlineVariant}33`, paddingLeft: '16px' }}>
-          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: isDark ? `linear-gradient(135deg, ${C.primary}, ${C.primaryContainer})` : C.primary, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {isDark ? <Zap size={16} fill="#000" color="#000" /> : <Sparkles size={16} fill="#fff" color="#fff" />}
-          </div>
+          <img 
+            src={logo}
+            alt="Logo"
+            style={{ width: '45px', height: '45px', objectFit: 'contain' , alignItems: 'center'}} 
+          />
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontFamily: C.font.headline, fontSize: '16px', fontWeight: 800, color: isDark ? '#fff' : C.primary, lineHeight: 1 }}>BiteLog</span>
-            <span style={{ fontSize: '9px', color: C.onSurfaceVariant, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Customer Management</span>
+              <span style={{ fontFamily: "'Acquire', sans-serif", fontSize: '18px', fontWeight: 750, letterSpacing: '2px' }}>
+              <span style={{ color: isDark ? '#fff' : C.onSurface }}>BITE</span>
+              <span style={{ color: C.primary }}>LOG</span>
+            </span>            <span style={{ fontSize: '9px', color: C.onSurfaceVariant, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Customer Management</span>
           </div>
         </div>
       </div>
