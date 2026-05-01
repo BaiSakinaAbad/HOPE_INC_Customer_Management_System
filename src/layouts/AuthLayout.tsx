@@ -16,12 +16,13 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
   const t = isDark ? tokens.dark : tokens.light;
 
   useEffect(() => {
+    let isMounted = true;
+
     const enforceActiveUser = async () => {
       const { data, error } = await supabase.auth.getUser();
 
-      if (error || !data.user) {
-        return;
-      }
+      // Abort if the component unmounted while we were waiting (e.g. user just logged in)
+      if (!isMounted || error || !data.user) return;
 
       const { data: appUser, error: appUserError } = await supabase
         .from('app_user')
@@ -29,12 +30,15 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
         .eq('id', data.user.id)
         .single();
 
-      if (!appUserError && appUser?.record_status === 'INACTIVE') {
+      // Only sign out if still on this page — prevents killing the InactiveAccountModal
+      if (isMounted && !appUserError && appUser?.record_status === 'INACTIVE') {
         await supabase.auth.signOut();
       }
     };
 
     enforceActiveUser();
+
+    return () => { isMounted = false; };
   }, []);
 
   return (
