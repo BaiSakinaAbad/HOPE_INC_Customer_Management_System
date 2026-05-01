@@ -66,8 +66,8 @@ export const DefaultTableContainer: React.FC<{ children: React.ReactNode; pagina
                     minWidth: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
                     borderRadius: '6px',
                     border: isActive ? 'none' : `1px solid ${C.outlineVariant}55`,
-                    backgroundColor: isActive ? (isDark ? '#fff' : '#1a1a2e') : 'transparent',
-                    color: isActive ? (isDark ? '#000' : '#fff') : C.onSurface,
+                    backgroundColor: isActive ? '#834fff' : 'transparent',
+                    color: isActive ? '#fff' : C.onSurface,
                     fontWeight: isActive ? 700 : 500,
                     cursor: 'pointer',
                   }}
