@@ -44,8 +44,11 @@ const DashboardRouter: React.FC = () => {
 
 // Wrap the router in the Navigation Provider
 const Dashboard: React.FC = () => {
+  const { role } = useAuth();
+  // 'user' role lands directly on customers (they have no dashboard home)
+  const defaultPage = role === 'user' ? 'customers' : 'dashboard';
   return (
-    <NavigationProvider>
+    <NavigationProvider defaultPage={defaultPage}>
       <DashboardRouter />
     </NavigationProvider>
   );

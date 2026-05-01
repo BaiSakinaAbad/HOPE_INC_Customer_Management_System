@@ -3,7 +3,7 @@ import { RefreshCw, AlertTriangle, Users, ChevronUp, ChevronDown, Plus, Power, P
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
 import { useAuth } from '../../providers/AuthProvider';
 import { useRights } from '../../hooks/useRights';
-import { getCustomers, softDeleteCustomer, updateCustomer, createCustomer, activateCustomer, deactivateCustomer } from '../../services/customerService';
+import { getCustomers, softDeleteCustomer, updateCustomer, createCustomer, activateCustomer, deactivateCustomer, getInactiveCustomerCount } from '../../services/customerService';
 import type { Customer } from '../../types/customer';
 import { DefaultTable, Button, SearchBar, DashboardHeader } from '../../components/ui';
 
@@ -30,6 +30,7 @@ export const CustomerListPage: React.FC = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [inactiveTotal, setInactiveTotal] = useState(0);
   
   // Search state is much simpler now
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -53,8 +54,12 @@ export const CustomerListPage: React.FC = () => {
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const { data, error: svcError } = await getCustomers(role ?? 'employee');
+    const [{ data, error: svcError }, count] = await Promise.all([
+      getCustomers(role ?? 'employee'),
+      getInactiveCustomerCount(role ?? 'employee'),
+    ]);
     setCustomers(svcError ? [] : (data ?? []));
+    setInactiveTotal(count);
     setError(svcError);
     setLoading(false);
   }, [role]);
@@ -162,8 +167,9 @@ export const CustomerListPage: React.FC = () => {
   const colCount = 5 + (canViewStamp ? 1 : 0) + 1;
 
   const activeCount = customers.filter(c => c.recordstatus === 'ACTIVE').length;
-  const inactiveCount = customers.filter(c => c.recordstatus === 'INACTIVE').length;
   const roleDisplay = role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Unknown';
+  // For elevated roles: total = active on page + all inactive in DB
+  const displayTotal = canViewStamp ? activeCount + inactiveTotal : activeCount;
 
   return (
     <div style={{ flex: 1, padding: '32px 24px 48px', fontFamily: 'Inter, sans-serif' }}>
@@ -173,9 +179,10 @@ export const CustomerListPage: React.FC = () => {
         description="The central hub for your customer data. View detailed profiles, onboard new customers, or manage by deleting customers."
         note="* Note: Deletion is a soft-delete mechanism and can be reversed by an administrator."
         statsTitle="Registered Customers"
-        totalCount={customers.length}
+        totalCount={displayTotal}
         activeCount={activeCount}
-        inactiveCount={inactiveCount}
+        inactiveCount={inactiveTotal}
+        showInactiveCount={canViewStamp}
         roleDisplay={roleDisplay}
         policyDescription={
           canViewStamp 
