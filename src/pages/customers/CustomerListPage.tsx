@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { RefreshCw, AlertTriangle, Users, ChevronUp, ChevronDown, Plus, Power, PowerOff } from 'lucide-react';
+import { RefreshCw, AlertTriangle, Users, ChevronUp, ChevronDown, Plus } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
 import { useAuth } from '../../providers/AuthProvider';
 import { useRights } from '../../hooks/useRights';
-import { getCustomers, softDeleteCustomer, updateCustomer, createCustomer, activateCustomer, deactivateCustomer, getInactiveCustomerCount } from '../../services/customerService';
+import { getCustomers, softDeleteCustomer, updateCustomer, createCustomer, getInactiveCustomerCount } from '../../services/customerService';
 import type { Customer } from '../../types/customer';
 import { DefaultTable, Button, SearchBar, DashboardHeader } from '../../components/ui';
 
@@ -19,7 +19,6 @@ export const CustomerListPage: React.FC = () => {
   const { role, user } = useAuth();
   const { canViewStamp } = useRights();
   const canSoftDelete = role === 'superadmin';
-  const canDeactivate = role === 'admin' || role === 'superadmin';
   const canEdit = role === 'admin' || role === 'superadmin';
 
   const metadata = user?.user_metadata ?? {};
@@ -45,7 +44,6 @@ export const CustomerListPage: React.FC = () => {
   
   // Modal State
   const [confirmDelete, setConfirmDelete] = useState<Customer | null>(null);
-  const [confirmToggle, setConfirmToggle] = useState<Customer | null>(null);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
@@ -112,26 +110,6 @@ export const CustomerListPage: React.FC = () => {
     setActionLoading(false);
   };
 
-  const handleToggleStatus = async () => {
-    if (!confirmToggle) return;
-    setActionLoading(true);
-    setActionError(null);
-    const performedBy = displayName;
-    const isActive = confirmToggle.recordstatus === 'ACTIVE';
-
-    const { error: svcError } = isActive
-      ? await deactivateCustomer(confirmToggle.custno, performedBy, role ?? 'employee')
-      : await activateCustomer(confirmToggle.custno, performedBy, role ?? 'employee');
-
-    if (svcError) {
-      setActionError(svcError);
-    } else {
-      setConfirmToggle(null);
-      void load();
-    }
-    setActionLoading(false);
-  };
-
   const handleEditSubmit = async (custno: string, data: Partial<Pick<Customer, 'custname' | 'address' | 'payterm'>>) => {
     setActionLoading(true);
     setActionError(null);
@@ -192,7 +170,6 @@ export const CustomerListPage: React.FC = () => {
         allowedActions={[
           'View Active Customers',
           ...(canViewStamp ? ['View Audit Stamps'] : []),
-          ...(canDeactivate ? ['Activate/Deactivate Customers'] : []),
           ...(canEdit ? ['Add Customers', 'Edit Customers'] : []),
           ...(canSoftDelete ? ['Delete Customers'] : [])
         ]}
@@ -283,42 +260,14 @@ export const CustomerListPage: React.FC = () => {
               C={C}
               isDark={isDark}
               canViewStamp={canViewStamp}
-              canDeactivate={canDeactivate}
               canSoftDelete={canSoftDelete}
               canEdit={canEdit}
               onEdit={setEditingCustomer}
-              onToggleStatus={setConfirmToggle}
               onDelete={setConfirmDelete}
             />
           ))}
         </tbody>
       </DefaultTable.Container>
-
-      {/* Unified Action Modal */}
-      <ActionModal
-        isOpen={!!confirmToggle}
-        title={confirmToggle?.recordstatus === 'ACTIVE' ? 'Deactivate Customer?' : 'Activate Customer?'}
-        description={
-          <>
-            <strong style={{ color: C.onSurface }}>{confirmToggle?.custname}</strong>{' '}
-            <span style={{ fontFamily: 'monospace', fontSize: '12px', opacity: 0.8 }}>({confirmToggle?.custno})</span>{' '}
-            will be marked as {confirmToggle?.recordstatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'}.
-          </>
-        }
-        icon={confirmToggle?.recordstatus === 'ACTIVE'
-          ? <PowerOff size={20} style={{ color: C.error }} />
-          : <Power size={20} style={{ color: '#22c55e' }} />
-        }
-        iconBg={confirmToggle?.recordstatus === 'ACTIVE' ? `${C.error}18` : 'rgba(34,197,94,0.15)'}
-        confirmText={confirmToggle?.recordstatus === 'ACTIVE' ? 'Deactivate' : 'Activate'}
-        confirmColor={confirmToggle?.recordstatus === 'ACTIVE' ? C.error : '#22c55e'}
-        loading={actionLoading}
-        error={actionError}
-        C={C}
-        isDark={isDark}
-        onConfirm={handleToggleStatus}
-        onCancel={() => { setConfirmToggle(null); setActionError(null); }}
-      />
 
       <ActionModal
         isOpen={!!confirmDelete}
