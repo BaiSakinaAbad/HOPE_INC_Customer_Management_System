@@ -19,7 +19,7 @@ export const CustomerListPage: React.FC = () => {
   const { role, user } = useAuth();
   const { canViewStamp } = useRights();
   const canSoftDelete = role === 'superadmin';
-  const canDeactivate = role === 'admin' || role === 'superadmin';
+  const canDeactivate = role === 'superadmin';
   const canEdit = role === 'admin' || role === 'superadmin';
 
   const metadata = user?.user_metadata ?? {};

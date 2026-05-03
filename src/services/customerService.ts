@@ -37,20 +37,15 @@ const buildStamp = (action: string, role: string, performedBy: string) => {
  * - `admin` / `superadmin`: all records (UI filters table, but header uses counts).
  */
 export async function getCustomers(role: string): Promise<CustomerServiceResult<Customer[]>> {
-  const isRestricted = !(ELEVATED as readonly string[]).includes(role.toLowerCase());
-  const qb = supabase.from('customers').select(COLS);
-  const { data, error } = await (
-    isRestricted ? qb.eq('record_status', 'ACTIVE') : qb
-  ).order('customer_name', { ascending: true });
+  const { data, error } = await supabase
+    .from('customers')
+    .select(COLS)
+    .eq('record_status', 'ACTIVE')
+    .order('customer_name', { ascending: true });
 
   if (error) return { data: null, error: error.message };
   const rows = (data as Customer[]) ?? [];
-  if (isRestricted) return { data: rows, error: null };
-
-  // Elevated roles can view inactive records, but deleted records belong only
-  // in the Deleted Customers page.
-  const visibleRows = rows.filter((row) => !(row.stamp ?? '').toLowerCase().startsWith('deleted'));
-  return { data: visibleRows, error: null };
+  return { data: rows, error: null };
 }
 
 /**
@@ -70,8 +65,7 @@ export async function getDeletedCustomers(role: string): Promise<CustomerService
 
   if (error) return { data: null, error: error.message };
   const rows = (data as Customer[]) ?? [];
-  const deletedRows = rows.filter((row) => (row.stamp ?? '').toLowerCase().startsWith('deleted'));
-  return { data: deletedRows, error: null };
+  return { data: rows, error: null };
 }
 
 /**
@@ -119,8 +113,8 @@ export async function deactivateCustomer(
   performedBy: string,
   role: string,
 ): Promise<CustomerServiceResult<null>> {
-  if (!(ELEVATED as readonly string[]).includes(role.toLowerCase())) {
-    return { data: null, error: 'Only admin and superadmin can deactivate.' };
+  if (role.toLowerCase() !== 'superadmin') {
+    return { data: null, error: 'Only superadmin can deactivate.' };
   }
   const stamp = buildStamp('Deactivated', role, performedBy);
   const { error } = await supabase
