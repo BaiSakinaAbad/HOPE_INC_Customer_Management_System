@@ -1,8 +1,7 @@
 import React from 'react';
 import { NavigationProvider, useNavigation } from '../../providers/NavigationProvider';
 import { DashboardLayout } from '../../layouts/DashboardLayout';
-import { MainContent } from '../../components/common/MainContent';
-import { useWindowWidth, BP } from '../../hooks/useWindowWidth';
+import { DashboardReports } from '../../components/dashboard/DashboardReports';
 import { useAuth } from '../../providers/AuthProvider';
 import { EmployeeListPage } from '../employees/EmployeeListPage';
 
@@ -14,7 +13,6 @@ import { LogsPage } from '../audits/LogsPage';
 const DashboardRouter: React.FC = () => {
   const { currentPage } = useNavigation();
   const { user } = useAuth();
-  const width = useWindowWidth();
 
   // Extract first name for the welcome screen
   const metadata = user?.user_metadata ?? {};
@@ -31,7 +29,7 @@ const DashboardRouter: React.FC = () => {
       case 'products':  return <ProductCataloguePage />;
       case 'sales':     return <SalesPage />;
       case 'logs':      return <LogsPage />;
-      default:          return <MainContent isMobile={width < BP.mobile} firstName={firstName} />;
+      default:          return <DashboardReports firstName={firstName} />;
     }
   };
 
@@ -54,4 +52,4 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default Dashboard;
+export default Dashboard;
