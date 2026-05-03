@@ -187,7 +187,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ label, icon: Icon, active, C,
           : hovered ? (isDark ? C.surfaceContainerHigh : '#eeeef5') : 'transparent',
         border: 'none',
         borderLeft: active ? `3px solid ${C.primary}` : '3px solid transparent',
-        paddingLeft: '21px',      // compensate for 3px border
+        paddingLeft: '21px',      
         cursor: 'pointer', textAlign: 'left',
         transition: 'all 0.2s ease',
       }}
