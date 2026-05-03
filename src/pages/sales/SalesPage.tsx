@@ -20,9 +20,13 @@ export const SalesPage: React.FC = () => {
   const [selectedCustomerNo, setSelectedCustomerNo] = useState<string>(navParams?.customerNo || 'ALL');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  
+  // Track expanded transaction
+  const [expandedSale, setExpandedSale] = useState<string | null>(null);
 
   useEffect(() => {
     setCurrentPage(1);
+    setExpandedSale(null);
   }, [debouncedSearch, selectedCustomerNo]);
 
   const load = useCallback(async () => {
@@ -179,8 +183,9 @@ export const SalesPage: React.FC = () => {
           )}
 
           {!loading && paginated.map((sale) => (
-            <DefaultTable.Tr key={sale.transno}>
-              <DefaultTable.Td style={{ fontWeight: 700 }}>
+            <React.Fragment key={sale.transno}>
+              <DefaultTable.Tr>
+                <DefaultTable.Td style={{ fontWeight: 700 }}>
                 {sale.transno}
               </DefaultTable.Td>
               <DefaultTable.Td style={{ fontWeight: 500 }}>{sale.customerName}</DefaultTable.Td>
@@ -198,14 +203,59 @@ export const SalesPage: React.FC = () => {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Button
                     compact
-                    onClick={() => {}}
+                    onClick={() => setExpandedSale(expandedSale === sale.transno ? null : sale.transno)}
                     style={{ width: 'auto', padding: '0 12px', gap: '6px' }}
                   >
-                    <BarChart2 size={14} /> View Analytics
+                    <BarChart2 size={14} /> {expandedSale === sale.transno ? 'Hide Details' : 'View Details'}
                   </Button>
                 </div>
               </DefaultTable.Td>
             </DefaultTable.Tr>
+
+            {/* Drill-down row */}
+            {expandedSale === sale.transno && (
+              <DefaultTable.Tr>
+                <DefaultTable.Td colSpan={6} style={{ padding: 0, backgroundColor: isDark ? `${C.surfaceContainerHigh}40` : '#f8f8fb' }}>
+                  <div style={{ padding: '24px', borderTop: `1px solid ${C.outlineVariant}33`, borderBottom: `1px solid ${C.outlineVariant}33` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                      <h4 style={{ margin: 0, color: C.onSurface, fontSize: '14px', fontWeight: 700 }}>Transaction Details: {sale.transno}</h4>
+                      <span style={{ fontSize: '12px', color: C.onSurfaceVariant, fontWeight: 600 }}>Total Items: {sale.details.reduce((sum, d) => sum + d.quantity, 0)}</span>
+                    </div>
+                    
+                    <div style={{ 
+                      backgroundColor: isDark ? C.surfaceContainer : '#fff', 
+                      borderRadius: '8px', 
+                      border: `1px solid ${C.outlineVariant}55`,
+                      overflow: 'hidden'
+                    }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                        <thead style={{ backgroundColor: isDark ? `${C.surfaceContainerHigh}88` : '#f1f1f5' }}>
+                          <tr>
+                            <th style={{ padding: '10px 16px', color: C.onSurfaceVariant, fontWeight: 600, borderBottom: `1px solid ${C.outlineVariant}44` }}>Product Code</th>
+                            <th style={{ padding: '10px 16px', color: C.onSurfaceVariant, fontWeight: 600, borderBottom: `1px solid ${C.outlineVariant}44` }}>Description</th>
+                            <th style={{ padding: '10px 16px', color: C.onSurfaceVariant, fontWeight: 600, borderBottom: `1px solid ${C.outlineVariant}44`, textAlign: 'right' }}>Qty</th>
+                            <th style={{ padding: '10px 16px', color: C.onSurfaceVariant, fontWeight: 600, borderBottom: `1px solid ${C.outlineVariant}44`, textAlign: 'right' }}>Unit Price</th>
+                            <th style={{ padding: '10px 16px', color: C.onSurfaceVariant, fontWeight: 600, borderBottom: `1px solid ${C.outlineVariant}44`, textAlign: 'right' }}>Total</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {sale.details.map((detail, idx) => (
+                            <tr key={idx} style={{ borderBottom: idx < sale.details.length - 1 ? `1px solid ${C.outlineVariant}22` : 'none' }}>
+                              <td style={{ padding: '10px 16px', fontFamily: 'monospace', fontWeight: 600, color: C.primary }}>{detail.product_code}</td>
+                              <td style={{ padding: '10px 16px', color: C.onSurface, fontWeight: 500 }}>{detail.description}</td>
+                              <td style={{ padding: '10px 16px', color: C.onSurface, textAlign: 'right', fontWeight: 600 }}>{detail.quantity}</td>
+                              <td style={{ padding: '10px 16px', color: C.onSurfaceVariant, textAlign: 'right' }}>{formatCurrency(detail.unitPrice)}</td>
+                              <td style={{ padding: '10px 16px', color: C.onSurface, textAlign: 'right', fontWeight: 700 }}>{formatCurrency(detail.totalPrice)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </DefaultTable.Td>
+              </DefaultTable.Tr>
+            )}
+            </React.Fragment>
           ))}
         </tbody>
       </DefaultTable.Container>
