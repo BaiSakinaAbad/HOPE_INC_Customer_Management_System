@@ -1,5 +1,13 @@
 import { supabase } from '../lib/supabase';
 
+export interface SaleDetail {
+  product_code: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
 export interface SaleTransaction {
   transno: string;
   salesdate: string;
@@ -8,10 +16,11 @@ export interface SaleTransaction {
   customerName: string;
   employeeName: string;
   total: number;
+  details: SaleDetail[];
 }
 
-export async function getSales(): Promise<{ data: SaleTransaction[] | null; error: string | null }> {
-  const { data: sales, error } = await supabase
+export async function getSales(custno?: string): Promise<{ data: SaleTransaction[] | null; error: string | null }> {
+  let query = supabase
     .from('sales')
     .select(`
       transno:transaction_no,
@@ -20,9 +29,15 @@ export async function getSales(): Promise<{ data: SaleTransaction[] | null; erro
       empno,
       customers!inner ( custname:customer_name ),
       employees!inner ( firstname, lastname ),
-      sales_detail ( product_code, quantity )
+      sales_detail ( product_code, quantity, products ( description ) )
     `)
     .order('sales_date', { ascending: false });
+
+  if (custno) {
+    query = query.eq('customer_no', custno);
+  }
+
+  const { data: sales, error } = await query;
 
   if (error) {
     return { data: null, error: error.message };
@@ -45,10 +60,23 @@ export async function getSales(): Promise<{ data: SaleTransaction[] | null; erro
   }
 
   const transformed = (sales || []).map((sale: any) => {
-    const total = (sale.sales_detail || []).reduce((acc: number, detail: any) => {
+    let total = 0;
+    const details = (sale.sales_detail || []).map((detail: any) => {
       const unitPrice = latestPrices.get(detail.product_code) ?? 0;
-      return acc + (Number(detail.quantity) * unitPrice);
-    }, 0);
+      const quantity = Number(detail.quantity) || 0;
+      const totalPrice = quantity * unitPrice;
+      total += totalPrice;
+      
+      const prod = Array.isArray(detail.products) ? detail.products[0] : detail.products;
+      
+      return {
+        product_code: detail.product_code,
+        description: prod?.description || detail.product_code,
+        quantity,
+        unitPrice,
+        totalPrice,
+      };
+    });
 
     const emp = Array.isArray(sale.employees) ? sale.employees[0] : sale.employees;
     const cust = Array.isArray(sale.customers) ? sale.customers[0] : sale.customers;
@@ -61,6 +89,7 @@ export async function getSales(): Promise<{ data: SaleTransaction[] | null; erro
       customerName: cust?.custname || sale.custno,
       employeeName: emp ? `${emp.firstname} ${emp.lastname}`.trim() : sale.empno,
       total,
+      details,
     };
   });
 
