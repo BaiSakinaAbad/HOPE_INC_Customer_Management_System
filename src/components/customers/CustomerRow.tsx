@@ -240,19 +240,49 @@ export const CustomerRow: React.FC<CustomerRowProps> = React.memo(({
                       <th style={{ padding: '10px 16px', color: C.onSurfaceVariant, fontWeight: 600, borderBottom: `1px solid ${C.outlineVariant}44` }}>Transaction No</th>
                       <th style={{ padding: '10px 16px', color: C.onSurfaceVariant, fontWeight: 600, borderBottom: `1px solid ${C.outlineVariant}44` }}>Date</th>
                       <th style={{ padding: '10px 16px', color: C.onSurfaceVariant, fontWeight: 600, borderBottom: `1px solid ${C.outlineVariant}44` }}>Facilitated By</th>
-                      <th style={{ padding: '10px 16px', color: C.onSurfaceVariant, fontWeight: 600, borderBottom: `1px solid ${C.outlineVariant}44`, textAlign: 'right' }}>Total</th>
+                      <th style={{ padding: '10px 16px', color: C.onSurfaceVariant, fontWeight: 600, borderBottom: `1px solid ${C.outlineVariant}44`, textAlign: 'right' }}>Grand Total</th>
                     </tr>
                   </thead>
                   <tbody>
                     {sales.map((sale, idx) => (
-                      <tr key={sale.transno} style={{ borderBottom: idx < sales.length - 1 ? `1px solid ${C.outlineVariant}22` : 'none' }}>
-                        <td style={{ padding: '10px 16px', fontWeight: 700, color: C.onSurface }}>{sale.transno}</td>
-                        <td style={{ padding: '10px 16px', color: C.onSurfaceVariant }}>{new Date(sale.salesdate).toLocaleDateString()}</td>
-                        <td style={{ padding: '10px 16px', color: C.onSurface }}>{sale.employeeName}</td>
-                        <td style={{ padding: '10px 16px', color: C.onSurface, textAlign: 'right', fontWeight: 700 }}>
-                          {sale.total.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
-                        </td>
-                      </tr>
+                      <React.Fragment key={sale.transno}>
+                        <tr style={{ backgroundColor: isDark ? `${C.surfaceContainerHigh}33` : '#fdfdfd' }}>
+                          <td style={{ padding: '10px 16px', fontWeight: 700, color: C.onSurface }}>{sale.transno}</td>
+                          <td style={{ padding: '10px 16px', color: C.onSurfaceVariant }}>{new Date(sale.salesdate).toLocaleDateString()}</td>
+                          <td style={{ padding: '10px 16px', color: C.onSurface }}>{sale.employeeName}</td>
+                          <td style={{ padding: '10px 16px', color: C.onSurface, textAlign: 'right', fontWeight: 700, fontSize: '14px' }}>
+                            {sale.total.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td colSpan={4} style={{ padding: '0 16px 16px 16px', borderBottom: idx < sales.length - 1 ? `1px solid ${C.outlineVariant}55` : 'none' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '4px', fontSize: '12px' }}>
+                              <thead style={{ borderBottom: `1px solid ${C.outlineVariant}33` }}>
+                                <tr>
+                                  <th style={{ padding: '4px 8px', color: C.onSurfaceVariant, fontWeight: 500, textAlign: 'left' }}>Product</th>
+                                  <th style={{ padding: '4px 8px', color: C.onSurfaceVariant, fontWeight: 500, textAlign: 'right' }}>Qty</th>
+                                  <th style={{ padding: '4px 8px', color: C.onSurfaceVariant, fontWeight: 500, textAlign: 'right' }}>Price</th>
+                                  <th style={{ padding: '4px 8px', color: C.onSurfaceVariant, fontWeight: 500, textAlign: 'right' }}>Subtotal</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {sale.details?.map((d, i) => (
+                                  <tr key={i} style={{ borderBottom: `1px dashed ${C.outlineVariant}22` }}>
+                                    <td style={{ padding: '6px 8px', color: C.onSurface }}>{d.description} <span style={{ opacity: 0.5 }}>({d.product_code})</span></td>
+                                    <td style={{ padding: '6px 8px', color: C.onSurface, textAlign: 'right' }}>{d.quantity}</td>
+                                    <td style={{ padding: '6px 8px', color: C.onSurfaceVariant, textAlign: 'right' }}>
+                                      {d.unitPrice.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                                    </td>
+                                    <td style={{ padding: '6px 8px', color: C.onSurface, textAlign: 'right', fontWeight: 600 }}>
+                                      {d.totalPrice.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </td>
+                        </tr>
+                      </React.Fragment>
                     ))}
                   </tbody>
                 </table>
