@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ShieldAlert, Search, RefreshCw } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
 import { auditLogService, formatAuditAction, formatAuditTable, type AuditLog } from '../../services/auditLogService';
 import { LogDetailsModal } from '../../components/audits/LogDetailsModal';
+import { DefaultTable } from '../../components/ui/DefaultTable';
 
 export const LogsPage: React.FC = () => {
   const { isDark } = useTheme();
@@ -14,10 +15,14 @@ export const LogsPage: React.FC = () => {
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
+
   const fetchLogs = async () => {
     setLoading(true);
     setError(null);
-    const { logs: fetchedLogs, error: err } = await auditLogService.fetchLogs(200);
+    const { logs: fetchedLogs, error: err } = await auditLogService.fetchLogs(500);
     if (err) {
       setError(err.message || 'Failed to load audit logs.');
     } else {
@@ -30,19 +35,34 @@ export const LogsPage: React.FC = () => {
     fetchLogs();
   }, []);
 
-  const filteredLogs = logs.filter(log => {
-    const s = searchTerm.toLowerCase();
-    const userDisplay = log.app_user 
-      ? (`${log.app_user.first_name || ''} ${log.app_user.last_name || ''}`.trim() || log.app_user.username || log.app_user.email) 
-      : log.user_id;
-    
-    return (
-      formatAuditTable(log.table_name).toLowerCase().includes(s) ||
-      formatAuditAction(log).toLowerCase().includes(s) ||
-      (userDisplay && userDisplay.toLowerCase().includes(s)) ||
-      log.id.toLowerCase().includes(s)
-    );
-  });
+  // Reset to page 1 when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  const filteredLogs = useMemo(() => {
+    return logs.filter(log => {
+      const s = searchTerm.toLowerCase();
+      if (!s) return true;
+      const userDisplay = log.app_user 
+        ? (`${log.app_user.first_name || ''} ${log.app_user.last_name || ''}`.trim() || log.app_user.username || log.app_user.email) 
+        : log.user_id;
+      
+      return (
+        formatAuditTable(log.table_name).toLowerCase().includes(s) ||
+        formatAuditAction(log).toLowerCase().includes(s) ||
+        (userDisplay && userDisplay.toLowerCase().includes(s)) ||
+        log.id.toLowerCase().includes(s)
+      );
+    });
+  }, [logs, searchTerm]);
+
+  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
+
+  const paginatedLogs = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredLogs.slice(start, start + itemsPerPage);
+  }, [filteredLogs, currentPage]);
 
   const getActionColor = (log: AuditLog) => {
     const act = formatAuditAction(log);
@@ -109,6 +129,11 @@ export const LogsPage: React.FC = () => {
               color: C.onSurface, fontSize: '15px', fontFamily: C.font.body
             }}
           />
+          {searchTerm.trim() && !loading && (
+            <span style={{ fontSize: '12px', color: C.onSurfaceVariant, whiteSpace: 'nowrap' }}>
+              {filteredLogs.length} of {logs.length} shown
+            </span>
+          )}
         </div>
 
         {/* Error */}
@@ -118,81 +143,77 @@ export const LogsPage: React.FC = () => {
           </div>
         )}
 
-        {/* Table */}
-        <div style={{
-          backgroundColor: C.surface, borderRadius: '12px', border: `1px solid ${C.outlineVariant}33`,
-          overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
-        }}>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '800px' }}>
-              <thead>
-                <tr style={{ backgroundColor: C.surfaceContainerLow, borderBottom: `1px solid ${C.outlineVariant}33` }}>
-                  <th style={{ padding: '16px', color: C.onSurfaceVariant, fontSize: '13px', fontWeight: 600 }}>Date / Time</th>
-                  <th style={{ padding: '16px', color: C.onSurfaceVariant, fontSize: '13px', fontWeight: 600 }}>Action</th>
-                  <th style={{ padding: '16px', color: C.onSurfaceVariant, fontSize: '13px', fontWeight: 600 }}>Table</th>
-                  <th style={{ padding: '16px', color: C.onSurfaceVariant, fontSize: '13px', fontWeight: 600 }}>User</th>
-                  <th style={{ padding: '16px', color: C.onSurfaceVariant, fontSize: '13px', fontWeight: 600 }}>Record ID</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading && logs.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: C.onSurfaceVariant }}>
-                      Loading logs...
-                    </td>
-                  </tr>
-                ) : filteredLogs.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: C.onSurfaceVariant }}>
-                      No logs found.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredLogs.map(log => {
-                    const actionStyle = getActionColor(log);
-                    const userDisplay = log.app_user 
-                      ? (`${log.app_user.first_name || ''} ${log.app_user.last_name || ''}`.trim() || log.app_user.username || log.app_user.email) 
-                      : log.user_id || 'System';
+        {/* Table with pagination */}
+        <DefaultTable.Container
+          pagination={{
+            currentPage,
+            totalPages,
+            totalItems: filteredLogs.length,
+            itemsPerPage,
+            onPageChange: setCurrentPage,
+          }}
+        >
+          <thead>
+            <tr>
+              <DefaultTable.Th>Date / Time</DefaultTable.Th>
+              <DefaultTable.Th>Action</DefaultTable.Th>
+              <DefaultTable.Th>Table</DefaultTable.Th>
+              <DefaultTable.Th>User</DefaultTable.Th>
+              <DefaultTable.Th>Record ID</DefaultTable.Th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading && logs.length === 0 ? (
+              <DefaultTable.Tr>
+                <DefaultTable.Td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: C.onSurfaceVariant }}>
+                  Loading logs...
+                </DefaultTable.Td>
+              </DefaultTable.Tr>
+            ) : filteredLogs.length === 0 ? (
+              <DefaultTable.Tr>
+                <DefaultTable.Td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: C.onSurfaceVariant }}>
+                  No logs found.
+                </DefaultTable.Td>
+              </DefaultTable.Tr>
+            ) : (
+              paginatedLogs.map(log => {
+                const actionStyle = getActionColor(log);
+                const userDisplay = log.app_user 
+                  ? (`${log.app_user.first_name || ''} ${log.app_user.last_name || ''}`.trim() || log.app_user.username || log.app_user.email) 
+                  : log.user_id || 'System';
 
-                    return (
-                      <tr 
-                        key={log.id} 
-                        onClick={() => setSelectedLog(log)}
-                        style={{ 
-                          borderBottom: `1px solid ${C.outlineVariant}22`, cursor: 'pointer',
-                          transition: 'background-color 0.2s',
-                        }}
-                        onMouseOver={e => e.currentTarget.style.backgroundColor = `${C.primary}0a`}
-                        onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}
-                      >
-                        <td style={{ padding: '16px', color: C.onSurface, fontSize: '14px', whiteSpace: 'nowrap' }}>
-                          {new Date(log.created_at).toLocaleString()}
-                        </td>
-                        <td style={{ padding: '16px' }}>
-                          <span style={{ 
-                            padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 600,
-                            backgroundColor: actionStyle.bg, color: actionStyle.color || (actionStyle as any).text
-                          }}>
-                            {formatAuditAction(log)}
-                          </span>
-                        </td>
-                        <td style={{ padding: '16px', color: C.onSurface, fontSize: '14px', fontWeight: 500 }}>
-                          {formatAuditTable(log.table_name)}
-                        </td>
-                        <td style={{ padding: '16px', color: C.onSurfaceVariant, fontSize: '14px' }}>
-                          {userDisplay}
-                        </td>
-                        <td style={{ padding: '16px', color: C.onSurfaceVariant, fontSize: '14px', fontFamily: 'monospace' }}>
-                          {log.id.substring(0, 8)}...
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                return (
+                  <DefaultTable.Tr 
+                    key={log.id} 
+                    onClick={() => setSelectedLog(log)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <DefaultTable.Td style={{ whiteSpace: 'nowrap' }}>
+                      {new Date(log.created_at).toLocaleString()}
+                    </DefaultTable.Td>
+                    <DefaultTable.Td>
+                      <span style={{ 
+                        padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 600,
+                        backgroundColor: actionStyle.bg, color: actionStyle.color
+                      }}>
+                        {formatAuditAction(log)}
+                      </span>
+                    </DefaultTable.Td>
+                    <DefaultTable.Td style={{ fontWeight: 500 }}>
+                      {formatAuditTable(log.table_name)}
+                    </DefaultTable.Td>
+                    <DefaultTable.Td style={{ color: C.onSurfaceVariant }}>
+                      {userDisplay}
+                    </DefaultTable.Td>
+                    <DefaultTable.Td style={{ color: C.onSurfaceVariant, fontFamily: 'monospace' }}>
+                      {log.id.substring(0, 8)}...
+                    </DefaultTable.Td>
+                  </DefaultTable.Tr>
+                );
+              })
+            )}
+          </tbody>
+        </DefaultTable.Container>
       </div>
 
       {selectedLog && (
@@ -200,4 +221,4 @@ export const LogsPage: React.FC = () => {
       )}
     </div>
   );
-};//push
+};
