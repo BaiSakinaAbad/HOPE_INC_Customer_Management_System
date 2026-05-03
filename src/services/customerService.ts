@@ -105,28 +105,6 @@ export async function softDeleteCustomer(
 }
 
 /**
- * Toggle-like deactivation for normal status management.
- * Admin / superadmin only.
- */
-export async function deactivateCustomer(
-  custno: string,
-  performedBy: string,
-  role: string,
-): Promise<CustomerServiceResult<null>> {
-  if (role.toLowerCase() !== 'superadmin') {
-    return { data: null, error: 'Only superadmin can deactivate.' };
-  }
-  const stamp = buildStamp('Deactivated', role, performedBy);
-  const { error } = await supabase
-    .from('customers')
-    .update({ record_status: 'INACTIVE', audit_stamp: stamp })
-    .eq('customer_no', custno);
-
-  if (error) return { data: null, error: error.message };
-  return { data: null, error: null };
-}
-
-/**
  * Restore a soft-deleted customer by setting `record_status` to 'ACTIVE'.
  * Admin / superadmin only — enforced at the UI layer via useRights().
  */

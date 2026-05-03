@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Edit2, MoreHorizontal, ShoppingCart, PowerOff, Trash2, CheckCircle2 } from 'lucide-react';
+import { Edit2, MoreHorizontal, ShoppingCart, Trash2 } from 'lucide-react';
 import { type DashboardTokens } from '../../providers/ThemeProvider';
 import { type Customer } from '../../types/customer';
 import { DefaultTable } from '../../components/ui/DefaultTable';
@@ -32,11 +32,9 @@ interface CustomerRowProps {
   C: DashboardTokens;
   isDark: boolean;
   canViewStamp: boolean;
-  canDeactivate: boolean;
   canSoftDelete: boolean;
   canEdit: boolean;
   onEdit: (customer: Customer) => void;
-  onToggleStatus: (customer: Customer) => void;
   onDelete: (customer: Customer) => void;
 }
 
@@ -77,7 +75,7 @@ const DropdownItem: React.FC<{
 
 // React.memo prevents re-renders if props haven't changed
 export const CustomerRow: React.FC<CustomerRowProps> = React.memo(({
-  customer: c, C, isDark, canViewStamp, canDeactivate, canSoftDelete, canEdit, onEdit, onToggleStatus, onDelete,
+  customer: c, C, isDark, canViewStamp, canSoftDelete, canEdit, onEdit, onDelete,
 }) => {
   const { navigate } = useNavigation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -180,25 +178,6 @@ export const CustomerRow: React.FC<CustomerRowProps> = React.memo(({
                   onClick={() => { setDropdownOpen(false); onEdit(c); }} 
                   C={C} 
                 />
-              )}
-              {canDeactivate && (
-                c.recordstatus === 'ACTIVE' ? (
-                  <DropdownItem
-                    icon={<PowerOff size={15} />}
-                    label="Deactivate"
-                    onClick={() => { setDropdownOpen(false); onToggleStatus(c); }}
-                    C={C}
-                    danger
-                  />
-                ) : (
-                  <DropdownItem
-                    icon={<CheckCircle2 size={15} />}
-                    label="Activate"
-                    onClick={() => { setDropdownOpen(false); onToggleStatus(c); }}
-                    C={C}
-                    success
-                  />
-                )
               )}
               {canSoftDelete && (
                 <DropdownItem
