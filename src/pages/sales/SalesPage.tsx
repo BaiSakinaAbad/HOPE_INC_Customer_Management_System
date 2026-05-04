@@ -67,6 +67,22 @@ export const SalesPage: React.FC = () => {
     return filtered.slice(start, start + itemsPerPage);
   }, [filtered, currentPage]);
 
+  const salesTrend = useMemo(() => {
+    if (!sales.length) return [];
+    
+    const sorted = [...sales].sort((a, b) => new Date(a.salesdate).getTime() - new Date(b.salesdate).getTime());
+    const groups: Record<string, number> = {};
+    
+    sorted.forEach(s => {
+      const d = new Date(s.salesdate);
+      const key = `${d.getMonth() + 1}/${d.getDate()}`; 
+      groups[key] = (groups[key] || 0) + s.total;
+    });
+
+    const points = Object.entries(groups).map(([label, value]) => ({ label, value }));
+    return points.slice(-7); // Last 7 days with sales
+  }, [sales]);
+
   const formatDate = (dateString: string) => {
     if (!dateString) return '—';
     const date = new Date(dateString);
@@ -88,6 +104,8 @@ export const SalesPage: React.FC = () => {
         description="View customer transaction history (read-only access)"
         statsTitle="Total Transactions"
         totalCount={sales.length}
+        chartType="line"
+        linePoints={salesTrend}
         roleDisplay={role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Unknown'}
         policyDescription="No edit permissions on this module."
         allowedActions={[

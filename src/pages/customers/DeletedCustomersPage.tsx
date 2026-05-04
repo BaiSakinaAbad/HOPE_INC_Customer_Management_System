@@ -125,6 +125,7 @@ export const DeletedCustomersPage: React.FC = () => {
         description="View and manage soft-deleted customer records. These records are hidden from regular users but remain in the database for auditing and recovery."
         statsTitle="Archived Customers"
         totalCount={customers.length}
+        chartType="none"
         roleDisplay={role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Unknown'}
         policyDescription="You have access to view and restore archived customer records."
         allowedActions={[
