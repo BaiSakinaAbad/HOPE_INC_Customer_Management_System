@@ -13,12 +13,16 @@ interface EmployeeRowProps {
   roleUpdating: boolean;
   onRoleChange: (employee: Employee, newRole: EmployeeRole) => void;
   canEditStatus: boolean;
+  /** Whether the "View Permissions" item should appear in the dropdown. */
+  canViewPermissions: boolean;
   onViewPermissions: (employee: Employee) => void;
+  /** Whether the entire Actions column content should be shown. */
+  showActions: boolean;
 }
 
 export const EmployeeRow: React.FC<EmployeeRowProps> = React.memo(({
   employee: e, C, isDark, onStatusAction, canEditRole, roleUpdating, onRoleChange,
-  canEditStatus, onViewPermissions,
+  canEditStatus, canViewPermissions, onViewPermissions, showActions,
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -55,6 +59,9 @@ export const EmployeeRow: React.FC<EmployeeRowProps> = React.memo(({
     fg: '#888898',
     border: 'rgba(120,120,140,0.22)',
   };
+
+  // Determine if there are any dropdown items to show
+  const hasDropdownItems = canViewPermissions || canEditStatus;
 
   return (
     <DefaultTable.Tr>
@@ -128,77 +135,83 @@ export const EmployeeRow: React.FC<EmployeeRowProps> = React.memo(({
         </span>
       </DefaultTable.Td>
       <DefaultTable.Td style={{ textAlign: 'center' }}>
-        <div style={{ position: 'relative', display: 'inline-block' }} ref={dropdownRef}>
-          <button
-            type="button"
-            onClick={() => setDropdownOpen(!dropdownOpen)}
-            style={{
-              background: dropdownOpen ? `${C.primary}15` : 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: dropdownOpen ? C.primary : C.onSurfaceVariant,
-              padding: '6px',
-              borderRadius: '6px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'background 0.2s',
-            }}
-            aria-label="User actions"
-          >
-            <MoreHorizontal size={18} />
-          </button>
+        {showActions && hasDropdownItems ? (
+          <div style={{ position: 'relative', display: 'inline-block' }} ref={dropdownRef}>
+            <button
+              type="button"
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              style={{
+                background: dropdownOpen ? `${C.primary}15` : 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: dropdownOpen ? C.primary : C.onSurfaceVariant,
+                padding: '6px',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'background 0.2s',
+              }}
+              aria-label="User actions"
+            >
+              <MoreHorizontal size={18} />
+            </button>
 
-          {dropdownOpen && (
-            <div style={{
-              position: 'absolute', right: 0, top: '100%', zIndex: 10,
-              minWidth: '160px', marginTop: '4px',
-              backgroundColor: isDark ? C.surfaceContainerHigh : '#ffffff',
-              border: `1px solid ${C.outlineVariant}33`,
-              borderRadius: '8px',
-              boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.5)' : '0 4px 14px rgba(0,0,0,0.08)',
-              padding: '4px', display: 'flex', flexDirection: 'column', gap: '2px',
-              textAlign: 'left',
-            }}>
-              <button
-                type="button"
-                onClick={() => { setDropdownOpen(false); onViewPermissions(e); }}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '10px',
-                  width: '100%', padding: '8px 12px', border: 'none',
-                  background: 'transparent',
-                  color: C.onSurface,
-                  fontSize: '13px', fontWeight: 500,
-                  borderRadius: '6px', cursor: 'pointer', textAlign: 'left',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                <Shield size={15} style={{ color: C.onSurfaceVariant }} />
-                View Permissions
-              </button>
-              {canEditStatus && (
-                <button
-                  type="button"
-                  onClick={() => { setDropdownOpen(false); onStatusAction(e); }}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '10px',
-                    width: '100%', padding: '8px 12px', border: 'none',
-                    background: 'transparent',
-                    color: isActive ? C.error : '#22c55e',
-                    fontSize: '13px', fontWeight: 500,
-                    borderRadius: '6px', cursor: 'pointer', textAlign: 'left',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {isActive
-                    ? <PowerOff size={15} style={{ color: C.error }} />
-                    : <Power size={15} style={{ color: '#22c55e' }} />}
-                  {isActive ? 'Deactivate' : 'Activate'}
-                </button>
-              )}
-            </div>
-          )}
-        </div>
+            {dropdownOpen && (
+              <div style={{
+                position: 'absolute', right: 0, top: '100%', zIndex: 10,
+                minWidth: '160px', marginTop: '4px',
+                backgroundColor: isDark ? C.surfaceContainerHigh : '#ffffff',
+                border: `1px solid ${C.outlineVariant}33`,
+                borderRadius: '8px',
+                boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.5)' : '0 4px 14px rgba(0,0,0,0.08)',
+                padding: '4px', display: 'flex', flexDirection: 'column', gap: '2px',
+                textAlign: 'left',
+              }}>
+                {canViewPermissions && (
+                  <button
+                    type="button"
+                    onClick={() => { setDropdownOpen(false); onViewPermissions(e); }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '10px',
+                      width: '100%', padding: '8px 12px', border: 'none',
+                      background: 'transparent',
+                      color: C.onSurface,
+                      fontSize: '13px', fontWeight: 500,
+                      borderRadius: '6px', cursor: 'pointer', textAlign: 'left',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    <Shield size={15} style={{ color: C.onSurfaceVariant }} />
+                    View Permissions
+                  </button>
+                )}
+                {canEditStatus && (
+                  <button
+                    type="button"
+                    onClick={() => { setDropdownOpen(false); onStatusAction(e); }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '10px',
+                      width: '100%', padding: '8px 12px', border: 'none',
+                      background: 'transparent',
+                      color: isActive ? C.error : '#22c55e',
+                      fontSize: '13px', fontWeight: 500,
+                      borderRadius: '6px', cursor: 'pointer', textAlign: 'left',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {isActive
+                      ? <PowerOff size={15} style={{ color: C.error }} />
+                      : <Power size={15} style={{ color: '#22c55e' }} />}
+                    {isActive ? 'Deactivate' : 'Activate'}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        ) : (
+          <span style={{ color: C.onSurfaceVariant, fontSize: '12px', opacity: 0.4 }}>—</span>
+        )}
       </DefaultTable.Td>
     </DefaultTable.Tr>
   );
