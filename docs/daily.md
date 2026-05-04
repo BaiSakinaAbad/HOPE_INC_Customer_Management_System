@@ -51,7 +51,7 @@ This file is the compilation of our daily standup meetings.
    **Peja [M3]**
    ```
       Completed: All 5 HopeDB tables seeded and enabled RLS policies
-      Working on: Backend core functionalities
+      Working on: Service core functionalities and sql
       Blockers: Role table was not given on the sql script. 
    ```
    **Vinz [M4]**
@@ -64,7 +64,7 @@ This file is the compilation of our daily standup meetings.
    ```
       Completed: Facilitate merge request approval
       Working on: Creation of test cases for Sprint 1 and 2
-      Blockers: Peja
+      Blockers: none
    ```
 ---
    # SPRINT 1 WEEK 2.1
@@ -76,9 +76,9 @@ This file is the compilation of our daily standup meetings.
    ## Role-by-Role Reports
    **Sakina [M1]**<br>
    ```
-      Completed: 
-      Working on:
-      Blockers:
+      Completed: Polished folder scaffold and documentation templates.
+      Working on: Project board and tasks dessimination
+      Blockers: None
    ```
    
    **Saira [M2]**<br>
@@ -89,9 +89,9 @@ This file is the compilation of our daily standup meetings.
    ```
    **Peja [M3]**<br>
    ```
-      Completed: 
+      Completed: Added user table, refined policies and rls refining.
       Working on: Additional table for user(incoming) and audit logs column/table
-      Blockers:
+      Blockers: none
    ```
    **Vinz [M4]**<br>
    ```
@@ -149,44 +149,83 @@ This file is the compilation of our daily standup meetings.
    ```
    ---
    # SPRINT 2 WEEK 2
-   tba
+   April 25, 2026
    <br>
-   Time duration: tba <br>
-   Present Members: tba
+   Time duration: 3:00 PM - 3:08 PM <br>
+   Present Members: All members are present<br>
    <br> *Prepared by:* @BaiSakinaAbad
 
    ## Role-by-Role Reports
 
    **Sakina [M1]**<br>
    ```
-      Completed:
-      Working on: 
-      Blockers: 
+      Completed: Customer CRUD, Product catalogue, Pagination, Dashboard header (access level indicator), Sales history (linked to customer and employee)
+      Working on: Customer analytics
+      Blockers: Mismatched database policy (using current.emp_no instead of uid)
    ```
    
   **Saira [M2]**<br>
    ```
-      Completed: 
-      Working on: 
-      Blockers: 
+      Completed: Refining design on Stitch
+      Working on: Delivering components
+      Blockers: None
    ```
    **Peja [M3]**<br>
    ```
-      Completed: 
-      Working on: 
-      Blockers: 
+      Completed: Views needed
+      Working on: Refining RLS policy
+      Blockers: None
    ```
    **Vinz [M4]**<br>
    ```
-      Completed: 
-      Working on:
-      Blockers: 
+      Completed: User activation, bug fixes
+      Working on: Role matrix
+      Blockers: Database
    ```
    **Klyne [M5]**<br>
    ```
-      Completed: 
-      Working on: 
-      Blockers: 
+      Completed: Monitoring PR and refining test cases
+      Working on: Monitoring PR and user manual draft
+      Blockers: None
    ```
-   --- 
+   ---
+  # SPRINT 3 WEEK 1
+   May 1, 2026
+   <br>
+   Time duration: 3:00 PM - 3:05 PM <br>
+   Present Members: All members are present<br>
+   <br> *Prepared by:* @BaiSakinaAbad
+
+   ## Role-by-Role Reports
+
+   **Sakina [M1]**<br>
+   ```
+      Completed: Fixed routing bugs; restricted dashboards to superadmins only.
+      Working on: Building the customer analytics module.
+      Blockers: Access denied due to a mismatched user authentication table.
+   ```
    
+  **Saira [M2]**<br>
+   ```
+      Completed: Designed brand logo, text, and initial UI views.
+      Working on: Exporting high-quality SVG and PNG assets.
+      Blockers: Account login issues for new users.
+   ```
+   **Peja [M3]**<br>
+   ```
+      Completed: Organized database structure and table views.
+      Working on: Collaborating with M4 to fix login and signup flows.
+      Blockers: None
+   ```
+   **Vinz [M4]**<br>
+   ```
+      Completed: Fixed data fetching and implemented audit logs.
+      Working on: Repairing signup and login errors with M3.
+      Blockers: Database synchronization issues.
+   ```
+   **Klyne [M5]**<br>
+   ```
+      Completed: Monitored and approved pull requests.
+      Working on: Writing the first draft of the user manual.
+      Blockers: None
+   ```
