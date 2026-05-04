@@ -1,9 +1,6 @@
 import React from 'react';
 import { Info } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
-import { MiniBarChart } from './charts/MiniBarChart';
-import { MiniLineChart } from './charts/MiniLineChart';
-import { MiniDonutChart } from './charts/MiniDonutChart';
 
 export interface DashboardHeaderProps {
   title: string;
@@ -18,17 +15,10 @@ export interface DashboardHeaderProps {
   roleDisplay: string;
   policyDescription: React.ReactNode;
   allowedActions?: string[];
-  /** When false, only the active count is shown. Defaults to true. */
+  /** When false, only the active count is shown (no inactive dot). Defaults to true. */
   showInactiveCount?: boolean;
-  /** Chart type for the stats card. Defaults to 'bar'. */
-  chartType?: 'bar' | 'line' | 'none';
-  /** Custom data points for the line chart. If provided, overrides the default stats points. */
-  linePoints?: { label: string; value: number }[];
 }
 
-
-
-/* ─── Main component ─── */
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   title,
   description,
@@ -43,14 +33,9 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   policyDescription,
   allowedActions,
   showInactiveCount = true,
-  chartType = 'bar',
-  linePoints,
 }) => {
   const { isDark } = useTheme();
   const C = getDashboardTokens(isDark);
-
-  const safeActive   = activeCount   ?? 0;
-  const safeInactive = inactiveCount ?? 0;
 
   return (
     <>
@@ -78,142 +63,74 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
       </div>
 
       {/* Dashboard Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '32px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '24px' }}>
         
-        {/* Stats Card - Bar Chart */}
+        {/* Total Customers Card */}
         <div style={{
-          backgroundColor: isDark ? 'rgb(13, 24, 52)' : '#ffffff',
-          borderRadius: '16px', padding: '28px',
-          border: isDark ? '1px solid rgba(255,255,255,0.03)' : `1px solid ${C.outlineVariant}33`,
-          boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.5)' : '0 2px 10px rgba(0,0,0,0.02)',
+          backgroundColor: isDark ? C.surfaceContainerHigh : '#ffffff',
+          borderRadius: '16px', padding: '24px',
+          border: `1px solid ${C.outlineVariant}33`,
+          boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.25)' : '0 2px 10px rgba(0,0,0,0.02)',
           display: 'flex', flexDirection: 'column',
-          minHeight: '220px'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-             <div style={{ color: '#a1a9fe' }}>
-               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-             </div>
-             <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#7e85cc' }}>
-               {statsTitle || 'LIVE ACCOUNTS'}
-             </span>
-          </div>
-          
-          <span style={{ fontSize: '13px', color: isDark ? '#8b94a5' : C.onSurfaceVariant, marginBottom: '6px', fontWeight: 500 }}>
-            Total Accounts
+          <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: C.onSurfaceVariant, marginBottom: '8px' }}>
+            {statsTitle}
           </span>
-          <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '42px', fontWeight: 700, color: isDark ? '#a1a9fe' : '#1a1a2e', lineHeight: 1 }}>
+          <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '42px', fontWeight: 800, color: isDark ? '#fff' : '#1a1a2e', lineHeight: 1 }}>
             {totalCount.toLocaleString()}
           </span>
-
-          {chartType !== 'none' && (
-            <div style={{ marginTop: 'auto', paddingTop: '24px' }}>
-              {chartType === 'line' ? (
-                <MiniLineChart
-                  isDark={isDark}
-                  color="rgb(161, 169, 254)"
-                  points={linePoints || [
-                    { label: 'Total', value: totalCount },
-                    ...(activeCount !== undefined ? [{ label: 'Active', value: safeActive }] : []),
-                    ...(showInactiveCount && inactiveCount !== undefined ? [{ label: 'Inactive', value: safeInactive }] : []),
-                  ]}
-                />
-              ) : (
-                <MiniBarChart
-                  isDark={isDark}
-                  bars={[
-                    { label: 'Total', value: totalCount, color: '#a1a9fe' },
-                    ...(activeCount !== undefined ? [{ label: 'Active', value: safeActive, color: '#22c55e' }] : []),
-                    ...(showInactiveCount && inactiveCount !== undefined ? [{ label: 'Inactive', value: safeInactive, color: '#ff5f74' }] : []),
-                  ]}
-                />
+          {(activeCount !== undefined) && (
+            <div style={{ display: 'flex', gap: '16px', marginTop: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#22c55e' }} />
+                <span style={{ fontSize: '13px', color: C.onSurfaceVariant, fontWeight: 600 }}>Active: <span style={{ color: C.onSurface }}>{activeCount}</span></span>
+              </div>
+              {showInactiveCount && inactiveCount !== undefined && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#f59e0b' }} />
+                  <span style={{ fontSize: '13px', color: C.onSurfaceVariant, fontWeight: 600 }}>Inactive: <span style={{ color: C.onSurface }}>{inactiveCount}</span></span>
+                </div>
               )}
             </div>
           )}
         </div>
 
-        {/* Inactive Card - Pie Chart  */}
-        {showInactiveCount && inactiveCount !== undefined && (
-          <div style={{
-            backgroundColor: isDark ? 'rgb(13, 24, 52)' : '#ffffff',
-            borderRadius: '16px', padding: '28px',
-            border: isDark ? '1px solid rgba(255,255,255,0.03)' : `1px solid ${C.outlineVariant}33`,
-            boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.5)' : '0 2px 10px rgba(0,0,0,0.02)',
-            display: 'flex', flexDirection: 'column',
-            minHeight: '220px'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-               <div style={{ color: '#ff5f74' }}>
-                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="23" y2="12"/><line x1="23" y1="8" x2="19" y2="12"/></svg>
-               </div>
-               <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#ff5f74' }}>
-                 Account Status
-               </span>
-            </div>
-            
-            <span style={{ fontSize: '13px', color: isDark ? '#8b94a5' : C.onSurfaceVariant, marginBottom: '6px', fontWeight: 500 }}>
-              Inactive (Last 30 Days)
-            </span>
-            <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '42px', fontWeight: 700, color: '#ff5f74', lineHeight: 1 }}>
-              {inactiveCount.toLocaleString()}
-            </span>
-            
-            {chartType !== 'none' && (
-              <div style={{ marginTop: 'auto', paddingTop: '24px' }}>
-                <MiniDonutChart
-                  isDark={isDark}
-                  segments={[
-                    { label: 'Active', value: safeActive, color: '#22c55e' },
-                    { label: 'Inactive', value: safeInactive, color: '#ff5f74' },
-                  ]}
-                />
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Access Policy Card — no graph */}
+        {/* Access Policy Card */}
         <div style={{
-          backgroundColor: isDark ? 'rgb(13, 24, 52)' : '#ffffff',
-          borderRadius: '16px', padding: '28px',
-          border: isDark ? '1px solid rgba(255,255,255,0.03)' : `1px solid ${C.outlineVariant}33`,
-          boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.5)' : '0 2px 10px rgba(0,0,0,0.02)',
-          display: 'flex', flexDirection: 'column',
-          minHeight: '220px'
+          backgroundColor: isDark ? C.surfaceContainerHigh : '#ffffff',
+          borderRadius: '16px', padding: '24px',
+          border: `1px solid ${C.outlineVariant}33`,
+          boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.25)' : '0 2px 10px rgba(0,0,0,0.02)',
+          display: 'flex', alignItems: 'flex-start', gap: '20px',
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-             <div style={{ color: '#17c3b2' }}>
-               <Info size={24} />
-             </div>
-             <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#17c3b2' }}>
-               ACCESS POLICY
-             </span>
+          <div style={{
+            width: '52px', height: '52px', borderRadius: '14px', flexShrink: 0,
+            backgroundColor: isDark ? 'rgba(131, 79, 255, 0.15)' : 'rgba(131, 79, 255, 0.08)', 
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Info size={24} style={{ color: C.primary }} />
           </div>
-          
-          <span style={{ fontSize: '13px', color: isDark ? '#8b94a5' : C.onSurfaceVariant, marginBottom: '6px', fontWeight: 500 }}>
-            Current Role Access
-          </span>
-          <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '36px', fontWeight: 700, color: '#17c3b2', lineHeight: 1, marginBottom: '12px' }}>
-            {roleDisplay}
-          </span>
-          
-          <div style={{ marginTop: 'auto' }}>
-            {allowedActions && allowedActions.length > 0 ? (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ flex: 1 }}>
+            <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '18px', fontWeight: 700, color: C.primary, margin: '0 0 6px' }}>
+              Access Policy
+            </h3>
+            <p style={{ fontSize: '13px', color: C.onSurfaceVariant, margin: '0 0 8px', lineHeight: 1.5 }}>
+              You are currently operating under <strong style={{ color: C.onSurface }}>{roleDisplay} Access</strong>. 
+              {' '}{policyDescription}
+            </p>
+            {allowedActions && allowedActions.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '12px' }}>
                 {allowedActions.map((action, i) => (
                   <span key={i} style={{
-                    fontSize: '11px', fontWeight: 600, padding: '4px 10px',
-                    backgroundColor: isDark ? 'rgba(23, 195, 178, 0.1)' : 'rgba(23, 195, 178, 0.05)',
-                    color: '#17c3b2', borderRadius: '8px',
-                    border: '1px solid rgba(23, 195, 178, 0.2)'
+                    fontSize: '11px', fontWeight: 600, padding: '4px 8px',
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
+                    color: C.onSurfaceVariant, borderRadius: '6px',
+                    border: `1px solid ${C.outlineVariant}40`
                   }}>
                     {action}
                   </span>
                 ))}
               </div>
-            ) : (
-              <p style={{ fontSize: '13px', color: isDark ? '#8b94a5' : C.onSurfaceVariant, margin: 0, lineHeight: 1.5 }}>
-                {policyDescription}
-              </p>
             )}
           </div>
         </div>
