@@ -37,6 +37,15 @@ export function formatAuditAction(log: AuditLog): string {
       if (newStatus === 'INACTIVE') return 'DEACTIVATED';
       if (newStatus === 'ACTIVE')   return 'ACTIVATED';
     }
+
+    // For user_permission table, detect grant/revoke
+    if (log.table_name === 'user_permission') {
+      const oldGranted = log.old_data?.is_granted;
+      const newGranted = log.new_data?.is_granted;
+      if (oldGranted !== newGranted) {
+        return newGranted ? 'GRANTED' : 'REVOKED';
+      }
+    }
   }
   return log.action;
 }
@@ -47,6 +56,7 @@ export function formatAuditTable(tableName: string): string {
     'customers': 'Customers',
     'products': 'Products',
     'sales': 'Sales',
+    'user_permission': 'User Permissions',
   };
   return map[tableName.toLowerCase()] || tableName;
 }

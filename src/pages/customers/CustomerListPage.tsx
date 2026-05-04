@@ -17,9 +17,7 @@ export const CustomerListPage: React.FC = () => {
   const { isDark } = useTheme();
   const C = getDashboardTokens(isDark);
   const { role, user } = useAuth();
-  const { canViewStamp } = useRights();
-  const canSoftDelete = role === 'superadmin';
-  const canEdit = role === 'admin' || role === 'superadmin';
+  const { canViewStamp, canSoftDelete, canEditCustomer: canEdit, canAddCustomer } = useRights();
 
   const metadata = user?.user_metadata ?? {};
   const fullName = (metadata.full_name as string | undefined)
@@ -171,7 +169,8 @@ export const CustomerListPage: React.FC = () => {
         allowedActions={[
           'View Active Customers',
           ...(canViewStamp ? ['View Audit Stamps'] : []),
-          ...(canEdit ? ['Add Customers', 'Edit Customers'] : []),
+          ...(canAddCustomer ? ['Add Customers'] : []),
+          ...(canEdit ? ['Edit Customers'] : []),
           ...(canSoftDelete ? ['Delete Customers'] : [])
         ]}
         actions={
@@ -192,7 +191,7 @@ export const CustomerListPage: React.FC = () => {
             >
               <RefreshCw size={13} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} /> Refresh
             </button>
-            {canEdit && (
+            {canAddCustomer && (
               <Button compact style={{ width: 'auto', padding: '0 20px', height: '35px' }} onClick={() => setIsAddModalOpen(true)}>
                 <Plus size={16} style={{ marginRight: '6px' }} /> Add Customer
               </Button>

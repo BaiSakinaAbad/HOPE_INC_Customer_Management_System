@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import { fetchUserPermissions, getDefaultPermissions } from '../services/permissionService';
 
 const POST_LOGIN_REDIRECT_KEY = 'post-login-redirect-pending';
 
@@ -10,6 +11,10 @@ interface AuthContextType {
   role: string | null;
   recordstatus: string | null;
   loading: boolean;
+  /** permission_id → is_granted map from the user_permission table. */
+  permissions: Record<string, boolean>;
+  /** Re-fetch permissions from DB (e.g. after a role change). */
+  refreshPermissions: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -19,6 +24,8 @@ const AuthContext = createContext<AuthContextType>({
   role: null,
   recordstatus: null,
   loading: true,
+  permissions: {},
+  refreshPermissions: async () => {},
   signOut: async () => {},
 });
 
@@ -28,9 +35,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [role, setRole] = useState<string | null>(null);
   const [recordstatus, setRecordstatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [permissions, setPermissions] = useState<Record<string, boolean>>({});
   const isMounted = useRef(true);
+  // Guard against concurrent fetchUserRole calls (getSession + onAuthStateChange race)
+  const fetchInFlight = useRef(false);
+
+  /**
+   * Load permissions: start with role defaults, then overlay any DB results.
+   * This handles partial RLS reads — missing rows keep their role defaults.
+   */
+  const loadPermissions = useCallback(async (userId: string, roleHint?: string | null) => {
+    // Always start with the role's default permissions as the base
+    const defaults = getDefaultPermissions(roleHint ?? 'user');
+    const merged: Record<string, boolean> = { ...defaults };
+
+    const { data } = await fetchUserPermissions(userId);
+    if (!isMounted.current) return;
+
+    // Overlay DB results on top of defaults (DB wins where present)
+    if (data) {
+      for (const [key, value] of Object.entries(data)) {
+        merged[key] = value;
+      }
+    }
+
+    setPermissions(merged);
+  }, []);
+
+  /** Public method to re-fetch current user's permissions. */
+  const refreshPermissions = useCallback(async () => {
+    const currentUser = user ?? session?.user;
+    if (currentUser) {
+      await loadPermissions(currentUser.id, role);
+    }
+  }, [user, session, role, loadPermissions]);
 
   const fetchUserRole = async (userId: string, userEmail?: string) => {
+    // Prevent duplicate concurrent calls from getSession + onAuthStateChange race
+    if (fetchInFlight.current) return;
+    fetchInFlight.current = true;
+
     try {
       // Step 1: Primary lookup by UUID
       let roleValue: string | null = null;
@@ -78,12 +122,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setRole(roleValue);
       setRecordstatus(statusValue);
+
+      // Load permissions after role is resolved
+      await loadPermissions(userId, roleValue);
     } catch (err) {
       console.error('[AuthProvider] unexpected error in fetchUserRole:', err);
       if (!isMounted.current) return;
       setRole(null);
       setRecordstatus(null);
+      setPermissions({});
     } finally {
+      fetchInFlight.current = false;
       if (isMounted.current) setLoading(false);
     }
   };
@@ -114,6 +163,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         setRole(null);
         setRecordstatus(null);
+        setPermissions({});
         setLoading(false);
       }
     });
@@ -130,7 +180,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, role, recordstatus, loading, signOut }}>
+    <AuthContext.Provider value={{ session, user, role, recordstatus, loading, permissions, refreshPermissions, signOut }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,19 +1,24 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { RefreshCw, AlertTriangle, ShieldOff, Power, PowerOff, X, Check } from 'lucide-react';
+import { RefreshCw, AlertTriangle, ShieldOff, Power, PowerOff, X, Check, Loader2, Lock, RotateCcw } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
 import { useAuth } from '../../providers/AuthProvider';
 import { useRights } from '../../hooks/useRights';
 import { getEmployees, updateEmployeeStatus, updateEmployeeRole } from '../../services/employeeService';
+import { fetchUserPermissionsDetailed, updateUserPermission, resetPermissionsToDefaults } from '../../services/permissionService';
+import type { DetailedPermission } from '../../services/permissionService';
 import type { Employee, EmployeeRole, EmployeeStatus } from '../../types/employee';
 import { DefaultTable, DashboardHeader } from '../../components/ui';
 import { EmployeeRow } from '../../components/employees/EmployeeRow';
 import { ActionModal } from '../../components/customers/ActionModal';
 
+// ── Module display order for grouping permissions in the modal ────────────────
+const MODULE_ORDER = ['Customer Module', 'Sales Module', 'Product Module', 'Admin Module'];
+
 export const EmployeeListPage: React.FC = () => {
   const { isDark } = useTheme();
   const C = getDashboardTokens(isDark);
-  const { role } = useAuth();
-  const { canManageEmployees } = useRights();
+  const { role, refreshPermissions } = useAuth();
+  const { canManageEmployees, canChangeRoles, canDeactivateUsers, canActivateUsers } = useRights();
 
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,25 +31,99 @@ export const EmployeeListPage: React.FC = () => {
   const [actionError, setActionError] = useState<string | null>(null);
   const [roleUpdatingUserId, setRoleUpdatingUserId] = useState<string | null>(null);
 
+  // ── Permissions modal state ──
   const [viewingPermissionsFor, setViewingPermissionsFor] = useState<Employee | null>(null);
-  const [localPermissions, setLocalPermissions] = useState<Record<string, boolean>>({});
+  const [detailedPermissions, setDetailedPermissions] = useState<DetailedPermission[]>([]);
+  const [permissionsLoading, setPermissionsLoading] = useState(false);
+  const [permissionsError, setPermissionsError] = useState<string | null>(null);
+  const [togglingPermId, setTogglingPermId] = useState<string | null>(null);
+  const [activePermTab, setActivePermTab] = useState(MODULE_ORDER[0]);
+  const [resettingPerms, setResettingPerms] = useState(false);
 
-  useEffect(() => {
-    if (viewingPermissionsFor) {
-      const r = viewingPermissionsFor.role;
-      setLocalPermissions({
-        admin_activate_user: r === 'admin' || r === 'superadmin',
-        add_customer: true,
-        soft_delete_customer: r === 'admin' || r === 'superadmin',
-        edit_customer: true,
-        view_customers: true,
-        view_price_history: r === 'admin' || r === 'superadmin',
-        view_products: true,
-        view_sales: true,
-        view_sales_detail: true,
-      });
+  /** Determine if the current user can edit the target's permissions. */
+  const canEditTargetPermissions = useMemo(() => {
+    if (!viewingPermissionsFor) return false;
+    const targetRole = viewingPermissionsFor.role;
+    const targetStatus = viewingPermissionsFor.recordstatus;
+    const actorRole = (role ?? '').toLowerCase();
+
+    // Only ACTIVE users can have permissions changed
+    if (targetStatus !== 'ACTIVE') return false;
+
+    // Superadmin can edit user and admin perms, but NOT other superadmins
+    if (actorRole === 'superadmin') {
+      return targetRole !== 'superadmin';
     }
+
+    // Admin cannot edit permissions (they can only view user-role perms)
+    return false;
+  }, [viewingPermissionsFor, role]);
+
+  // ── Load permissions when viewing ──
+  useEffect(() => {
+    if (!viewingPermissionsFor) {
+      setDetailedPermissions([]);
+      setPermissionsError(null);
+      return;
+    }
+    const loadPerms = async () => {
+      setPermissionsLoading(true);
+      setPermissionsError(null);
+      const { data, error: err } = await fetchUserPermissionsDetailed(viewingPermissionsFor.id, viewingPermissionsFor.role);
+      if (err) {
+        setPermissionsError(err);
+        setDetailedPermissions([]);
+      } else {
+        setDetailedPermissions(data ?? []);
+      }
+      setPermissionsLoading(false);
+    };
+    void loadPerms();
   }, [viewingPermissionsFor]);
+
+  const handleTogglePermission = async (permissionId: string, currentValue: boolean) => {
+    if (!viewingPermissionsFor || !canEditTargetPermissions) return;
+    setTogglingPermId(permissionId);
+    setPermissionsError(null);
+    const { error: err } = await updateUserPermission(
+      viewingPermissionsFor.id,
+      permissionId,
+      !currentValue,
+    );
+    if (err) {
+      // Show the error — do NOT update local state since DB didn't change
+      setPermissionsError(err);
+    } else {
+      // Re-fetch from DB to ensure perfect sync
+      const { data } = await fetchUserPermissionsDetailed(
+        viewingPermissionsFor.id,
+        viewingPermissionsFor.role,
+      );
+      if (data) setDetailedPermissions(data);
+    }
+    setTogglingPermId(null);
+  };
+
+  const handleResetPermissions = async () => {
+    if (!viewingPermissionsFor || !canEditTargetPermissions) return;
+    setResettingPerms(true);
+    setPermissionsError(null);
+    const { error: err } = await resetPermissionsToDefaults(
+      viewingPermissionsFor.id,
+      viewingPermissionsFor.role,
+    );
+    if (err) {
+      setPermissionsError(err);
+    } else {
+      // Re-fetch from DB to reflect the reset
+      const { data } = await fetchUserPermissionsDetailed(
+        viewingPermissionsFor.id,
+        viewingPermissionsFor.role,
+      );
+      if (data) setDetailedPermissions(data);
+    }
+    setResettingPerms(false);
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -104,8 +183,25 @@ export const EmployeeListPage: React.FC = () => {
       setEmployees((prev) => prev.map((emp) => (
         emp.id === employee.id ? { ...emp, role: newRole } : emp
       )));
+      // Refresh the current user's own permissions in case they were affected
+      void refreshPermissions();
     }
     setRoleUpdatingUserId(null);
+  };
+
+  /**
+   * Determine if "View Permissions" should appear for a given employee.
+   *
+   * - Users (role=user): Can't even access this page (gated above).
+   * - Admin: Can see permissions for role=user only.
+   *   Cannot see their own, other admins', or superadmins' permissions.
+   * - Superadmin: Can see everyone's permissions.
+   */
+  const canViewPermissionsFor = (emp: Employee): boolean => {
+    const actorRole = (role ?? '').toLowerCase();
+    if (actorRole === 'superadmin') return true;
+    if (actorRole === 'admin') return emp.role === 'user';
+    return false;
   };
 
   if (!canManageEmployees) {
@@ -125,6 +221,28 @@ export const EmployeeListPage: React.FC = () => {
   const roleDisplay = role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Unknown';
   const pendingIsActive = pendingStatusAction?.recordstatus === 'ACTIVE';
 
+  // ── Group permissions by module for the modal ──
+  const groupedPermissions = useMemo(() => {
+    const groups: Record<string, DetailedPermission[]> = {};
+    for (const perm of detailedPermissions) {
+      const moduleName = perm.module_name || 'Other';
+      if (!groups[moduleName]) groups[moduleName] = [];
+      groups[moduleName].push(perm);
+    }
+    const ordered: { module: string; perms: DetailedPermission[] }[] = [];
+    for (const m of MODULE_ORDER) {
+      if (groups[m]) {
+        ordered.push({ module: m, perms: groups[m] });
+      }
+    }
+    for (const m of Object.keys(groups)) {
+      if (!MODULE_ORDER.includes(m)) {
+        ordered.push({ module: m, perms: groups[m] });
+      }
+    }
+    return ordered;
+  }, [detailedPermissions]);
+
   return (
     <div style={{ flex: 1, padding: '32px 24px 48px', fontFamily: 'Inter, sans-serif' }}>
       <DashboardHeader
@@ -136,7 +254,12 @@ export const EmployeeListPage: React.FC = () => {
         inactiveCount={inactiveCount}
         roleDisplay={roleDisplay}
         policyDescription="You can view all app users and manage roles for active accounts."
-        allowedActions={['View Users', 'Activate Users', 'Deactivate Users', 'Change Roles']}
+        allowedActions={[
+          'View Users',
+          ...(canActivateUsers ? ['Activate Users'] : []),
+          ...(canDeactivateUsers ? ['Deactivate Users'] : []),
+          ...(canChangeRoles ? ['Change Roles'] : []),
+        ]}
         actions={(
           <button type="button" onClick={() => void load()} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 16px', borderRadius: '10px', border: `1px solid ${C.outlineVariant}55`, backgroundColor: 'transparent', color: C.onSurfaceVariant, fontSize: '13px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1 }}>
             <RefreshCw size={13} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} /> Refresh
@@ -182,11 +305,17 @@ export const EmployeeListPage: React.FC = () => {
               C={C}
               isDark={isDark}
               onStatusAction={setPendingStatusAction}
-              canEditRole={role === 'superadmin' && emp.role !== 'superadmin'}
+              canEditRole={canChangeRoles && emp.role !== 'superadmin' && emp.recordstatus === 'ACTIVE'}
               roleUpdating={roleUpdatingUserId === emp.id}
               onRoleChange={handleRoleChange}
-              canEditStatus={emp.role !== 'superadmin'}
+              canEditStatus={
+                emp.role !== 'superadmin' && (
+                  emp.recordstatus === 'ACTIVE' ? canDeactivateUsers : canActivateUsers
+                )
+              }
+              canViewPermissions={canViewPermissionsFor(emp)}
               onViewPermissions={setViewingPermissionsFor}
+              showActions={(role ?? '').toLowerCase() !== 'user'}
             />
           ))}
         </tbody>
@@ -216,68 +345,184 @@ export const EmployeeListPage: React.FC = () => {
         onCancel={() => { setPendingStatusAction(null); setActionError(null); }}
       />
 
+      {/* ── Permissions Modal (DB-backed, tabbed) ── */}
       {viewingPermissionsFor && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 100,
           backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px'
         }}>
+          <style>{`
+            .perm-modal-body::-webkit-scrollbar { width: 6px; }
+            .perm-modal-body::-webkit-scrollbar-track { background: transparent; margin: 8px 0; }
+            .perm-modal-body::-webkit-scrollbar-thumb {
+              background: ${isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)'};
+              border-radius: 3px;
+            }
+            .perm-modal-body::-webkit-scrollbar-thumb:hover {
+              background: ${isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.22)'};
+            }
+            .perm-tab:hover {
+              background: ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'} !important;
+            }
+          `}</style>
           <div style={{
-            width: '100%', maxWidth: '600px',
+            width: '100%', maxWidth: '600px', maxHeight: '85vh',
             backgroundColor: isDark ? C.surfaceContainerHigh : '#ffffff',
             borderRadius: '20px', border: `1px solid ${C.outlineVariant}33`,
             boxShadow: isDark ? '0 10px 40px rgba(0,0,0,0.5)' : '0 10px 30px rgba(0,0,0,0.1)',
             overflow: 'hidden', display: 'flex', flexDirection: 'column'
           }}>
+            {/* Header */}
             <div style={{ padding: '24px 24px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${C.outlineVariant}33` }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: C.onSurface }}>Permissions (UI no functionality)</h3>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: C.onSurface }}>Permissions</h3>
                 <p style={{ margin: '4px 0 0', fontSize: '13px', color: C.onSurfaceVariant }}>
                   {viewingPermissionsFor.username || viewingPermissionsFor.email} ({viewingPermissionsFor.role.toUpperCase()})
                 </p>
               </div>
-              <button type="button" onClick={() => setViewingPermissionsFor(null)} style={{ background: 'none', border: 'none', color: C.onSurfaceVariant, cursor: 'pointer', padding: '4px' }}>
-                <X size={20} />
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {!canEditTargetPermissions && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '6px', backgroundColor: `${C.onSurfaceVariant}15`, color: C.onSurfaceVariant, fontSize: '11px', fontWeight: 600 }}>
+                    <Lock size={11} /> Read-only
+                  </span>
+                )}
+                {viewingPermissionsFor.recordstatus !== 'ACTIVE' && canEditTargetPermissions && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '6px', backgroundColor: `${C.error}15`, color: C.error, fontSize: '11px', fontWeight: 600 }}>
+                    Inactive — read-only
+                  </span>
+                )}
+                <button type="button" onClick={() => { setViewingPermissionsFor(null); setActivePermTab(MODULE_ORDER[0]); }} style={{ background: 'none', border: 'none', color: C.onSurfaceVariant, cursor: 'pointer', padding: '4px' }}>
+                  <X size={20} />
+                </button>
+              </div>
             </div>
-            
-            <div style={{ padding: '8px 24px 24px', display: 'flex', flexDirection: 'column' }}>
-              {[
-                { id: 'admin_activate_user', label: 'Admin Activate User' },
-                { id: 'add_customer', label: 'Add Customer' },
-                { id: 'soft_delete_customer', label: 'Soft Delete Customer' },
-                { id: 'edit_customer', label: 'Edit Customer' },
-                { id: 'view_customers', label: 'View Customers' },
-                { id: 'view_price_history', label: 'View Price History' },
-                { id: 'view_products', label: 'View Products' },
-                { id: 'view_sales', label: 'View Sales' },
-                { id: 'view_sales_detail', label: 'View Sales Detail' },
-              ].map(perm => (
-                <div key={perm.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0', borderBottom: `1px solid ${C.outlineVariant}15` }}>
-                  <span style={{ color: C.onSurface, fontSize: '14px', fontWeight: 500 }}>{perm.label}</span>
-                  <button 
-                    type="button" 
-                    onClick={() => setLocalPermissions(prev => ({ ...prev, [perm.id]: !prev[perm.id] }))}
+
+            {/* Tabs */}
+            <div style={{ display: 'flex', padding: '0 16px', borderBottom: `1px solid ${C.outlineVariant}22` }}>
+              {MODULE_ORDER.map((tab) => {
+                const isActive = activePermTab === tab;
+                const tabLabel = tab.replace(' Module', '');
+                return (
+                  <button
+                    key={tab}
+                    type="button"
+                    className="perm-tab"
+                    onClick={() => setActivePermTab(tab)}
                     style={{
-                      width: '46px', height: '26px', borderRadius: '13px',
-                      backgroundColor: localPermissions[perm.id] ? '#22c55e' : C.error,
-                      position: 'relative', border: 'none', cursor: 'pointer',
-                      transition: 'background-color 0.2s', padding: 0
+                      flex: 1, padding: '12px 8px', border: 'none',
+                      background: 'transparent', cursor: 'pointer',
+                      fontSize: '12px', fontWeight: isActive ? 700 : 500,
+                      color: isActive ? C.primary : C.onSurfaceVariant,
+                      borderBottom: isActive ? `2px solid ${C.primary}` : '2px solid transparent',
+                      transition: 'all 0.2s ease', whiteSpace: 'nowrap',
+                      letterSpacing: '0.02em', borderRadius: '6px 6px 0 0',
                     }}
                   >
-                    <div style={{
-                      position: 'absolute', top: '2px', left: localPermissions[perm.id] ? '22px' : '2px',
-                      width: '22px', height: '22px', borderRadius: '50%',
-                      backgroundColor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      transition: 'left 0.2s',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
-                    }}>
-                      {localPermissions[perm.id] ? <Check size={12} color="#22c55e" strokeWidth={3} /> : <X size={12} color={C.error} strokeWidth={3} />}
-                    </div>
+                    {tabLabel}
                   </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
+
+            {/* Body */}
+            <div
+              className="perm-modal-body"
+              style={{
+                flex: 1, overflow: 'auto', padding: '4px 24px 24px',
+                scrollbarWidth: 'thin',
+                scrollbarColor: isDark ? 'rgba(255,255,255,0.15) transparent' : 'rgba(0,0,0,0.12) transparent',
+              }}
+            >
+              {permissionsLoading ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 0', gap: '10px', color: C.onSurfaceVariant }}>
+                  <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
+                  <span style={{ fontSize: '14px' }}>Loading permissions…</span>
+                </div>
+              ) : permissionsError ? (
+                <div style={{ padding: '16px', borderRadius: '10px', backgroundColor: `${C.error}15`, color: C.error, fontSize: '13px' }}>
+                  {permissionsError}
+                </div>
+              ) : (
+                (groupedPermissions.find(g => g.module === activePermTab)?.perms ?? []).map((perm) => (
+                  <div key={perm.permission_id} style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '14px 0', borderBottom: `1px solid ${C.outlineVariant}12`,
+                  }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ color: C.onSurface, fontSize: '14px', fontWeight: 500 }}>
+                        {perm.description}
+                      </span>
+                      <span style={{ color: C.onSurfaceVariant, fontSize: '11px', fontFamily: 'monospace', opacity: 0.5 }}>
+                        {perm.permission_id}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={!canEditTargetPermissions || togglingPermId === perm.permission_id}
+                      onClick={() => handleTogglePermission(perm.permission_id, perm.is_granted)}
+                      style={{
+                        width: '46px', height: '26px', borderRadius: '13px',
+                        backgroundColor: perm.is_granted ? '#22c55e' : (isDark ? '#4a4a5a' : '#d1d5db'),
+                        position: 'relative', border: 'none',
+                        cursor: canEditTargetPermissions ? 'pointer' : 'default',
+                        transition: 'background-color 0.2s', padding: 0,
+                        opacity: canEditTargetPermissions ? 1 : 0.6, flexShrink: 0,
+                      }}
+                    >
+                      <div style={{
+                        position: 'absolute', top: '2px',
+                        left: perm.is_granted ? '22px' : '2px',
+                        width: '22px', height: '22px', borderRadius: '50%',
+                        backgroundColor: '#fff',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        transition: 'left 0.2s',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                      }}>
+                        {togglingPermId === perm.permission_id ? (
+                          <Loader2 size={12} color={C.onSurfaceVariant} style={{ animation: 'spin 1s linear infinite' }} />
+                        ) : perm.is_granted ? (
+                          <Check size={12} color="#22c55e" strokeWidth={3} />
+                        ) : (
+                          <X size={12} color={isDark ? '#4a4a5a' : '#d1d5db'} strokeWidth={3} />
+                        )}
+                      </div>
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Footer — Reset button */}
+            {canEditTargetPermissions && (
+              <div style={{
+                padding: '12px 24px', borderTop: `1px solid ${C.outlineVariant}33`,
+                display: 'flex', justifyContent: 'flex-end',
+              }}>
+                <button
+                  type="button"
+                  disabled={resettingPerms}
+                  onClick={handleResetPermissions}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '6px',
+                    padding: '8px 16px', borderRadius: '8px',
+                    border: `1px solid ${C.outlineVariant}44`,
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+                    color: C.onSurfaceVariant, fontSize: '12px', fontWeight: 600,
+                    cursor: resettingPerms ? 'not-allowed' : 'pointer',
+                    opacity: resettingPerms ? 0.6 : 1,
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  {resettingPerms ? (
+                    <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />
+                  ) : (
+                    <RotateCcw size={13} />
+                  )}
+                  Reset to Defaults
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

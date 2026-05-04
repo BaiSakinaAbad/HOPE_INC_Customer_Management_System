@@ -58,7 +58,16 @@ export const Topbar: React.FC<TopbarProps> = ({ isMobile, onMenuOpen, onLogout, 
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', paddingLeft: '16px', borderLeft: `1px solid ${C.outlineVariant}33` }}>
           <Bell size={20} style={{ color: C.onSurfaceVariant, cursor: 'pointer' }} />
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <img src={avatarUrl} alt={displayName} style={{ width: '32px', height: '32px', borderRadius: '999px', border: `2px solid ${C.primary}33` }} />
+            <img
+              src={avatarUrl}
+              alt={displayName}
+              onError={(e) => {
+                const target = e.currentTarget;
+                target.onerror = null;
+                target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(displayName)}&backgroundColor=834fff`;
+              }}
+              style={{ width: '32px', height: '32px', borderRadius: '999px', border: `2px solid ${C.primary}33`, objectFit: 'cover' }}
+            />
             {!isMobile && (
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <span style={{ fontSize: '13px', fontWeight: 700, color: isDark ? '#fff' : '#000', lineHeight: 1 }}>{displayName}</span>
