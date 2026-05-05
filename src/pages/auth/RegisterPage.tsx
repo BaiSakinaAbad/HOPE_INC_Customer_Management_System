@@ -36,7 +36,6 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
     setError(null);
     setSuccessMsg(null);
 
-    // Call Supabase to create the user
     const { data, error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -52,12 +51,9 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
     if (authError) {
       setError(authError.message);
     } else if (data.user && data.user.identities && data.user.identities.length === 0) {
-      // Supabase workaround: If identities is empty, the email is already taken
       setError('An account with this email already exists.');
     } else {
       setSuccessMsg('Registration successful! Please check your email to verify your account.');
-      
-      // Optional: Clear the form
       setFirstName('');
       setLastName('');
       setUsername('');
@@ -70,16 +66,17 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
   };
 
   return (
-    <AuthLayout compact title="Create your account" subtitle="Welcome to BiteLog.">
+    <AuthLayout compact title="" subtitle="">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
 
         <GoogleButton 
           compact 
+          variant="luminous"
           label="Continue with Google" 
           testId="google-register-btn"
         />
 
-        <Divider label="or register with email" />
+        <Divider variant="luminous" label="or register with email" />
 
         {/* --- Error / Success Messages --- */}
         {error && (
@@ -105,6 +102,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
               autoComplete="given-name" 
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
+              variant="luminous"
               required 
             />
             <Input 
@@ -115,6 +113,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
               autoComplete="family-name" 
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
+              variant="luminous"
               required 
             />
           </div>
@@ -127,6 +126,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
             autoComplete="username" 
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            variant="luminous"
             required 
           />
 
@@ -139,6 +139,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
             autoComplete="email" 
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            variant="luminous"
             required 
           />
 
@@ -153,13 +154,14 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
               value={password}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
               autoComplete="new-password"
+              variant="luminous"
               required
             />
-            <PasswordStrength password={password} />
+            <PasswordStrength password={password} variant="luminous" />
           </div>
 
           {/* Terms */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', margin: '4px 0' }}>
             <input
               type="checkbox"
               id="terms"
@@ -173,25 +175,25 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
               style={{
                 fontFamily: "'Inter', sans-serif",
                 fontSize: '11px', lineHeight: 1.45,
-                color: t.onSurfaceVariant, cursor: 'pointer', userSelect: 'none',
+                color: isDark ? 'rgba(208, 201, 235, 0.7)' : t.onSurfaceVariant, cursor: 'pointer', userSelect: 'none',
               }}
             >
               I agree to the{' '}
-              <a href="#" style={{ color: t.primary, fontWeight: 500 }}>Terms of Service</a>
+              <a href="#" style={{ color: isDark ? '#b89fff' : t.primary, fontWeight: 500 }}>Terms of Service</a>
               {' '}and{' '}
-              <a href="#" style={{ color: t.primary, fontWeight: 500 }}>Privacy Policy</a>.
+              <a href="#" style={{ color: isDark ? '#b89fff' : t.primary, fontWeight: 500 }}>Privacy Policy</a>.
             </label>
           </div>
 
-          <Button type="submit" isLoading={isLoading} data-testid="register-submit-btn">
+          <Button variant="luminous" type="submit" isLoading={isLoading} data-testid="register-submit-btn">
             Create Account
           </Button>
         </form>
 
         <p style={{
-          textAlign: 'center', margin: 0,
+          textAlign: 'center', margin: '8px 0 0 0',
           fontFamily: "'Inter', sans-serif",
-          fontSize: '12px', color: t.onSurfaceVariant,
+          fontSize: '12px', color: isDark ? 'rgba(208, 201, 235, 0.7)' : t.onSurfaceVariant,
         }}>
           Already have an account?{' '}
           <button
@@ -201,10 +203,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
               background: 'none', border: 'none', cursor: 'pointer', padding: 0,
               fontFamily: "'Inter', sans-serif",
               fontSize: '12px', fontWeight: 600,
-              color: t.tertiary,
-              textDecoration: 'underline',
-              textDecorationThickness: '2px',
-              textUnderlineOffset: '3px',
+              color: isDark ? '#b89fff' : t.primary,
               transition: 'opacity 0.15s',
             }}
             onMouseEnter={e => (e.currentTarget.style.opacity = '0.7')}
@@ -219,4 +218,3 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
 };
 
 export default RegisterPage;
-

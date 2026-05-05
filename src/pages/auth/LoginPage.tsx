@@ -33,30 +33,25 @@ const LoginPage: React.FC<LoginPageProps> = ({
     setIsLoading(true);
     setError(null);
 
-    // 1. Attempt Supabase Authentication
     const { data, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (authError) {
-      // Handle Authentication Error (e.g., Invalid Credentials)
       setError(authError.message);
       setIsLoading(false);
     } else if (data.user) {
-      // 2. Success: Trigger the 10-second LoadingSpinner defined in App.tsx
       onLoginSuccess();
-    
-      
     }
   };
 
   return (
-    <AuthLayout title="Welcome back" subtitle="Enter your credentials.">
+    <AuthLayout title="" subtitle="">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
 
-
         <GoogleButton
+          variant="luminous"
           label="Continue with Google"
           testId="google-login-btn"
           onAuthStart={() => {
@@ -64,7 +59,7 @@ const LoginPage: React.FC<LoginPageProps> = ({
           }}
         />
 
-        <Divider label="or email address" />
+        <Divider variant="luminous" label="or email address" />
 
         {/* --- Error Message --- */}
         {error && (
@@ -93,6 +88,7 @@ const LoginPage: React.FC<LoginPageProps> = ({
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            variant="luminous"
             required
           />
 
@@ -105,21 +101,8 @@ const LoginPage: React.FC<LoginPageProps> = ({
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            variant="luminous"
             required
-            rightLabel={
-              <button
-                type="button"
-                style={{
-                  background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: '11px', fontWeight: 500,
-                  color: t.primary, transition: 'opacity 0.15s',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.opacity = '0.7')}
-                onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-              >
-              </button>
-            }
           />
 
           {/* Remember me UI */}
@@ -136,7 +119,7 @@ const LoginPage: React.FC<LoginPageProps> = ({
               style={{
                 fontFamily: "'Inter', sans-serif",
                 fontSize: '13px', fontWeight: 500,
-                color: t.onSurfaceVariant, cursor: 'pointer', userSelect: 'none',
+                color: isDark ? 'rgba(208, 201, 235, 0.7)' : t.onSurfaceVariant, cursor: 'pointer', userSelect: 'none',
               }}
             >
               Remember for 30 days
@@ -144,16 +127,16 @@ const LoginPage: React.FC<LoginPageProps> = ({
           </div>
 
           <div style={{ marginTop: '2px' }}>
-            <Button type="submit" isLoading={isLoading} data-testid="login-submit-btn">
+            <Button variant="luminous" type="submit" isLoading={isLoading} data-testid="login-submit-btn">
               Sign In
             </Button>
           </div>
         </form>
 
         <p style={{
-          textAlign: 'center', margin: 0,
+          textAlign: 'center', margin: '8px 0 0 0',
           fontFamily: "'Inter', sans-serif",
-          fontSize: '13px', color: t.onSurfaceVariant,
+          fontSize: '13px', color: isDark ? 'rgba(208, 201, 235, 0.7)' : t.onSurfaceVariant,
         }}>
           Don't have an account?{' '}
           <button
@@ -163,10 +146,7 @@ const LoginPage: React.FC<LoginPageProps> = ({
               background: 'none', border: 'none', cursor: 'pointer', padding: 0,
               fontFamily: "'Inter', sans-serif",
               fontSize: '13px', fontWeight: 600,
-              color: t.primary,
-              textDecoration: 'underline',
-              textDecorationThickness: '2px',
-              textUnderlineOffset: '3px',
+              color: isDark ? '#b89fff' : t.primary,
               transition: 'opacity 0.15s',
             }}
             onMouseEnter={e => (e.currentTarget.style.opacity = '0.7')}

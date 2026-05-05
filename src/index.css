@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
-/* ── Reset ───────────────────────────────────────────── */
+/* Reset */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -19,12 +19,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Primary gradient ────────────────────────────────── */
+/* Shared surfaces */
 .primary-gradient {
   background: linear-gradient(135deg, #b89fff 0%, #834fff 100%);
 }
 
-/* ── Neon teal focus bar ─────────────────────────────── */
 .neon-focus-bar {
   position: absolute;
   bottom: 0;
@@ -32,8 +31,8 @@ body {
   transform: translateX(-50%);
   width: 0;
   height: 2px;
-  background: #2de7d2;
-  box-shadow: 0 0 14px rgba(45, 231, 210, 0.5);
+  background: #b89fff;
+  box-shadow: 0 0 18px rgba(184, 159, 255, 0.55);
   transition: width 0.3s ease;
   border-radius: 0 0 4px 4px;
   pointer-events: none;
@@ -43,132 +42,214 @@ body {
   width: 100%;
 }
 
-/* ── Neon badge glow ─────────────────────────────────── */
 .neon-badge {
   box-shadow: 0 0 18px rgba(51, 233, 213, 0.28);
 }
 
-/* ── Form enter animation ────────────────────────────── */
+/* Motion */
 @keyframes authFadeIn {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
 .auth-form-enter {
-  animation: authFadeIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: authFadeIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* ── Spinner ─────────────────────────────────────────── */
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-/* ── Auth layout — responsive shell ─────────────────── */
-
-/* 
-  .auth-shell       = outer flex container
-  .auth-hero        = left pane
-  .auth-form-pane   = right pane
-  .auth-mobile-logo = logo shown only on mobile
-*/
-
+/* ─── Auth shell ──────────────────────────────── */
 .auth-shell {
   min-height: 100vh;
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+
+  /* fluid vertical padding: snug on mobile, comfortable on desktop */
+  padding: clamp(56px, 8vh, 80px) clamp(12px, 4vw, 32px) clamp(16px, 3vh, 28px);
+
+  background: var(--auth-bg);
   transition: background-color 0.3s, color 0.3s;
 }
 
-.auth-hero {
-  display: none; /* hidden on mobile */
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 36px 48px;
-  position: relative;
+/* ─── Backdrop decorations ────────────────────── */
+.auth-backdrop {
+  position: absolute;
+  inset: 0;
   overflow: hidden;
-  flex-shrink: 0;
+  pointer-events: none;
 }
 
-.auth-form-pane {
-  flex: 1;
+.auth-background-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(200px circle at var(--glow-x, 50%) var(--glow-y, 50%), rgba(184, 159, 255, 0.13), transparent 60%),
+    radial-gradient(400px circle at var(--glow-x, 50%) var(--glow-y, 50%), rgba(120, 87, 255, 0.05), transparent 72%);
+  opacity: var(--glow-opacity, 0);
+  filter: blur(18px);
+  transition: opacity 0.2s ease;
+}
+
+.auth-ambient {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(80px);
+  opacity: 0.65;
+}
+
+.auth-ambient-primary   { top: -100px; left: -80px;   width: 280px; height: 280px; background: var(--ambient-primary); }
+.auth-ambient-secondary { right: -100px; top: 18%;    width: 300px; height: 300px; background: var(--ambient-secondary); }
+.auth-ambient-tertiary  { bottom: -120px; left: 10%;  width: 260px; height: 260px; background: var(--ambient-tertiary); }
+
+.auth-grid-shape {
+  position: absolute;
+  background: var(--shape-fill);
+  transform: rotate(45deg);
+}
+
+.auth-grid-shape-top    { top: -100px; right: -80px;  width: 220px; height: 220px; }
+.auth-grid-shape-bottom { bottom: -120px; left: -90px; width: 220px; height: 220px; }
+.auth-grid-shape-center { top: 28%; right: 12%; width: 150px; height: 150px; opacity: 0.6; }
+
+/* ─── Top bar ─────────────────────────────────── */
+.auth-topbar {
+  position: absolute;
+  top: clamp(12px, 2vh, 20px);
+  right: clamp(12px, 2vw, 20px);
+  z-index: 3;
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 24px 20px 28px;
-  min-width: 0;
+  justify-content: flex-end;
 }
 
+/* ─── Centering wrapper ───────────────────────── */
 .auth-form-center {
+  position: relative;
+  z-index: 1;
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 0;
-}
-
-.auth-form-inner {
   width: 100%;
-  max-width: 360px;
 }
 
+/* ─── Card wrap — fluid max-width ────────────── */
+/*
+   Base (mobile-first): full width up to 340px
+   sm  (≥480px):        up to 360px
+   md  (≥768px):        up to 380px
+   lg  (≥1024px):       up to 396px
+   xl  (≥1280px):       up to 408px
+   Uses clamp so it scales smoothly between breakpoints.
+*/
+.auth-card-wrap {
+  position: relative;
+  width: min(100%, clamp(300px, 80vw, 408px));
+  padding: clamp(8px, 1.5vw, 14px);
+}
+
+.auth-card-wrap-compact {
+  width: min(100%, clamp(300px, 80vw, 416px));
+}
+
+/* ─── Card ────────────────────────────────────── */
+.auth-card {
+  position: relative;
+  width: 100%;
+  border-radius: 16px;
+
+  /* fluid padding: tight on small screens, comfortable on large */
+  padding:
+    clamp(14px, 2.5vh, 22px)   /* top */
+    clamp(14px, 2.5vw, 20px)   /* right */
+    clamp(12px, 2vh, 18px)     /* bottom */
+    clamp(14px, 2.5vw, 20px);  /* left */
+
+  overflow: hidden;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.auth-card-compact {
+  padding-top:    clamp(12px, 2vh, 18px);
+  padding-bottom: clamp(12px, 2vh, 18px);
+}
+
+.auth-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  pointer-events: none;
+}
+
+/* ─── Inner content — centered column ────────── */
+.auth-form-inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+
+  /* shrinks on tiny screens, grows up to 300px */
+  max-width: clamp(240px, 72vw, 300px);
+  margin: 0 auto;
+}
+
+/* ─── Mobile wordmark ─────────────────────────── */
 .auth-mobile-logo {
-  display: flex;  /* visible on mobile */
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 20px;
-}
-
-.auth-topbar {
+  position: relative;
+  z-index: 1;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
+  justify-content: center;
+  margin-bottom: clamp(10px, 1.8vh, 14px);
 }
 
-/* ── Tablet (≥ 640px) ────────────────────────────────── */
-@media (min-width: 640px) {
-  .auth-form-pane {
-    padding: 32px 40px;
-  }
+.auth-brand-wordmark {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: clamp(0.8rem, 2.5vw, 1.1rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #b98dfd;
+  text-transform: uppercase;
+  text-align: center;
 }
 
-/* ── Desktop (≥ 1024px) ──────────────────────────────── */
-@media (min-width: 1024px) {
-  .auth-shell {
-    flex-direction: row;
-  }
-
-  .auth-hero {
-    display: flex;
-    width: 55%;
-  }
-
-  .auth-form-pane {
-    padding: 32px 52px;
-  }
-
-  .auth-mobile-logo {
-    display: none; /* hidden on desktop — logo lives in hero pane */
-  }
-
-  .auth-topbar {
-    justify-content: flex-end; /* toggle only, no mobile logo */
-    margin-bottom: 20px;
-  }
+/* ─── Card header ─────────────────────────────── */
+.auth-card-header {
+  text-align: center;
+  margin-bottom: clamp(12px, 2vh, 18px);
 }
 
-/* ── Large desktop (≥ 1280px) ────────────────────────── */
-@media (min-width: 1280px) {
-  .auth-hero {
-    padding: 40px 64px;
-  }
-
-  .auth-form-pane {
-    padding: 32px 64px;
-  }
+.auth-eyebrow {
+  margin-bottom: clamp(6px, 1vh, 10px);
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(0.6rem, 1.2vw, 0.68rem);
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(184, 159, 255, 0.8);
 }
 
-/* ── Smooth theme transitions ────────────────────────── */
+/* ─── Card footer ─────────────────────────────── */
+.auth-card-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 14px;
+  margin-top: clamp(14px, 2.5vh, 20px);
+  padding-top: clamp(10px, 1.5vh, 14px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(9px, 1vw, 10px);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+/* ─── Global transition polish ────────────────── */
 button, a, input, section, header, footer, div {
   transition-property: background-color, color, border-color, opacity;
   transition-duration: 0.2s;
@@ -179,15 +260,47 @@ button, a {
   transition-property: background-color, color, border-color, opacity, transform, box-shadow;
 }
 
-/* ── Skeleton-row pulse animation ────────────────────────────────── */
+/* Skeleton pulse */
 @keyframes pulse {
-  0%, 100% { opacity: 1;    }
+  0%, 100% { opacity: 1; }
   50%       { opacity: 0.4; }
 }
 
 @font-face {
   font-family: 'Acquire';
-  src: url('.\asset\acquire-font\AquireBold-8Ma60.otf') format('opentype');
+  src: url('./asset/acquire-font/AquireBold-8Ma60.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
+}
+
+/* ─── Breakpoint refinements (enhancement only) ─ */
+/* clamp() handles the bulk of scaling; these tune edge cases */
+
+@media (max-width: 360px) {
+  /* Extra-small phones: keep card snug */
+  .auth-card-wrap,
+  .auth-card-wrap-compact {
+    padding: 6px;
+  }
+
+  .auth-card {
+    border-radius: 14px;
+  }
+}
+
+@media (min-width: 768px) {
+  /* Tablets: slightly softer shadow */
+  .auth-grid-shape-center {
+    right: 16%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .auth-grid-shape-top {
+    right: -50px;
+  }
+
+  .auth-grid-shape-center {
+    right: 18%;
+  }
 }

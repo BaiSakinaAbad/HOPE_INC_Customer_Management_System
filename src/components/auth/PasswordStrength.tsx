@@ -16,10 +16,11 @@ const calcStrength = (password: string): number => {
   return 3;              // Strong
 };
 
-export const PasswordStrength: React.FC<{ password: string }> = ({ password }) => {
+export const PasswordStrength: React.FC<{ password: string; variant?: 'default' | 'luminous' }> = ({ password, variant = 'default' }) => {
   const { isDark } = useTheme();
   const t = isDark ? tokens.dark : tokens.light;
   const level = calcStrength(password);
+  const isLuminous = variant === 'luminous';
   const activeColors = ['', '#ff6e84', t.primary, t.tertiaryDim];
   const labels = ['', 'Weak', 'Fair', 'Strong'];
 
@@ -29,7 +30,9 @@ export const PasswordStrength: React.FC<{ password: string }> = ({ password }) =
         {[1, 2, 3].map(s => (
           <div key={s} style={{
             flex: 1, height: '3px', borderRadius: '99px',
-            backgroundColor: level >= s ? activeColors[level] : `${t.outlineVariant}60`,
+            backgroundColor: level >= s
+              ? activeColors[level]
+              : isLuminous ? 'rgba(255,255,255,0.12)' : `${t.outlineVariant}60`,
             transition: 'background-color 0.3s',
           }} />
         ))}
