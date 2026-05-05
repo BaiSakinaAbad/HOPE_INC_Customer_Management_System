@@ -1,66 +1,89 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-// 1. Use the real supabase import that setupTests.ts is mocking!
-import { supabase } from '../lib/supabase'; 
-import CustomerListPage from '../components/pages/CustomerListPage';
+import { supabase } from '../lib/supabase';
+import { CustomerListPage } from '../pages/customers/CustomerListPage';
 
-// Mock the rights hook
-vi.mock('../hooks/useRights', () => ({
-  useRights: vi.fn(),
-}));
+// Mock BOTH hooks the component depends on
+vi.mock('../hooks/useRights', () => ({ useRights: vi.fn() }));
+vi.mock('../providers/AuthProvider', () => ({ useAuth: vi.fn() }));
+
 import { useRights } from '../hooks/useRights';
+import { useAuth } from '../providers/AuthProvider';
+
+// ─── Helpers to keep beforeEach blocks DRY ────────────────────────────────────
+const mockAsUser = () => {
+  vi.mocked(useAuth).mockReturnValue({ role: 'user', user: null, session: null, recordstatus: null, loading: false, signOut: async () => {} });
+  vi.mocked(useRights).mockReturnValue({ canViewStamp: false });
+};
+
+const mockAsAdmin = () => {
+  vi.mocked(useAuth).mockReturnValue({ role: 'admin', user: null, session: null, recordstatus: null, loading: false, signOut: async () => {} });
+  vi.mocked(useRights).mockReturnValue({ canViewStamp: true });
+};
+
+// ─── Default Supabase stub ─────────────────────────────────────────────────────
+const stubSupabaseEmpty = () => {
+  vi.mocked(supabase.from).mockReturnValue({
+    select: vi.fn().mockReturnValue({
+      eq: vi.fn().mockReturnValue({
+        order: vi.fn().mockResolvedValue({ data: [], error: null }),
+        then: (resolve: (v: unknown) => void) => resolve({ count: 0, data: null, error: null }),
+      }),
+    }),
+  } as any);
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 describe('Customer Visibility & React Query Enforcement', () => {
-  // 2. The Whiteboard Eraser
   beforeEach(() => {
     vi.clearAllMocks();
+    stubSupabaseEmpty();
   });
 
   describe('UI Visibility: Stamp Column', () => {
     it('is absent for USER role', () => {
-      vi.mocked(useRights).mockReturnValue({ user_type: 'USER', rights: { CUST_VIEW: 1 } });
+      mockAsUser();
       render(<CustomerListPage />);
       expect(screen.queryByTestId('stamp-column')).not.toBeInTheDocument();
     });
 
     it('is present for ADMIN role', () => {
-      vi.mocked(useRights).mockReturnValue({ user_type: 'ADMIN', rights: { CUST_VIEW: 1 } });
+      mockAsAdmin();
       render(<CustomerListPage />);
       expect(screen.getByTestId('stamp-column')).toBeInTheDocument();
     });
   });
 
   describe('Data Visibility: INACTIVE Customers', () => {
-    // We create fake database data containing one ACTIVE and one INACTIVE customer
     const mockDbData = [
-      { id: 1, name: 'Active Customer', record_status: 'ACTIVE' },
-      { id: 2, name: 'Hidden Inactive Customer', record_status: 'INACTIVE' }
+      { custno: 'C0001', custname: 'Active Customer', recordstatus: 'ACTIVE' },
+      { custno: 'C0002', custname: 'Hidden Inactive Customer', recordstatus: 'INACTIVE' },
     ];
 
     beforeEach(() => {
-      // We tell our Vitest stunt-double to return this mixed data
       vi.mocked(supabase.from).mockReturnValue({
         select: vi.fn().mockReturnValue({
-          order: vi.fn().mockResolvedValue({ data: mockDbData, error: null })
-        })
+          eq: vi.fn().mockReturnValue({
+            order: vi.fn().mockResolvedValue({ data: mockDbData, error: null }),
+            then: (resolve: (v: unknown) => void) => resolve({ count: 1, data: null, error: null }),
+          }),
+        }),
       } as any);
     });
 
     it('filters out INACTIVE records on the frontend for USER role', async () => {
-      vi.mocked(useRights).mockReturnValue({ user_type: 'USER', rights: { CUST_VIEW: 1 } });
+      mockAsUser();
       render(<CustomerListPage />);
-
       await waitFor(() => {
         expect(screen.getByText('Active Customer')).toBeInTheDocument();
-        // The INACTIVE customer MUST NOT render for a normal user
         expect(screen.queryByText('Hidden Inactive Customer')).not.toBeInTheDocument();
       });
     });
 
     it('renders INACTIVE records so they can be viewed by ADMIN role', async () => {
-      vi.mocked(useRights).mockReturnValue({ user_type: 'ADMIN', rights: { CUST_VIEW: 1 } });
+      mockAsAdmin();
       render(<CustomerListPage />);
-
       await waitFor(() => {
         expect(screen.getByText('Active Customer')).toBeInTheDocument();
         expect(screen.getByText('Hidden Inactive Customer')).toBeInTheDocument();
@@ -68,29 +91,29 @@ describe('Customer Visibility & React Query Enforcement', () => {
     });
   });
 
-  // NEW: THE RECOVERY TEST SECTION
   describe('Data Recovery: ADMIN Action Rights', () => {
     it('shows a "Recover" button ONLY for ADMIN/SUPERADMIN on INACTIVE rows', async () => {
-      const inactiveData = [{ id: 99, name: 'Deleted Corp', record_status: 'INACTIVE' }];
-      
+      const inactiveData = [{ custno: '99', custname: 'Deleted Corp', recordstatus: 'INACTIVE' }];
+
       vi.mocked(supabase.from).mockReturnValue({
         select: vi.fn().mockReturnValue({
-          order: vi.fn().mockResolvedValue({ data: inactiveData, error: null })
-        })
+          eq: vi.fn().mockReturnValue({
+            order: vi.fn().mockResolvedValue({ data: inactiveData, error: null }),
+            then: (resolve: (v: unknown) => void) => resolve({ count: 1, data: null, error: null }),
+          }),
+        }),
       } as any);
 
       // 1. Test as ADMIN (Should see the recovery button)
-      vi.mocked(useRights).mockReturnValue({ user_type: 'ADMIN', rights: { CUST_EDIT: 1 } });
+      mockAsAdmin();
       const { rerender } = render(<CustomerListPage />);
-      
       await waitFor(() => {
         expect(screen.getByTestId('recover-btn-99')).toBeInTheDocument();
       });
 
       // 2. Test as USER (Should NOT see the recovery button)
-      vi.mocked(useRights).mockReturnValue({ user_type: 'USER', rights: { CUST_EDIT: 0 } });
+      mockAsUser();
       rerender(<CustomerListPage />);
-      
       await waitFor(() => {
         expect(screen.queryByTestId('recover-btn-99')).not.toBeInTheDocument();
       });

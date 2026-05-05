@@ -1,33 +1,86 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-// Placeholders for M2's UI components
-import CustomerListPage from '../components/pages/CustomerListPage';
-import AppShell from '../components/shells/AppShell';
+import { supabase } from '../lib/supabase';
+import { CustomerListPage } from '../pages/customers/CustomerListPage';
+import { DashboardLayout as AppShell } from '../layouts/DashboardLayout';
 
-// Mock M4's hook before the tests run
-vi.mock('../hooks/useRights', () => ({
-  useRights: vi.fn(),
-}));
+vi.mock('../hooks/useRights', () => ({ useRights: vi.fn() }));
+vi.mock('../providers/AuthProvider', () => ({ useAuth: vi.fn() }));
+
 import { useRights } from '../hooks/useRights';
+import { useAuth } from '../providers/AuthProvider';
+
+// ─── Role helpers ─────────────────────────────────────────────────────────────
+const mockAsUser = () => {
+  vi.mocked(useAuth).mockReturnValue({ role: 'user', user: null, session: null, recordstatus: null, loading: false, signOut: async () => {} });
+  vi.mocked(useRights).mockReturnValue({ canViewStamp: false });
+};
+
+const mockAsAdmin = () => {
+  vi.mocked(useAuth).mockReturnValue({ role: 'admin', user: null, session: null, recordstatus: null, loading: false, signOut: async () => {} });
+  vi.mocked(useRights).mockReturnValue({ canViewStamp: true });
+};
+
+const mockAsSuperAdmin = () => {
+  vi.mocked(useAuth).mockReturnValue({ role: 'superadmin', user: null, session: null, recordstatus: null, loading: false, signOut: async () => {} });
+  vi.mocked(useRights).mockReturnValue({ canViewStamp: true });
+};
+
+// ─── Supabase stub: empty (for header/stamp/sidebar tests) ────────────────────
+const stubSupabaseEmpty = () => {
+  vi.mocked(supabase.from).mockReturnValue({
+    select: vi.fn().mockReturnValue({
+      eq: vi.fn().mockReturnValue({
+        order: vi.fn().mockResolvedValue({ data: [], error: null }),
+        then: (resolve: (v: unknown) => void) => resolve({ count: 0, data: null, error: null }),
+      }),
+    }),
+  } as any);
+};
+
+// ─── Supabase stub: one ACTIVE row (so CustomerRow actually renders) ──────────
+const stubSupabaseOneRow = () => {
+  vi.mocked(supabase.from).mockReturnValue({
+    select: vi.fn().mockReturnValue({
+      eq: vi.fn().mockReturnValue({
+        order: vi.fn().mockResolvedValue({
+          data: [{ custno: 'C0001', custname: 'Test Customer', address: 'Test Address', payterm: 'COD', recordstatus: 'ACTIVE', stamp: null }],
+          error: null,
+        }),
+        then: (resolve: (v: unknown) => void) => resolve({ count: 0, data: null, error: null }),
+      }),
+    }),
+  } as any);
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 describe('Rights Matrix (27 Cases - UI Gating)', () => {
-  // 1. THE WHITEBOARD ERASER (Prevents test leaks!)
   beforeEach(() => {
     vi.clearAllMocks();
+    stubSupabaseEmpty();
   });
 
+  // ─── Role: USER ──────────────────────────────────────────────────────────────
   describe('Role: USER', () => {
-    beforeEach(() => {
-      vi.mocked(useRights).mockReturnValue({
-        user_type: 'USER',
-        rights: { CUST_ADD: 0, CUST_EDIT: 0, CUST_DEL: 0, ADM_USER: 0 }
-      });
-    });
+    beforeEach(() => mockAsUser());
 
-    it('hides Add, Edit, and Delete buttons', () => {
+    it('hides Add Customer button', () => {
       render(<CustomerListPage />);
       expect(screen.queryByTestId('add-customer-btn')).not.toBeInTheDocument();
+    });
+
+    it('hides Edit Customer button', async () => {
+      stubSupabaseOneRow();
+      render(<CustomerListPage />);
+      await screen.findByText('Test Customer');
       expect(screen.queryByTestId('edit-customer-btn')).not.toBeInTheDocument();
+    });
+
+    it('hides Delete Customer button', async () => {
+      stubSupabaseOneRow();
+      render(<CustomerListPage />);
+      await screen.findByText('Test Customer');
       expect(screen.queryByTestId('delete-customer-btn')).not.toBeInTheDocument();
     });
 
@@ -42,21 +95,27 @@ describe('Rights Matrix (27 Cases - UI Gating)', () => {
     });
   });
 
+  // ─── Role: ADMIN ─────────────────────────────────────────────────────────────
   describe('Role: ADMIN', () => {
-    beforeEach(() => {
-      vi.mocked(useRights).mockReturnValue({
-        user_type: 'ADMIN',
-        // CRITICAL: Admin has CUST_DEL = 0
-        rights: { CUST_ADD: 1, CUST_EDIT: 1, CUST_DEL: 0, ADM_USER: 1 } 
-      });
-    });
+    beforeEach(() => mockAsAdmin());
 
-    it('shows Add and Edit buttons, but HIDES Delete button', () => {
+    it('shows Add Customer button', () => {
       render(<CustomerListPage />);
       expect(screen.getByTestId('add-customer-btn')).toBeInTheDocument();
+    });
+
+    it('shows Edit Customer button', async () => {
+      stubSupabaseOneRow();
+      render(<CustomerListPage />);
+      await screen.findByText('Test Customer');
       expect(screen.getByTestId('edit-customer-btn')).toBeInTheDocument();
-      // Admin cannot soft-delete!
-      expect(screen.queryByTestId('delete-customer-btn')).not.toBeInTheDocument(); 
+    });
+
+    it('hides Delete Customer button (ADMIN cannot soft-delete)', async () => {
+      stubSupabaseOneRow();
+      render(<CustomerListPage />);
+      await screen.findByText('Test Customer');
+      expect(screen.queryByTestId('delete-customer-btn')).not.toBeInTheDocument();
     });
 
     it('shows Stamp column', () => {
@@ -70,19 +129,26 @@ describe('Rights Matrix (27 Cases - UI Gating)', () => {
     });
   });
 
+  // ─── Role: SUPERADMIN ────────────────────────────────────────────────────────
   describe('Role: SUPERADMIN', () => {
-    beforeEach(() => {
-      vi.mocked(useRights).mockReturnValue({
-        user_type: 'SUPERADMIN',
-        // SUPERADMIN has all 1s
-        rights: { CUST_ADD: 1, CUST_EDIT: 1, CUST_DEL: 1, ADM_USER: 1 } 
-      });
-    });
+    beforeEach(() => mockAsSuperAdmin());
 
-    it('shows Add, Edit, and Delete buttons', () => {
+    it('shows Add Customer button', () => {
       render(<CustomerListPage />);
       expect(screen.getByTestId('add-customer-btn')).toBeInTheDocument();
+    });
+
+    it('shows Edit Customer button', async () => {
+      stubSupabaseOneRow();
+      render(<CustomerListPage />);
+      await screen.findByText('Test Customer');
       expect(screen.getByTestId('edit-customer-btn')).toBeInTheDocument();
+    });
+
+    it('shows Delete Customer button (SUPERADMIN only)', async () => {
+      stubSupabaseOneRow();
+      render(<CustomerListPage />);
+      await screen.findByText('Test Customer');
       expect(screen.getByTestId('delete-customer-btn')).toBeInTheDocument();
     });
 
