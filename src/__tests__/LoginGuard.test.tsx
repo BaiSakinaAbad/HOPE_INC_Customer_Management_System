@@ -1,8 +1,8 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { supabase } from '../lib/supabase';
-import LoginPage from '../components/pages/LoginPage';
-import RegisterPage from '../components/pages/RegisterPage';
+import LoginPage from '../pages/auth/LoginPage';
+import RegisterPage from '../pages/auth/RegisterPage';
 
 describe('Google OAuth Feature', () => {
   // Here is the whiteboard eraser to prevent test leaks!

@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import './App.css';
-import { AuthProvider, useAuth } from './components/AuthContext';
-import LoadingSpinner from './components/pages/LoadingSpinnerPage';
-import SuperAdminDashboard from './components/pages/SuperAdminDashboardPage';
-import { ThemeProvider } from './components/ThemeContext';
-import LoginPage from './components/pages/LoginPage';
-import RegisterPage from './components/pages/RegisterPage';
+import { AuthProvider, useAuth } from './providers/AuthProvider';
+import Dashboard from './pages/superadmin/Dashboard';
+import { ThemeProvider, useTheme, getDashboardTokens } from './providers/ThemeProvider';
+import LoadingSpinner from './pages/auth/LoadingSpinnerPage';
+import LoginPage from './pages/auth/LoginPage';
+import RegisterPage from './pages/auth/RegisterPage';
+import { InactiveAccountModal } from './components/auth';
 
 const POST_LOGIN_REDIRECT_KEY = 'post-login-redirect-pending';
 const POST_LOGIN_REDIRECT_TTL_MS = 60_000;
@@ -32,14 +33,26 @@ const hasValidPendingRedirect = () => {
 };
 
 const AppContent = () => {
-  const { user } = useAuth();
+  // 1. Grab 'role' and 'recordstatus' alongside 'user'
+  const { user, role, recordstatus, signOut } = useAuth(); 
+  const { isDark } = useTheme();
+  const C = getDashboardTokens(isDark);
+  
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [pendingRedirect, setPendingRedirect] = useState(hasValidPendingRedirect);
+  // Check if user is inactive
+  const isInactive = recordstatus === 'INACTIVE';
 
+  // 2. SMART DISMISSAL: Drop the spinner the moment BOTH user and role are ready
   useEffect(() => {
-    setPendingRedirect(hasValidPendingRedirect());
-  }, [user]);
+    if (user && role && pendingRedirect && !isInactive) {
+      window.sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
+      setPendingRedirect(false);
+    }
+  }, [user, role, pendingRedirect, isInactive]);
 
+  // 3. FALLBACK SAFETY NET: If role fetching fails or takes too long, 
+  // don't leave them stranded. Release them after 3 seconds, not 10.
   useEffect(() => {
     if (!user || !pendingRedirect) {
       return;
@@ -48,7 +61,7 @@ const AppContent = () => {
     const timer = window.setTimeout(() => {
       window.sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
       setPendingRedirect(false);
-    }, 10000);
+    }, 3000); // Changed from 10000ms to 3000ms
 
     return () => window.clearTimeout(timer);
   }, [user, pendingRedirect]);
@@ -58,12 +71,18 @@ const AppContent = () => {
     setPendingRedirect(true);
   };
 
+  // Show inactive modal if user is inactive
+  if (user && isInactive) {
+    return <InactiveAccountModal isDark={isDark} C={C} onSignOut={signOut} />;
+  }
+
   if (user && pendingRedirect) {
     return <LoadingSpinner />;
   }
 
   if (user) {
-    return <SuperAdminDashboard />;
+    // Note: Assuming you've already updated this to point to the new Dashboard routing!
+    return <Dashboard />; 
   }
 
   return authMode === 'login' ? (
@@ -72,7 +91,9 @@ const AppContent = () => {
       onLoginSuccess={queuePostLoginRedirect}
     />
   ) : (
-    <RegisterPage onSwitch={() => setAuthMode('login')} />
+    <RegisterPage 
+      onSwitch={() => setAuthMode('login')}
+    />
   );
 };
 

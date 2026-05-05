@@ -178,3 +178,16 @@ button, a, input, section, header, footer, div {
 button, a {
   transition-property: background-color, color, border-color, opacity, transform, box-shadow;
 }
+
+/* ── Skeleton-row pulse animation ────────────────────────────────── */
+@keyframes pulse {
+  0%, 100% { opacity: 1;    }
+  50%       { opacity: 0.4; }
+}
+
+@font-face {
+  font-family: 'Acquire';
+  src: url('.\asset\acquire-font\AquireBold-8Ma60.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}

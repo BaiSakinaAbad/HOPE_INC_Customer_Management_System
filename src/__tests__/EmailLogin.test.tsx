@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { supabase } from '../lib/supabase';
-import LoginPage from '../components/pages/LoginPage';
+import LoginPage from '../pages/auth/LoginPage';
 
 describe('Email Login Feature', () => {
   // Our whiteboard eraser is now properly inside the single describe block!
