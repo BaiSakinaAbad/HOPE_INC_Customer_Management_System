@@ -3,6 +3,7 @@ import { ShieldAlert, Search, RefreshCw, ChevronLeft, ChevronRight } from 'lucid
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
 import { auditLogService, formatAuditAction, formatAuditTable, type AuditLog } from '../../services/auditLogService';
 import { LogDetailsModal } from '../../components/audits/LogDetailsModal';
+import { DefaultTable } from '../../components/ui/DefaultTable';
 
 export const LogsPage: React.FC = () => {
   const { isDark } = useTheme();
@@ -16,10 +17,14 @@ export const LogsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
+
   const fetchLogs = async () => {
     setLoading(true);
     setError(null);
-    const { logs: fetchedLogs, error: err } = await auditLogService.fetchLogs(200);
+    const { logs: fetchedLogs, error: err } = await auditLogService.fetchLogs(500);
     if (err) {
       setError(err.message || 'Failed to load audit logs.');
     } else {
@@ -127,6 +132,11 @@ export const LogsPage: React.FC = () => {
               color: C.onSurface, fontSize: '15px', fontFamily: C.font.body
             }}
           />
+          {searchTerm.trim() && !loading && (
+            <span style={{ fontSize: '12px', color: C.onSurfaceVariant, whiteSpace: 'nowrap' }}>
+              {filteredLogs.length} of {logs.length} shown
+            </span>
+          )}
         </div>
 
         {/* Error */}
@@ -291,4 +301,4 @@ export const LogsPage: React.FC = () => {
       )}
     </div>
   );
-};//push
+};
