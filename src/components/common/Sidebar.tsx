@@ -37,7 +37,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerOpen, onClose }) => {
   const { currentPage, navigate } = useNavigation();
   
   // Extract capability flags
-  const { canViewDeletedNav, canManageEmployees, canViewLogs, canViewDashboard } = useRights();
+  const { canViewDeletedNav, canManageEmployees, canViewLogs, canViewDashboard, canViewInactive } = useRights();
 
   const handleNav = (page: PageId) => {
     navigate(page);
@@ -127,8 +127,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerOpen, onClose }) => {
             />
           )}
 
-          {/* Role-gated: only admin / superadmin */}
-          {canViewDeletedNav && (
+          {/* Permission-gated: requires CUST_VIEW_INACTIVE */}
+          {canViewInactive && (
             <SidebarItem
               label="Deleted Customers"
               icon={Trash2}
@@ -187,7 +187,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ label, icon: Icon, active, C,
           : hovered ? (isDark ? C.surfaceContainerHigh : '#eeeef5') : 'transparent',
         border: 'none',
         borderLeft: active ? `3px solid ${C.primary}` : '3px solid transparent',
-        paddingLeft: '21px',      
+        paddingLeft: '21px',      // compensate for 3px border
         cursor: 'pointer', textAlign: 'left',
         transition: 'all 0.2s ease',
       }}

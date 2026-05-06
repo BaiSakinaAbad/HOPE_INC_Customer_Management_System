@@ -96,24 +96,24 @@ Capabilities:
 
 Restriction: Cannot modify other SUPERADMIN accounts (enforced at UI and database levels)
 
-2.2 Rights Matrix
+2.2 Default Rights Matrix
 
 | Access Right | USER | ADMIN | SUPERADMIN |
 |--------------|:----:|:-----:|:----------:|
-| Customer Management ||||
+| **Customer Management** ||||
 | View active customers | ☑ | ☑ | ☑ |
-| Add new customers | ☑ | ☑ | ☑ |
+| Add new customers | ☐ | ☑ | ☑ |
 | Edit customer details | ☐ | ☑ | ☑ |
 | Soft-delete customers | ☐ | ☐ | ☑ |
 | View inactive customers | ☐ | ☑ | ☑ |
 | Recover soft-deleted customers | ☐ | ☑ | ☑ |
 | View audit stamps | ☐ | ☑ | ☑ |
-| Sales & Products ||||
+| **Sales & Products** ||||
 | View sales history | ☑ | ☑ | ☑ |
 | View sales details | ☑ | ☑ | ☑ |
 | View product catalogue | ☑ | ☑ | ☑ |
 | View price history | ☑ | ☑ | ☑ |
-| User Administration ||||
+| **User Administration** ||||
 | View user list | ☐ | ☑ | ☑ |
 | Activate new users | ☐ | ☑ | ☑ |
 | Change user roles | ☐ | ☐ | ☑ |
