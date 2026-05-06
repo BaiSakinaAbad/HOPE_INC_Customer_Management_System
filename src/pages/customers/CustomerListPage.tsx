@@ -152,9 +152,9 @@ export const CustomerListPage: React.FC = () => {
   return (
     <div style={{ flex: 1, padding: '32px 24px 48px', fontFamily: 'Inter, sans-serif' }}>
       
-      <DashboardHeader
+     <DashboardHeader
         title="Customer Registry"
-        description="The central hub for your customer data. View detailed profiles, onboard new customers, or manage by deleting customers."
+        description=""
         note="* Note: Deletion is a soft-delete mechanism and can be reversed by an administrator."
         statsTitle="Registered Customers"
         totalCount={displayTotal}
@@ -167,6 +167,7 @@ export const CustomerListPage: React.FC = () => {
             ? 'Stamp columns and administrative modifications are enabled for your current session.' 
             : 'You can view and manage active customers.'
         }
+        showStatsCard={false}
         allowedActions={[
           'View Active Customers',
           ...(canViewStamp ? ['View Audit Stamps'] : []),
