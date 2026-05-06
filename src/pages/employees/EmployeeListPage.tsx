@@ -91,10 +91,8 @@ export const EmployeeListPage: React.FC = () => {
       !currentValue,
     );
     if (err) {
-      // Show the error — do NOT update local state since DB didn't change
       setPermissionsError(err);
     } else {
-      // Re-fetch from DB to ensure perfect sync
       const { data } = await fetchUserPermissionsDetailed(
         viewingPermissionsFor.id,
         viewingPermissionsFor.role,
@@ -115,7 +113,6 @@ export const EmployeeListPage: React.FC = () => {
     if (err) {
       setPermissionsError(err);
     } else {
-      // Re-fetch from DB to reflect the reset
       const { data } = await fetchUserPermissionsDetailed(
         viewingPermissionsFor.id,
         viewingPermissionsFor.role,
@@ -183,20 +180,11 @@ export const EmployeeListPage: React.FC = () => {
       setEmployees((prev) => prev.map((emp) => (
         emp.id === employee.id ? { ...emp, role: newRole } : emp
       )));
-      // Refresh the current user's own permissions in case they were affected
       void refreshPermissions();
     }
     setRoleUpdatingUserId(null);
   };
 
-  /**
-   * Determine if "View Permissions" should appear for a given employee.
-   *
-   * - Users (role=user): Can't even access this page (gated above).
-   * - Admin: Can see permissions for role=user only.
-   *   Cannot see their own, other admins', or superadmins' permissions.
-   * - Superadmin: Can see everyone's permissions.
-   */
   const canViewPermissionsFor = (emp: Employee): boolean => {
     const actorRole = (role ?? '').toLowerCase();
     if (actorRole === 'superadmin') return true;
@@ -221,7 +209,6 @@ export const EmployeeListPage: React.FC = () => {
   const roleDisplay = role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Unknown';
   const pendingIsActive = pendingStatusAction?.recordstatus === 'ACTIVE';
 
-  // ── Group permissions by module for the modal ──
   const groupedPermissions = useMemo(() => {
     const groups: Record<string, DetailedPermission[]> = {};
     for (const perm of detailedPermissions) {
@@ -231,14 +218,10 @@ export const EmployeeListPage: React.FC = () => {
     }
     const ordered: { module: string; perms: DetailedPermission[] }[] = [];
     for (const m of MODULE_ORDER) {
-      if (groups[m]) {
-        ordered.push({ module: m, perms: groups[m] });
-      }
+      if (groups[m]) ordered.push({ module: m, perms: groups[m] });
     }
     for (const m of Object.keys(groups)) {
-      if (!MODULE_ORDER.includes(m)) {
-        ordered.push({ module: m, perms: groups[m] });
-      }
+      if (!MODULE_ORDER.includes(m)) ordered.push({ module: m, perms: groups[m] });
     }
     return ordered;
   }, [detailedPermissions]);
@@ -248,10 +231,12 @@ export const EmployeeListPage: React.FC = () => {
       <DashboardHeader
         title="User Registry"
         description="Manage application users, roles, and activation status."
+        // These are passed but hidden by showStatsCard
         statsTitle="Registered Users"
         totalCount={employees.length}
         activeCount={activeCount}
         inactiveCount={inactiveCount}
+        showStatsCard={false}
         roleDisplay={roleDisplay}
         policyDescription="You can view all app users and manage roles for active accounts."
         allowedActions={[
@@ -373,7 +358,6 @@ export const EmployeeListPage: React.FC = () => {
             boxShadow: isDark ? '0 10px 40px rgba(0,0,0,0.5)' : '0 10px 30px rgba(0,0,0,0.1)',
             overflow: 'hidden', display: 'flex', flexDirection: 'column'
           }}>
-            {/* Header */}
             <div style={{ padding: '24px 24px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${C.outlineVariant}33` }}>
               <div>
                 <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: C.onSurface }}>Permissions</h3>
@@ -387,18 +371,12 @@ export const EmployeeListPage: React.FC = () => {
                     <Lock size={11} /> Read-only
                   </span>
                 )}
-                {viewingPermissionsFor.recordstatus !== 'ACTIVE' && canEditTargetPermissions && (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 10px', borderRadius: '6px', backgroundColor: `${C.error}15`, color: C.error, fontSize: '11px', fontWeight: 600 }}>
-                    Inactive — read-only
-                  </span>
-                )}
                 <button type="button" onClick={() => { setViewingPermissionsFor(null); setActivePermTab(MODULE_ORDER[0]); }} style={{ background: 'none', border: 'none', color: C.onSurfaceVariant, cursor: 'pointer', padding: '4px' }}>
                   <X size={20} />
                 </button>
               </div>
             </div>
 
-            {/* Tabs */}
             <div style={{ display: 'flex', padding: '0 16px', borderBottom: `1px solid ${C.outlineVariant}22` }}>
               {MODULE_ORDER.map((tab) => {
                 const isActive = activePermTab === tab;
@@ -425,7 +403,6 @@ export const EmployeeListPage: React.FC = () => {
               })}
             </div>
 
-            {/* Body */}
             <div
               className="perm-modal-body"
               style={{
@@ -493,12 +470,8 @@ export const EmployeeListPage: React.FC = () => {
               )}
             </div>
 
-            {/* Footer — Reset button */}
             {canEditTargetPermissions && (
-              <div style={{
-                padding: '12px 24px', borderTop: `1px solid ${C.outlineVariant}33`,
-                display: 'flex', justifyContent: 'flex-end',
-              }}>
+              <div style={{ padding: '12px 24px', borderTop: `1px solid ${C.outlineVariant}33`, display: 'flex', justifyContent: 'flex-end' }}>
                 <button
                   type="button"
                   disabled={resettingPerms}
