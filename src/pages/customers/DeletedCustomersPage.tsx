@@ -8,6 +8,8 @@ import type { Customer } from '../../types/customer';
 import { DefaultTable, SearchBar, DashboardHeader } from '../../components/ui';
 
 // Import our reusable feature components
+//Removed Unecessary Charts
+
 import { ActionModal } from '../../components/customers/ActionModal';
 import { DeletedRow } from '../../components/customers/DeletedRow';
 

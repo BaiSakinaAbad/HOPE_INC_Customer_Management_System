@@ -6,6 +6,8 @@ import { DefaultTable, SearchBar, DashboardHeader, Button } from '../../componen
 import { getProducts, type Product } from '../../services/productService';
 import { PriceHistoryModal } from '../../components/products/PriceHistoryModal';
 
+//Removed Unecessary Charts
+
 export const ProductCataloguePage: React.FC = () => {
   const { isDark } = useTheme();
   const C = getDashboardTokens(isDark);

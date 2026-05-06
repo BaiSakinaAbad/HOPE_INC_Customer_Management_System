@@ -10,6 +10,8 @@ import type { Employee, EmployeeRole, EmployeeStatus } from '../../types/employe
 import { DefaultTable, DashboardHeader } from '../../components/ui';
 import { EmployeeRow } from '../../components/employees/EmployeeRow';
 import { ActionModal } from '../../components/customers/ActionModal';
+//Removed Unecessary Charts
+
 
 // ── Module display order for grouping permissions in the modal ────────────────
 const MODULE_ORDER = ['Customer Module', 'Sales Module', 'Product Module', 'Admin Module'];
