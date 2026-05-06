@@ -10,6 +10,9 @@ import { ProductCataloguePage } from '../products/ProductCataloguePage';
 import { SalesPage } from '../sales/SalesPage';
 import { LogsPage } from '../audits/LogsPage';
 
+/**
+ * DashboardRouter handles the conditional rendering of pages based on the current navigation state.
+ */
 const DashboardRouter: React.FC = () => {
   const { currentPage } = useNavigation();
   const { user } = useAuth();
@@ -21,6 +24,9 @@ const DashboardRouter: React.FC = () => {
   const displayName = fullName || (metadata.username as string | undefined) || user?.email || 'User';
   const firstName = (metadata.first_name as string | undefined) || displayName.split(' ')[0] || 'User';
 
+  /**
+   * Switches between different dashboard sections based on the navigation state.
+   */
   const renderPage = () => {
     switch (currentPage) {
       case 'customers': return <CustomerListPage />;
@@ -41,6 +47,10 @@ const DashboardRouter: React.FC = () => {
 };
 
 // Wrap the router in the Navigation Provider
+/**
+ * Root Dashboard component that initializes the navigation context with a default page
+ * based on the user's role.
+ */
 const Dashboard: React.FC = () => {
   const { role } = useAuth();
   // Only superadmin gets the dashboard home; admin and employee/user land on customers.
