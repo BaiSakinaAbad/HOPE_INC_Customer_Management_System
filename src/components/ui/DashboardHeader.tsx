@@ -1,13 +1,9 @@
 import React from 'react';
 import { Info } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
-<<<<<<< HEAD
 import { MiniBarChart } from './charts/MiniBarChart';
 import { MiniLineChart } from './charts/MiniLineChart';
 import { MiniDonutChart } from './charts/MiniDonutChart';
-//dashboard header
-=======
->>>>>>> 8940099d2a83429b84e4be6f7428a341754fa52a
 
 export interface DashboardHeaderProps {
   title: string;
@@ -18,7 +14,6 @@ export interface DashboardHeaderProps {
   totalCount: number;
   activeCount?: number;
   inactiveCount?: number;
-
   roleDisplay: string;
   policyDescription: React.ReactNode;
   allowedActions?: string[];
@@ -32,9 +27,6 @@ export interface DashboardHeaderProps {
   showStatsCard?: boolean;
 }
 
-/* ─── Main component ─── */
-}
-
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   title,
   description,
@@ -44,7 +36,6 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   totalCount,
   activeCount,
   inactiveCount,
-
   roleDisplay,
   policyDescription,
   allowedActions,
@@ -55,6 +46,10 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 }) => {
   const { isDark } = useTheme();
   const C = getDashboardTokens(isDark);
+
+  // Safety checks for numeric values
+  const safeActive = activeCount ?? 0;
+  const safeInactive = inactiveCount ?? 0;
 
   return (
     <>
@@ -82,121 +77,49 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         )}
       </div>
 
-      {/* Cards Row: Access Policy and Registered Accounts */}
+      {/* Cards Row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', marginBottom: '32px' }}>
         
-        {/* Access Policy Card — no graph */}
-        <div style={{
-          backgroundColor: isDark ? 'rgb(13, 24, 52)' : '#ffffff',
-          borderRadius: '16px', padding: '20px',
-          border: isDark ? '1px solid rgba(255,255,255,0.03)' : `1px solid ${C.outlineVariant}33`,
-          boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.5)' : '0 2px 10px rgba(0,0,0,0.02)',
-          display: 'flex', flexDirection: 'column',
-          minHeight: '140px'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-             <div style={{ color: '#17c3b2' }}>
-               <Info size={18} />
-             </div>
-             <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#17c3b2' }}>
-               ACCESS POLICY
-             </span>
-          </div>
-          
-          <span style={{ fontSize: '12px', color: isDark ? '#8b94a5' : C.onSurfaceVariant, marginBottom: '4px', fontWeight: 500 }}>
-            Current Role Access
-          </span>
-          <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '24px', fontWeight: 700, color: '#17c3b2', lineHeight: 1, marginBottom: '8px' }}>
-            {roleDisplay}
-          </span>
-          
-          <div style={{ marginTop: 'auto' }}>
-            {allowedActions && allowedActions.length > 0 ? (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                {allowedActions.map((action, i) => (
-                  <span key={i} style={{
-                    fontSize: '11px', fontWeight: 600, padding: '4px 8px',
-                    backgroundColor: isDark ? 'rgba(23, 195, 178, 0.1)' : 'rgba(23, 195, 178, 0.05)',
-                    color: '#17c3b2', borderRadius: '8px',
-                    border: '1px solid rgba(23, 195, 178, 0.2)'
-      {/* Dashboard Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '24px' }}>
-        
-        {/* Total Customers Card */}
-        <div style={{
-          backgroundColor: isDark ? C.surfaceContainerHigh : '#ffffff',
-          borderRadius: '16px', padding: '24px',
-          border: `1px solid ${C.outlineVariant}33`,
-          boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.25)' : '0 2px 10px rgba(0,0,0,0.02)',
-          display: 'flex', flexDirection: 'column',
-        }}>
-          <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: C.onSurfaceVariant, marginBottom: '8px' }}>
-            {statsTitle}
-          </span>
-          <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '42px', fontWeight: 800, color: isDark ? '#fff' : '#1a1a2e', lineHeight: 1 }}>
-            {totalCount.toLocaleString()}
-          </span>
-          {(activeCount !== undefined) && (
-            <div style={{ display: 'flex', gap: '16px', marginTop: '16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#22c55e' }} />
-                <span style={{ fontSize: '13px', color: C.onSurfaceVariant, fontWeight: 600 }}>Active: <span style={{ color: C.onSurface }}>{activeCount}</span></span>
-              </div>
-              {showInactiveCount && inactiveCount !== undefined && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#f59e0b' }} />
-                  <span style={{ fontSize: '13px', color: C.onSurfaceVariant, fontWeight: 600 }}>Inactive: <span style={{ color: C.onSurface }}>{inactiveCount}</span></span>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
         {/* Access Policy Card */}
         <div style={{
-          backgroundColor: isDark ? C.surfaceContainerHigh : '#ffffff',
+          backgroundColor: isDark ? 'rgb(13, 24, 52)' : '#ffffff',
           borderRadius: '16px', padding: '24px',
-          border: `1px solid ${C.outlineVariant}33`,
-          boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.25)' : '0 2px 10px rgba(0,0,0,0.02)',
+          border: isDark ? '1px solid rgba(255,255,255,0.03)' : `1px solid ${C.outlineVariant}33`,
+          boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.5)' : '0 2px 10px rgba(0,0,0,0.02)',
           display: 'flex', alignItems: 'flex-start', gap: '20px',
         }}>
           <div style={{
             width: '52px', height: '52px', borderRadius: '14px', flexShrink: 0,
-            backgroundColor: isDark ? 'rgba(131, 79, 255, 0.15)' : 'rgba(131, 79, 255, 0.08)', 
+            backgroundColor: isDark ? 'rgba(23, 195, 178, 0.15)' : 'rgba(23, 195, 178, 0.08)', 
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <Info size={24} style={{ color: C.primary }} />
+            <Info size={24} style={{ color: '#17c3b2' }} />
           </div>
           <div style={{ flex: 1 }}>
-            <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '18px', fontWeight: 700, color: C.primary, margin: '0 0 6px' }}>
+            <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '18px', fontWeight: 700, color: '#17c3b2', margin: '0 0 6px' }}>
               Access Policy
             </h3>
             <p style={{ fontSize: '13px', color: C.onSurfaceVariant, margin: '0 0 8px', lineHeight: 1.5 }}>
-              You are currently operating under <strong style={{ color: C.onSurface }}>{roleDisplay} Access</strong>. 
-              {' '}{policyDescription}
+              You are currently operating under <strong style={{ color: isDark ? '#fff' : '#1a1a2e' }}>{roleDisplay} Access</strong>.
             </p>
             {allowedActions && allowedActions.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '12px' }}>
                 {allowedActions.map((action, i) => (
                   <span key={i} style={{
                     fontSize: '11px', fontWeight: 600, padding: '4px 8px',
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
-                    color: C.onSurfaceVariant, borderRadius: '6px',
-                    border: `1px solid ${C.outlineVariant}40`
+                    backgroundColor: isDark ? 'rgba(23, 195, 178, 0.1)' : 'rgba(23, 195, 178, 0.05)',
+                    color: '#17c3b2', borderRadius: '8px',
+                    border: '1px solid rgba(23, 195, 178, 0.2)'
                   }}>
                     {action}
                   </span>
                 ))}
               </div>
-            ) : (
-              <p style={{ fontSize: '12px', color: isDark ? '#8b94a5' : C.onSurfaceVariant, margin: 0, lineHeight: 1.5 }}>
-                {policyDescription}
-              </p>
             )}
           </div>
         </div>
 
-        {/* Stats Card - Bar Chart */}
+        {/* Stats Card */}
         {showStatsCard && (
           <div style={{
             backgroundColor: isDark ? 'rgb(13, 24, 52)' : '#ffffff',
@@ -216,7 +139,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             </div>
             
             <span style={{ fontSize: '12px', color: isDark ? '#8b94a5' : C.onSurfaceVariant, marginBottom: '4px', fontWeight: 500 }}>
-              Customer Total
+              Total Count
             </span>
             <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '28px', fontWeight: 700, color: isDark ? '#a1a9fe' : '#1a1a2e', lineHeight: 1 }}>
               {totalCount.toLocaleString()}
