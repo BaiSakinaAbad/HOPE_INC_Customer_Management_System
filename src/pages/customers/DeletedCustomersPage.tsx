@@ -125,6 +125,9 @@ export const DeletedCustomersPage: React.FC = () => {
         description="View and manage soft-deleted customer records. These records are hidden from regular users but remain in the database for auditing and recovery."
         statsTitle="Archived Customers"
         totalCount={customers.length}
+        // These two props remove the stats card and ensure no graph is rendered
+        showStatsCard={false}
+        chartType="none"
         roleDisplay={role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Unknown'}
         policyDescription="You have access to view and restore archived customer records."
         allowedActions={[
@@ -164,9 +167,9 @@ export const DeletedCustomersPage: React.FC = () => {
 
       {/* Error Banner */}
       {error && (
-        <div style={{ /* ...error styles */ }}>
+        <div style={{ backgroundColor: `${C.error}15`, border: `1px solid ${C.error}44`, color: C.error, padding: '12px 16px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', fontSize: '14px', fontWeight: 500 }}>
           <AlertTriangle size={16} /> <span>{error}</span>
-          <button onClick={() => void load()}>Retry</button>
+          <button onClick={() => void load()} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: C.error, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>Retry</button>
         </div>
       )}
 
@@ -197,12 +200,12 @@ export const DeletedCustomersPage: React.FC = () => {
         </thead>
         <tbody>
           {!loading && filtered.length === 0 && (
-             <DefaultTable.Tr>
-               <DefaultTable.Td colSpan={colCount} style={{ padding: '64px 32px', textAlign: 'center' }}>
-                 <Inbox size={44} style={{ color: C.outlineVariant, opacity: 0.5 }} />
-                 <p>{debouncedSearch ? `No archived results for "${debouncedSearch}"` : 'No archived customers'}</p>
-               </DefaultTable.Td>
-             </DefaultTable.Tr>
+              <DefaultTable.Tr>
+                <DefaultTable.Td colSpan={colCount} style={{ padding: '64px 32px', textAlign: 'center' }}>
+                  <Inbox size={44} style={{ color: C.outlineVariant, opacity: 0.5 }} />
+                  <p style={{ color: C.onSurfaceVariant, margin: 0 }}>{debouncedSearch ? `No archived results for "${debouncedSearch}"` : 'No archived customers'}</p>
+                </DefaultTable.Td>
+              </DefaultTable.Tr>
           )}
 
           {!loading && paginated.map((cust) => (

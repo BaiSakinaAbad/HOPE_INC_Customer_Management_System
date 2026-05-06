@@ -63,8 +63,10 @@ export const ProductCataloguePage: React.FC = () => {
       <DashboardHeader
         title="Product Catalogue"
         description="Browse all products with current pricing (read-only access)"
+        // Even though we provide these, showStatsCard={false} will hide the card
         statsTitle="Total Products"
         totalCount={products.length}
+        showStatsCard={false} 
         roleDisplay={role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Unknown'}
         policyDescription="No edit permissions on this module."
         allowedActions={[
@@ -130,21 +132,25 @@ export const ProductCataloguePage: React.FC = () => {
         </thead>
         <tbody>
           {!loading && filtered.length === 0 && (
-             <DefaultTable.Tr>
-               <DefaultTable.Td colSpan={5} style={{ padding: '64px 32px', textAlign: 'center' }}>
-                 <Package size={44} style={{ color: C.outlineVariant, opacity: 0.5, marginBottom: '12px' }} />
-                 <p style={{ color: C.onSurfaceVariant, margin: 0 }}>{debouncedSearch ? `No products found for "${debouncedSearch}"` : 'No products available'}</p>
-               </DefaultTable.Td>
-             </DefaultTable.Tr>
+              <DefaultTable.Tr>
+                <DefaultTable.Td colSpan={5} style={{ padding: '64px 32px', textAlign: 'center' }}>
+                  <Package size={44} style={{ color: C.outlineVariant, opacity: 0.5, marginBottom: '12px' }} />
+                  <p style={{ color: C.onSurfaceVariant, margin: 0 }}>{debouncedSearch ? `No products found for "${debouncedSearch}"` : 'No products available'}</p>
+                </DefaultTable.Td>
+              </DefaultTable.Tr>
           )}
 
           {!loading && paginated.map((prod) => (
             <DefaultTable.Tr key={prod.prodcode}>
-              <DefaultTable.Td style={{ fontFamily: 'monospace', fontSize: '12px', fontWeight: 700, color: C.primary }}>
-                {prod.prodcode}
-              </DefaultTable.Td>
-              <DefaultTable.Td style={{ fontWeight: 600 }}>{prod.description}</DefaultTable.Td>
-              <DefaultTable.Td>
+              <td style={{ padding: '12px 16px', borderBottom: `1px solid ${C.outlineVariant}22` }}>
+                <span style={{ fontFamily: 'monospace', fontSize: '12px', fontWeight: 700, color: C.primary }}>
+                  {prod.prodcode}
+                </span>
+              </td>
+              <td style={{ padding: '12px 16px', borderBottom: `1px solid ${C.outlineVariant}22`, fontWeight: 600 }}>
+                {prod.description}
+              </td>
+              <td style={{ padding: '12px 16px', borderBottom: `1px solid ${C.outlineVariant}22` }}>
                 <span style={{
                   display: 'inline-flex', alignItems: 'center', gap: '5px',
                   padding: '3px 10px', borderRadius: '999px',
@@ -155,11 +161,11 @@ export const ProductCataloguePage: React.FC = () => {
                 }}>
                   {prod.unit}
                 </span>
-              </DefaultTable.Td>
-              <DefaultTable.Td style={{ fontWeight: 700, color: '#25cbafff' }}>
+              </td>
+              <td style={{ padding: '12px 16px', borderBottom: `1px solid ${C.outlineVariant}22`, fontWeight: 700, color: '#25cbafff' }}>
                 {formatPrice(prod.current_price)}
-              </DefaultTable.Td>
-              <DefaultTable.Td style={{ textAlign: 'center' }}>
+              </td>
+              <td style={{ padding: '12px 16px', borderBottom: `1px solid ${C.outlineVariant}22`, textAlign: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Button
                     compact
@@ -169,7 +175,7 @@ export const ProductCataloguePage: React.FC = () => {
                     <History size={14} /> View
                   </Button>
                 </div>
-              </DefaultTable.Td>
+              </td>
             </DefaultTable.Tr>
           ))}
         </tbody>
