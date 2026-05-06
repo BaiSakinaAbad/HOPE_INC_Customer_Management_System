@@ -17,10 +17,6 @@ export const LogsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
 
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 15;
-
   const fetchLogs = async () => {
     setLoading(true);
     setError(null);
