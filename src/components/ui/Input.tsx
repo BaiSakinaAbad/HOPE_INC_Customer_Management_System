@@ -7,12 +7,14 @@ export const Input: React.FC<
     showToggle?: boolean;
     rightLabel?: React.ReactNode;
     compact?: boolean;
+    variant?: 'default' | 'luminous';
   }
-> = ({ label, showToggle, rightLabel, compact, style, ...props }) => {
+> = ({ label, showToggle, rightLabel, compact, variant = 'default', style, ...props }) => {
   const { isDark } = useTheme();
   const t = isDark ? tokens.dark : tokens.light;
   const [visible, setVisible] = useState(false);
   const resolvedType = showToggle ? (visible ? 'text' : 'password') : props.type;
+  const isLuminous = variant === 'luminous';
 
   return (
     <div>
@@ -24,7 +26,7 @@ export const Input: React.FC<
           fontFamily: "'Inter', sans-serif",
           fontSize: compact ? '10px' : '11px', fontWeight: 700,
           textTransform: 'uppercase', letterSpacing: '0.08em',
-          color: t.onSurfaceVariant,
+          color: isLuminous ? (isDark ? 'rgba(188, 178, 232, 0.62)' : 'rgba(85, 72, 133, 0.78)') : t.onSurfaceVariant,
         }}>
           {label}
         </label>
@@ -38,12 +40,18 @@ export const Input: React.FC<
           type={resolvedType}
           style={{
             width: '100%', height: compact ? '38px' : '44px',
-            backgroundColor: t.surfaceContainerHighest,
-            border: 'none', borderRadius: '10px',
+            backgroundColor: isLuminous
+              ? (isDark ? 'rgba(20, 18, 38, 0.82)' : 'rgba(255, 255, 255, 0.88)')
+              : t.surfaceContainerHighest,
+            border: isLuminous
+              ? `1px solid ${isDark ? 'rgba(171, 151, 255, 0.16)' : 'rgba(131, 79, 255, 0.12)'}`
+              : 'none',
+            borderRadius: '10px',
             padding: showToggle ? '0 40px 0 13px' : '0 13px',
             fontSize: compact ? '12px' : '13px', fontFamily: "'Inter', sans-serif",
             color: t.onSurface, outline: 'none', boxSizing: 'border-box',
-            transition: 'background-color 0.2s',
+            transition: 'background-color 0.2s, border-color 0.2s, box-shadow 0.2s',
+            boxShadow: isLuminous ? 'inset 0 1px 0 rgba(255,255,255,0.04)' : undefined,
             ...style,
           }}
         />
@@ -57,7 +65,8 @@ export const Input: React.FC<
               position: 'absolute', right: '12px', top: '50%',
               transform: 'translateY(-50%)',
               background: 'none', border: 'none', cursor: 'pointer',
-              color: t.outline, display: 'flex', alignItems: 'center', padding: '2px',
+              color: isLuminous ? (isDark ? 'rgba(198, 189, 232, 0.62)' : 'rgba(92, 91, 113, 0.85)') : t.outline,
+              display: 'flex', alignItems: 'center', padding: '2px',
             }}
           >
             {visible ? (

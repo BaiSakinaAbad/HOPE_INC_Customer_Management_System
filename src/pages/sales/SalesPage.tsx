@@ -94,6 +94,7 @@ export const SalesPage: React.FC = () => {
           'View Sales Transactions',
           'View Analytics'
         ]}
+        showStatsCard={false}
         actions={
           <button
             type="button"
