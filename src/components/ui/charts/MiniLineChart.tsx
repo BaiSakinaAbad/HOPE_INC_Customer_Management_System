@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 export interface LinePoint { label: string; value: number }
 
+//Line Chart
 export const MiniLineChart: React.FC<{ points: LinePoint[]; color: string; isDark: boolean }> = ({ points, color, isDark }) => {
   const [hovered, setHovered] = useState<number | null>(null);
   if (points.length === 0) return null;

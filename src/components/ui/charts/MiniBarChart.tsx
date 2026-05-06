@@ -6,6 +6,7 @@ export const MiniBarChart: React.FC<{ bars: BarItem[]; isDark: boolean }> = ({ b
   const [hovered, setHovered] = useState<number | null>(null);
   const maxVal = Math.max(...bars.map(b => b.value), 1);
 
+  //Bar Chart
   return (
     <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px', height: '70px', width: '100%', position: 'relative' }}>
       {bars.map((bar, i) => {

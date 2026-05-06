@@ -12,7 +12,7 @@ export const MiniDonutChart: React.FC<{ segments: DonutSegment[]; size?: number;
   const cy = size / 2;
 
   let cumulativeOffset = 0;
-
+  //Pie Chart
   return (
     <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '16px' }}>
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', flexShrink: 0 }}>
