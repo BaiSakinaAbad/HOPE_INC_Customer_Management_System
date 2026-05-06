@@ -264,6 +264,16 @@ export const CustomerRow: React.FC<CustomerRowProps> = React.memo(({
                       </React.Fragment>
                     ))}
                   </tbody>
+                  <tfoot>
+                    <tr style={{ backgroundColor: isDark ? `${C.surfaceContainerHigh}dd` : '#f4f4f8', borderTop: `2px solid ${C.outlineVariant}66` }}>
+                      <td colSpan={3} style={{ padding: '12px 16px', fontWeight: 700, color: C.onSurface, textAlign: 'right', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '12px' }}>
+                        Total Sales
+                      </td>
+                      <td style={{ padding: '12px 16px', color: '#22c55e', textAlign: 'right', fontWeight: 800, fontSize: '16px' }}>
+                        {sales.reduce((sum, sale) => sum + sale.total, 0).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                      </td>
+                    </tr>
+                  </tfoot>
                 </table>
               </div>
             )}
