@@ -11,6 +11,7 @@ import { useAuth } from '../../providers/AuthProvider';
 import { MiniBarChart } from '../ui/charts/MiniBarChart';
 import { MiniLineChart } from '../ui/charts/MiniLineChart';
 import type { Employee } from '../../types/employee';
+//dashboard reports
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface CustomerSalesSummary {
