@@ -5,6 +5,8 @@ import { MiniBarChart } from './charts/MiniBarChart';
 import { MiniLineChart } from './charts/MiniLineChart';
 import { MiniDonutChart } from './charts/MiniDonutChart';
 
+/**Fixed Merge Conflicts */
+
 export interface DashboardHeaderProps {
   title: string;
   description: React.ReactNode;
