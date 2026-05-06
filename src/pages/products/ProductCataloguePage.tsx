@@ -65,7 +65,6 @@ export const ProductCataloguePage: React.FC = () => {
         description="Browse all products with current pricing (read-only access)"
         statsTitle="Total Products"
         totalCount={products.length}
-        chartType="none"
         roleDisplay={role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Unknown'}
         policyDescription="No edit permissions on this module."
         allowedActions={[

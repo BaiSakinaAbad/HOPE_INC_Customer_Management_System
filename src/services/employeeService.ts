@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import type { Employee, EmployeeRole, EmployeeStatus } from '../types/employee';
+import { resetPermissionsToDefaults } from './permissionService';
 
 export async function getEmployees() {
   const { data, error } = await supabase
@@ -25,7 +26,28 @@ export async function updateEmployeeStatus(id: string, currentStatus: EmployeeSt
     .update({ record_status: newStatus })
     .eq('id', id);
 
-  return { error: error?.message || null };
+  if (error) return { error: error.message };
+
+  // When activating a user, ensure their permission rows exist
+  if (newStatus === 'ACTIVE') {
+    // Fetch the user's role to determine correct defaults
+    const { data: userData } = await supabase
+      .from('app_user')
+      .select('role')
+      .eq('id', id)
+      .maybeSingle();
+
+    const userRole = (userData?.role as string ?? 'USER').toLowerCase();
+
+    // Upsert creates missing rows, doesn't overwrite existing ones' is_granted values
+    // Actually we use resetPermissionsToDefaults which does upsert — safe to call
+    const { error: permError } = await resetPermissionsToDefaults(id, userRole);
+    if (permError) {
+      console.error('[employeeService] failed to create permissions on activation:', permError);
+    }
+  }
+
+  return { error: null };
 }
 
 export async function updateEmployeeRole(
@@ -50,5 +72,14 @@ export async function updateEmployeeRole(
     .update({ role: newRole.toUpperCase() })
     .eq('id', id);
 
-  return { error: error?.message || null };
+  if (error) return { error: error.message };
+
+  // Auto-reset permissions to the new role's defaults
+  const { error: permError } = await resetPermissionsToDefaults(id, newRole);
+  if (permError) {
+    console.error('[employeeService] failed to reset permissions after role change:', permError);
+    // Don't block the role change — permissions reset is best-effort
+  }
+
+  return { error: null };
 }
