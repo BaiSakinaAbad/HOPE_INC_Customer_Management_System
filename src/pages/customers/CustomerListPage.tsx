@@ -244,7 +244,7 @@ export const CustomerListPage: React.FC = () => {
             <DefaultTable.Th>Address</DefaultTable.Th>
             <DefaultTable.Th>Pay Term</DefaultTable.Th>
             <DefaultTable.Th>Status</DefaultTable.Th>
-            {canViewStamp && <DefaultTable.Th>Stamp</DefaultTable.Th>}
+            {canViewStamp && <DefaultTable.Th data-testid="stamp-column">Stamp</DefaultTable.Th>}
             <DefaultTable.Th style={{ textAlign: 'center' }}>Actions</DefaultTable.Th>
           </tr>
         </thead>
