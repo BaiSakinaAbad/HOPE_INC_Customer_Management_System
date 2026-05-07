@@ -103,7 +103,6 @@ export const EmployeeRow: React.FC<EmployeeRowProps> = React.memo(({
             >
               <option value="user">USER</option>
               <option value="admin">ADMIN</option>
-              <option value="superadmin">SUPERADMIN</option>
             </select>
             <ChevronDown
               size={14}
