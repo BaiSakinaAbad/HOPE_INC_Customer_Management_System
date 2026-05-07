@@ -192,7 +192,12 @@ export const CustomerListPage: React.FC = () => {
               <RefreshCw size={13} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} /> Refresh
             </button>
             {canAddCustomer && (
-              <Button compact style={{ width: 'auto', padding: '0 20px', height: '35px' }} onClick={() => setIsAddModalOpen(true)}>
+              <Button
+                compact
+                data-testid="add-customer-btn"
+                style={{ width: 'auto', padding: '0 20px', height: '35px' }}
+                onClick={() => setIsAddModalOpen(true)}
+              >
                 <Plus size={16} style={{ marginRight: '6px' }} /> Add Customer
               </Button>
             )}
