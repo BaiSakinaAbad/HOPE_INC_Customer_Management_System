@@ -63,6 +63,9 @@ export async function updateEmployeeRole(
   if (targetCurrentRole === 'superadmin') {
     return { error: 'Superadmin role cannot be changed.' };
   }
+  if (newRole === 'superadmin') {
+    return { error: 'Users cannot be promoted to superadmin.' };
+  }
   if (targetCurrentRole === newRole) {
     return { error: null };
   }
