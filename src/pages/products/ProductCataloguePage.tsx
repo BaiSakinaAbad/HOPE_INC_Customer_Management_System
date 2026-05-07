@@ -6,25 +6,35 @@ import { DefaultTable, SearchBar, DashboardHeader, Button } from '../../componen
 import { getProducts, type Product } from '../../services/productService';
 import { PriceHistoryModal } from '../../components/products/PriceHistoryModal';
 
+/**
+ * ProductCataloguePage displays a read-only list of products with their current prices
+ * and allows users to view historical pricing data.
+ */
 export const ProductCataloguePage: React.FC = () => {
   const { isDark } = useTheme();
   const C = getDashboardTokens(isDark);
   const { role } = useAuth();
 
+  // State for product data, loading, and error handling
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
+  // Search and pagination state
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   
+  // State for the price history modal
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [debouncedSearch]);
 
+  /**
+   * Fetches products from the service and updates local state.
+   */
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -36,6 +46,9 @@ export const ProductCataloguePage: React.FC = () => {
 
   useEffect(() => { void load(); }, [load]);
 
+  /**
+   * Filters the product list based on the search input.
+   */
   const filtered = useMemo(() => {
     let result = products;
     const q = debouncedSearch.trim().toLowerCase();
@@ -47,6 +60,9 @@ export const ProductCataloguePage: React.FC = () => {
     return result;
   }, [products, debouncedSearch]);
 
+  /**
+   * Paginates the filtered list of products.
+   */
   const paginated = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
     return filtered.slice(start, start + itemsPerPage);
