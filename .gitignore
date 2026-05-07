@@ -13,3 +13,9 @@ yarn-debug.log*
 node_modules
 dist
 dist-ssr
+
+# Prompt logs
+docs/promptlogs.md
+
+# Supabase
+db-config.md

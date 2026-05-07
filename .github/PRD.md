@@ -52,9 +52,6 @@ Capabilities:
 | Capability | Description |
 |------------|-------------|
 | View active customers | Browse and search all customers with ACTIVE status |
-| Add new customers | Create new customer records with required details |
-| Edit customer details | Modify existing customer information |
-| Soft-delete customers | Archive customers by changing status to INACTIVE |
 | View sales history | Access transaction records linked to customers |
 | View sales details | Drill into individual transactions to see line items |
 | View product catalogue | Browse all products and current pricing |
@@ -74,9 +71,10 @@ Capabilities:
 |------------|-------------|
 | All USER capabilities | Full access to standard user functions |
 | View inactive customers | Access archived customer records |
-| Recover soft-deleted records | Restore INACTIVE customers to ACTIVE status |
+| Add new customers | Create new customer records with required details |
+| Recover inactive customers | Restore INACTIVE customers to ACTIVE status |
+| Edit customers | Edit customer records |
 | View audit stamps | See creation and modification metadata on records |
-| Activate new users | Change newly registered users from INACTIVE to ACTIVE status |
 
 Super Administrator (SUPERADMIN)
 
@@ -93,28 +91,29 @@ Capabilities:
 |------------|-------------|
 | All ADMIN capabilities | Full access to administrator functions |
 | Manage user roles | Promote or demote users between USER and ADMIN roles |
+| Soft-delete users | Soft-delete users |
 | Full user administration | Complete control over non-SUPERADMIN accounts |
 
 Restriction: Cannot modify other SUPERADMIN accounts (enforced at UI and database levels)
 
-2.2 Rights Matrix
+2.2 Default Rights Matrix
 
 | Access Right | USER | ADMIN | SUPERADMIN |
 |--------------|:----:|:-----:|:----------:|
-| Customer Management ||||
+| **Customer Management** ||||
 | View active customers | ☑ | ☑ | ☑ |
-| Add new customers | ☑ | ☑ | ☑ |
-| Edit customer details | ☑ | ☑ | ☑ |
-| Soft-delete customers | ☑ | ☑ | ☑ |
+| Add new customers | ☐ | ☑ | ☑ |
+| Edit customer details | ☐ | ☑ | ☑ |
+| Soft-delete customers | ☐ | ☐ | ☑ |
 | View inactive customers | ☐ | ☑ | ☑ |
 | Recover soft-deleted customers | ☐ | ☑ | ☑ |
 | View audit stamps | ☐ | ☑ | ☑ |
-| Sales & Products ||||
+| **Sales & Products** ||||
 | View sales history | ☑ | ☑ | ☑ |
 | View sales details | ☑ | ☑ | ☑ |
 | View product catalogue | ☑ | ☑ | ☑ |
 | View price history | ☑ | ☑ | ☑ |
-| User Administration ||||
+| **User Administration** ||||
 | View user list | ☐ | ☑ | ☑ |
 | Activate new users | ☐ | ☑ | ☑ |
 | Change user roles | ☐ | ☐ | ☑ |
