@@ -179,6 +179,7 @@ export const CustomerRow: React.FC<CustomerRowProps> = React.memo(({
                   label="Edit" 
                   onClick={() => { setDropdownOpen(false); onEdit(c); }} 
                   C={C}
+                  /* Test hook for the per-row edit action. */
                   dataTestId="edit-customer-btn"
                 />
               )}
@@ -188,6 +189,7 @@ export const CustomerRow: React.FC<CustomerRowProps> = React.memo(({
                   label="Delete"
                   onClick={() => { setDropdownOpen(false); onDelete(c); }}
                   C={C}
+                  /* Test hook for the per-row delete action. */
                   dataTestId="delete-customer-btn"
                   danger
                 />

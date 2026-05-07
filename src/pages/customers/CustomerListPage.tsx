@@ -194,6 +194,7 @@ export const CustomerListPage: React.FC = () => {
             {canAddCustomer && (
               <Button
                 compact
+                /* Test hook for the customer creation action. */
                 data-testid="add-customer-btn"
                 style={{ width: 'auto', padding: '0 20px', height: '35px' }}
                 onClick={() => setIsAddModalOpen(true)}
@@ -244,6 +245,7 @@ export const CustomerListPage: React.FC = () => {
             <DefaultTable.Th>Address</DefaultTable.Th>
             <DefaultTable.Th>Pay Term</DefaultTable.Th>
             <DefaultTable.Th>Status</DefaultTable.Th>
+            {/* Test hook for stamp column visibility checks. */}
             {canViewStamp && <DefaultTable.Th data-testid="stamp-column">Stamp</DefaultTable.Th>}
             <DefaultTable.Th style={{ textAlign: 'center' }}>Actions</DefaultTable.Th>
           </tr>

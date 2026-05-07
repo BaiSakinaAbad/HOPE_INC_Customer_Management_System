@@ -134,6 +134,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerOpen, onClose }) => {
               icon={Trash2}
               active={currentPage === 'deleted'}
               onClick={() => handleNav('deleted')}
+              /* Test hook for the deleted customers navigation entry. */
               dataTestId="nav-deleted-customers"
               C={C}
               isDark={isDark}
