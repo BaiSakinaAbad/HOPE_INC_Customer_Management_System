@@ -3,7 +3,7 @@
 **Project:** Hope, Inc. Customer Management System (BiteLog)
 **Version:** Sprint 3 Final
 **Prepared by:** M5 – QA / Documentation Specialist
-**Date:** ___________________________
+**Date:** May 8, 2026
 **Live URL:** https://hope-inc-customer-management-system.vercel.app
 
 ---
@@ -64,11 +64,11 @@
 5. Click **Create Account** (purple button).
 6. A confirmation email is sent to your address. Open it and click the verification link.
 
-   > `[SCREENSHOT: Email confirmation message — placeholder pending rate-limit reset]`
+   ![alt text](image-32.png)
 
 7. After confirming, return to the login page. Attempting to sign in will show a pending-activation message — your account starts as **USER / INACTIVE** and cannot be used until activated by an ADMIN or SUPERADMIN.
 
-   > `[SCREENSHOT: Login page showing pending activation message]`
+   ![alt text](image-33.png)
 
 > ✉️ Contact your Sales Manager (ADMIN) and provide your registered email. They will activate your account from the User Registry.
 
