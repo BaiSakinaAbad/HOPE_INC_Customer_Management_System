@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HopeCMS — Sprint 3 Final Defense</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ─── RESET & BASE ─────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-base:       #040d1a;
+    --bg-surface:    #071428;
+    --bg-card:       #0a1c35;
+    --border:        rgba(0, 200, 255, 0.12);
+    --border-bright: rgba(0, 200, 255, 0.35);
+    --cyan:          #00c8ff;
+    --cyan-dim:      rgba(0, 200, 255, 0.65);
+    --cyan-glow:     rgba(0, 200, 255, 0.15);
+    --blue:          #3b82f6;
+    --blue-dim:      rgba(59,130,246,0.6);
+    --indigo:        #6366f1;
+    --text-primary:  #e8f4ff;
+    --text-secondary:#7da8c8;
+    --text-muted:    #3d6480;
+    --accent-green:  #00ffb3;
+    --accent-amber:  #fbbf24;
+    --font-main:     'Outfit', sans-serif;
+    --font-mono:     'JetBrains Mono', monospace;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-main);
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* ─── BACKGROUND GRID ──────────────────────────────────── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(0,200,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,255,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+  }
+
+  /* Radial ambient glow */
+  body::after {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background: radial-gradient(ellipse 70% 60% at 50% -10%, rgba(0,200,255,0.07) 0%, transparent 70%),
+                radial-gradient(ellipse 50% 40% at 90% 110%, rgba(99,102,241,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* ─── SLIDE WRAPPER ────────────────────────────────────── */
+  #deck {
+    position: relative; z-index: 1;
+    width: 100vw; height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 60px 80px 100px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0s;
+  }
+
+  .slide.active {
+    opacity: 1;
+    pointer-events: all;
+    animation: slideIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  .slide.exit {
+    animation: slideOut 0.35s cubic-bezier(0.55, 0, 0.45, 1) forwards;
+    pointer-events: none;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(22px) scale(0.985); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  @keyframes slideOut {
+    from { opacity: 1; transform: translateY(0) scale(1); }
+    to   { opacity: 0; transform: translateY(-14px) scale(0.99); }
+  }
+
+  /* ─── SLIDE CONTENT BOX ────────────────────────────────── */
+  .slide-inner {
+    width: 100%; max-width: 860px;
+    display: flex; flex-direction: column;
+    gap: 28px;
+  }
+
+  /* ─── EYEBROW / LABEL ──────────────────────────────────── */
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px; font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    opacity: 0.8;
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .eyebrow::before {
+    content: ''; display: inline-block;
+    width: 28px; height: 1px;
+    background: var(--cyan); opacity: 0.6;
+  }
+
+  /* ─── HEADINGS ─────────────────────────────────────────── */
+  .slide-title {
+    font-size: clamp(2.2rem, 5vw, 3.8rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    color: var(--text-primary);
+  }
+
+  .slide-title .accent { color: var(--cyan); }
+
+  .slide-subtitle {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    font-weight: 400;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    letter-spacing: -0.01em;
+  }
+
+  /* ─── DIVIDER ──────────────────────────────────────────── */
+  .divider {
+    width: 100%; height: 1px;
+    background: linear-gradient(90deg, var(--cyan) 0%, var(--border) 60%, transparent 100%);
+    opacity: 0.4;
+  }
+
+  /* ─── BULLET LIST ──────────────────────────────────────── */
+  .point-list {
+    list-style: none;
+    display: flex; flex-direction: column;
+    gap: 16px;
+  }
+
+  .point-list li {
+    display: flex; align-items: flex-start; gap: 14px;
+    font-size: clamp(0.95rem, 1.5vw, 1.1rem);
+    font-weight: 400;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    animation: fadeUp 0.5s both;
+  }
+
+  .point-list li:nth-child(1) { animation-delay: 0.12s; }
+  .point-list li:nth-child(2) { animation-delay: 0.22s; }
+  .point-list li:nth-child(3) { animation-delay: 0.32s; }
+  .point-list li:nth-child(4) { animation-delay: 0.42s; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .bullet-icon {
+    flex-shrink: 0; margin-top: 4px;
+    width: 20px; height: 20px;
+    background: var(--cyan-glow);
+    border: 1px solid var(--border-bright);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .bullet-icon svg { width: 10px; height: 10px; fill: var(--cyan); }
+
+  .point-list li strong {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.82em;
+    background: rgba(0,200,255,0.08);
+    color: var(--cyan);
+    padding: 1px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  /* ─── TITLE SLIDE SPECIFIC ─────────────────────────────── */
+  #s1 .slide-inner { align-items: flex-start; }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 11px; font-weight: 500;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--cyan);
+    border: 1px solid var(--border-bright);
+    background: var(--cyan-glow);
+    padding: 5px 14px;
+    border-radius: 100px;
+    margin-bottom: 4px;
+  }
+
+  .hero-badge span { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); animation: pulse 2s infinite; }
+
+  @keyframes pulse {
+    0%,100% { opacity:1; transform:scale(1); }
+    50%      { opacity:0.4; transform:scale(0.85); }
+  }
+
+  .hero-title {
+    font-size: clamp(4rem, 10vw, 7.5rem);
+    font-weight: 900;
+    letter-spacing: -0.05em;
+    line-height: 0.95;
+    color: var(--text-primary);
+    text-shadow: 0 0 80px rgba(0,200,255,0.18);
+    position: relative;
+  }
+
+  .hero-title::after {
+    content: '';
+    position: absolute; left: 0; bottom: -6px;
+    width: 100%; height: 2px;
+    background: linear-gradient(90deg, var(--cyan), transparent 70%);
+    opacity: 0.5;
+  }
+
+  .hero-sub {
+    font-size: clamp(1rem, 2vw, 1.35rem);
+    font-weight: 400;
+    color: var(--text-secondary);
+    letter-spacing: -0.01em;
+  }
+
+  .hero-footer {
+    margin-top: 12px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .hero-footer::before {
+    content: ''; width: 20px; height: 1px; background: var(--text-muted);
+  }
+
+  /* ─── STACK CARDS ──────────────────────────────────────── */
+  .stack-cards {
+    display: flex; gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .stack-card {
+    flex: 1; min-width: 200px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 22px;
+    display: flex; flex-direction: column; gap: 10px;
+    transition: border-color 0.2s;
+    animation: fadeUp 0.5s both;
+  }
+
+  .stack-card:nth-child(1) { animation-delay: 0.1s; }
+  .stack-card:nth-child(2) { animation-delay: 0.2s; }
+  .stack-card:nth-child(3) { animation-delay: 0.3s; }
+
+  .stack-card:hover { border-color: var(--border-bright); }
+
+  .stack-card-label {
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 500;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--cyan); opacity: 0.7;
+  }
+
+  .stack-card-value {
+    font-size: 1rem; font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.4;
+  }
+
+  .stack-card-detail {
+    font-size: 0.82rem; color: var(--text-muted);
+    line-height: 1.4;
+  }
+
+  .tag-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+
+  .tag {
+    font-size: 10px; font-weight: 600;
+    font-family: var(--font-mono);
+    padding: 2px 8px; border-radius: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  .tag-cyan  { background: rgba(0,200,255,0.1);  color: var(--cyan);  border: 1px solid rgba(0,200,255,0.3); }
+  .tag-blue  { background: rgba(59,130,246,0.1); color: var(--blue);  border: 1px solid rgba(59,130,246,0.3); }
+  .tag-green { background: rgba(0,255,179,0.1);  color: var(--accent-green); border: 1px solid rgba(0,255,179,0.3); }
+  .tag-amber { background: rgba(251,191,36,0.1); color: var(--accent-amber); border: 1px solid rgba(251,191,36,0.3); }
+
+  /* ─── STATS ROW ────────────────────────────────────────── */
+  .stat-row {
+    display: flex; gap: 1px;
+    background: var(--border);
+    border-radius: 12px; overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .stat-item {
+    flex: 1; background: var(--bg-card);
+    padding: 18px 20px;
+    text-align: center;
+    animation: fadeUp 0.5s both;
+  }
+
+  .stat-item:nth-child(1) { animation-delay: 0.1s; }
+  .stat-item:nth-child(2) { animation-delay: 0.2s; }
+  .stat-item:nth-child(3) { animation-delay: 0.3s; }
+
+  .stat-num {
+    font-size: 2rem; font-weight: 800;
+    color: var(--cyan); line-height: 1;
+    letter-spacing: -0.04em;
+  }
+
+  .stat-label {
+    font-size: 0.78rem; font-weight: 500;
+    color: var(--text-muted); margin-top: 4px;
+    font-family: var(--font-mono); letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* ─── ROLE TABLE ───────────────────────────────────────── */
+  .role-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+    font-size: 0.88rem;
+    animation: fadeUp 0.5s 0.1s both;
+  }
+
+  .rg-cell {
+    padding: 12px 16px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .rg-cell:last-child, .rg-cell:nth-child(4n) { border-right: none; }
+  .rg-cell:nth-last-child(-n+4) { border-bottom: none; }
+
+  .rg-cell.header {
+    background: var(--bg-card);
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .rg-cell.feature { color: var(--text-secondary); }
+
+  .check { color: var(--accent-green); font-size: 1rem; }
+  .cross { color: #ef4444; font-size: 1rem; }
+  .partial { color: var(--accent-amber); font-size: 1rem; }
+
+  /* ─── THANK YOU SLIDE ──────────────────────────────────── */
+  #s12 .slide-inner { align-items: center; text-align: center; }
+
+  .qa-ring {
+    width: 110px; height: 110px;
+    border-radius: 50%;
+    border: 2px solid var(--border-bright);
+    background: var(--cyan-glow);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.5rem;
+    box-shadow: 0 0 40px rgba(0,200,255,0.15);
+    animation: rotateGlow 6s linear infinite;
+    margin: 0 auto;
+  }
+
+  @keyframes rotateGlow {
+    0%   { box-shadow: 0 0 30px rgba(0,200,255,0.15); }
+    50%  { box-shadow: 0 0 60px rgba(0,200,255,0.3); }
+    100% { box-shadow: 0 0 30px rgba(0,200,255,0.15); }
+  }
+
+  .team-chips {
+    display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+    margin-top: 8px;
+  }
+
+  .team-chip {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 6px 18px;
+    font-size: 0.88rem; font-weight: 500;
+    color: var(--text-secondary);
+    animation: fadeUp 0.5s both;
+  }
+
+  .team-chip:nth-child(1) { animation-delay: 0.2s; }
+  .team-chip:nth-child(2) { animation-delay: 0.3s; }
+  .team-chip:nth-child(3) { animation-delay: 0.4s; }
+
+  /* ─── PROGRESS BAR ─────────────────────────────────────── */
+  #progress-bar {
+    position: fixed; top: 0; left: 0; z-index: 100;
+    height: 2px;
+    background: linear-gradient(90deg, var(--cyan), var(--blue));
+    transition: width 0.4s cubic-bezier(0.22,1,0.36,1);
+    box-shadow: 0 0 8px var(--cyan);
+  }
+
+  /* ─── SLIDE COUNTER ────────────────────────────────────── */
+  #slide-counter {
+    position: fixed; top: 22px; right: 28px; z-index: 100;
+    font-family: var(--font-mono);
+    font-size: 11px; font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+  }
+
+  #slide-counter .current { color: var(--cyan); }
+
+  /* ─── NAVIGATION ───────────────────────────────────────── */
+  #nav {
+    position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  .nav-btn {
+    display: flex; align-items: center; gap: 7px;
+    padding: 9px 20px;
+    font-family: var(--font-main);
+    font-size: 12px; font-weight: 600;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--text-secondary);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.18s;
+    outline: none;
+  }
+
+  .nav-btn:hover {
+    color: var(--cyan);
+    border-color: var(--border-bright);
+    background: rgba(0,200,255,0.06);
+  }
+
+  .nav-btn:active { transform: scale(0.97); }
+
+  .nav-btn svg { width: 14px; height: 14px; }
+
+  .nav-dots {
+    display: flex; gap: 6px; align-items: center;
+  }
+
+  .dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none; outline: none;
+  }
+
+  .dot.active {
+    width: 18px; border-radius: 3px;
+    background: var(--cyan);
+    box-shadow: 0 0 6px rgba(0,200,255,0.5);
+  }
+
+  .dot:hover { background: var(--cyan-dim); }
+
+  /* ─── SLIDE NUMBER LABEL (top-left) ────────────────────── */
+  .slide-num-label {
+    position: fixed; top: 22px; left: 28px; z-index: 100;
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--text-muted); letter-spacing: 0.08em;
+  }
+
+  /* ─── RESPONSIVE ───────────────────────────────────────── */
+  @media (max-width: 700px) {
+    .slide { padding: 40px 24px 90px; }
+    .stack-cards { flex-direction: column; }
+    .role-grid { font-size: 0.78rem; }
+    .rg-cell { padding: 9px 10px; }
+    .hero-title { font-size: 3.5rem; }
+    .stat-num { font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div class="slide-num-label" id="slide-num-label">HOPECMS</div>
+<div id="slide-counter"><span class="current" id="cur">01</span> / <span id="tot">12</span></div>
+
+<div id="deck">
+
+  <!-- ── SLIDE 1: TITLE ────────────────────────────────────── -->
+  <section class="slide active" id="s1">
+    <div class="slide-inner">
+      <div class="hero-badge"><span></span>Sprint 3 Final Defense</div>
+      <h1 class="hero-title">HOPE<span style="color:var(--cyan)">CMS</span></h1>
+      <p class="hero-sub">Customer Management System</p>
+      <div class="hero-footer">Prepared by Team BiteLog</div>
+    </div>
+  </section>
+
+  <!-- ── SLIDE 2: SYSTEM OVERVIEW ─────────────────────────── -->
+  <section class="slide" id="s2">
+    <div class="slide-inner">
+      <div class="eyebrow">Slide 02 — Overview</div>
+      <h2 class="slide-title">The <span class="accent">Mission</span></h2>
+      <div class="divider"></div>
+      <ul class="point-list">
+        <li>
+          <span class="bullet-icon"><svg viewBox="0 0 10 10"><polygon points="2,2 8,5 2,8"/></svg></span>
+          <span>A <strong>centralized web portal</strong> for managing Hope, Inc.'s customer relationships.</span>
+        </li>
+        <li>
+          <span class="bullet-icon"><svg viewBox="0 0 10 10"><polygon points="2,2 8,5 2,8"/></svg></span>
+          <span>Replaces manual tracking with a <strong>secure, role-based dashboard</strong>.</span>
+        </li>
+        <li>
+          <span class="bullet-icon"><svg viewBox="0 0 10 10"><polygon points="2,2 8,5 2,8"/></svg></span>
+          <span>Scalable system managing <strong>active customers</strong>, sales transactions, and product catalogues.</span>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ── SLIDE 3: TECHNICAL ARCHITECTURE ──────────────────── -->
+  <section class="slide" id="s3">
+    <div class="slide-inner">
+      <div class="eyebrow">Slide 03 — Architecture</div>
+      <h2 class="slide-title">The <span class="accent">Stack</span></h2>
+      <div class="divider"></div>
+      <div class="stack-cards">
+        <div class="stack-card">
+          <div class="stack-card-label">Frontend</div>
+          <div class="stack-card-value">React + Tailwind CSS</div>
+          <div class="tag-row"><span class="tag tag-cyan">Responsive</span><span class="tag tag-blue">Component-Driven</span></div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-card-label">Backend & Auth</div>
+          <div class="stack-card-value">Supabase</div>
+          <div class="tag-row"><span class="tag tag-green">PostgreSQL</span><span class="tag tag-cyan">RLS Policies</span></div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-card-label">Deployment</div>
+          <div class="stack-card-value">Vercel</div>
+          <div class="tag-row"><span class="tag tag-amber">CI / CD</span><span class="tag tag-blue">Edge Network</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SLIDE 4: DATABASE DESIGN ─────────────────────────── -->
+  <section class="slide" id="s4">
+    <div class="slide-inner">
+      <div class="eyebrow">Slide 04 — Database</div>
+      <h2 class="slide-title">HopeDB <span class="accent">Schema</span></h2>
+      <div class="divider"></div>
+      <div class="stat-row">
+        <div class="stat-item"><div class="stat-num">5</div><div class="stat-label">Tables</div></div>
+        <div class="stat-item"><div class="stat-num">PK/FK</div><div class="stat-label">Relational Links</div></div>
+        <div class="stat-item"><div class="stat-num">RLS</div><div class="stat-label">Row-Level Sec.</div></div>
+      </div>
+      <ul class="point-list">
+        <li>
+          <span class="bullet-icon"><svg viewBox="0 0 10 10"><polygon points="2,2 8,5 2,8"/></svg></span>
+          <span>Robust <strong>5-table relational database</strong> architecture.</span>
+        </li>
+        <li>
+          <span class="bullet-icon"><svg viewBox="0 0 10 10"><polygon points="2,2 8,5 2,8"/></svg></span>
+          <span>Core tables linked via <strong>primary/foreign keys</strong> — Users, Customers, Sales, Products.</span>
+        </li>
+        <li>
+          <span class="bullet-icon"><svg viewBox="0 0 10 10"><polygon points="2,2 8,5 2,8"/></svg></span>
+          <span>Designed for strict <strong>data integrity</strong> and efficient querying.</span>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ── SLIDE 5: RIGHTS MATRIX ────────────────────────────── -->
+  <section class="slide" id="s5">
+    <div class="slide-inner">
+      <div class="eyebrow">Slide 05 — Security</div>
+      <h2 class="slide-title">Role-Based <span class="accent">Access Control</span></h2>
+      <div class="divider"></div>
+      <div class="role-grid">
+        <div class="rg-cell header">Permission</div>
+        <div class="rg-cell header">USER</div>
+        <div class="rg-cell header">ADMIN</div>
+        <div class="rg-cell header">SUPERADMIN</div>
+
+        <div class="rg-cell feature">View Active Customers</div>
+        <div class="rg-cell"><span class="check">✓</span></div>
+        <div class="rg-cell"><span class="check">✓</span></div>
+        <div class="rg-cell"><span class="check">✓</span></div>
+
+        <div class="rg-cell feature">View Inactive Records</div>
+        <div class="rg-cell"><span class="cross">✗</span></div>
+        <div class="rg-cell"><span class="check">✓</span></div>
+        <div class="rg-cell"><span class="check">✓</span></div>
+
+        <div class="rg-cell feature">Restore / Recover</div>
+        <div class="rg-cell"><span class="cross">✗</span></div>
+        <div class="rg-cell"><span class="check">✓</span></div>
+        <div class="rg-cell"><span class="check">✓</span></div>
+
+        <div class="rg-cell feature">Manage Roles & Users</div>
+        <div class="rg-cell"><span class="cross">✗</span></div>
+        <div class="rg-cell"><span class="cross">✗</span></div>
+        <div class="rg-cell"><span class="check">✓</span></div>
+      </div>
+      <ul class="point-list" style="margin-top:4px">
+        <li>
+          <span class="bullet-icon"><svg viewBox="0 0 10 10"><polygon points="2,2 8,5 2,8"/></svg></span>
+          <span>Validated through a rigorous <strong>27-case QA test suite</strong>.</span>
+        </li>
+        <li>
+          <span class="bullet-icon"><svg viewBox="0 0 10 10"><polygon points="2,2 8,5 2,8"/></svg></span>
+          <span>UI visibility perfectly matches <strong>API database restrictions</strong>.</span>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ── SLIDE 6: CUSTOMER CRUD ────────────────────────────── -->
+  <section class="slide" id="s6">
+    <div class="slide-inner">
+      <div class="eyebrow">Slide 06 — Feature</div>
+      <h2 class="slide-title">Customer <span class="accent">Management</span></h2>
+      <div class="divider"></div>
+      <ul class="point-list">
+        <li>
+          <span class="bullet-icon"><svg viewBox="0 0 10 10"><polygon points="2,2 8,5 2,8"/></svg></span>
+          <span>Seamless UI for <strong>adding and updating</strong> customer records.</span>
+        </li>
+        <li>
+          <span class="bullet-icon"><svg viewBox="0 0 10 10"><polygon points="2,2 8,5 2,8"/></svg></span>
+          <span>Form validation prevents <strong>incomplete or duplicate entries</strong>.</span>
+        </li>
+        <li>
+          <span class="bullet-icon"><svg viewBox="0 0 10 10"><polygon points="2,2 8,5 2,8"/></svg></span>
+          <span><strong>Real-time sync</strong> with the Supabase backend.</span>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ── SLIDE 7: SOFT DELETE ──────────────────────────────── -->
+  <section class="slide" id="s7">
+    <div class="slide-inner">
+      <div class="eyebrow">Slide 07 — Data Logic</div>
+      <h2 class="slide-title">Data <span class="accent">Protection</span> Logic</h2>
+      <div class="divider"></div>
+      <ul class="point-list">
+        <li>
+          <span class="bullet-icon"><svg viewBox="0 0 10 10"><polygon points="2,2 8,5 2,8"/></svg></span>
+          <span>Customers are <strong>never permanently deleted</strong>; flagged as <code>'INACTIVE'</code> via <code>record_status</code>.</span>
+        </li>
+        <li>
+          <span class="bullet-icon"><svg viewBox="0 0 10 10"><polygon points="2,2 8,5 2,8"/></svg></span>
+          <span>INACTIVE records are <strong>filtered out</strong> for standard USERs.</span>
+        </li>
+        <li>
+          <span class="bullet-icon"><svg viewBox="0 0 10 10"><polygon points="2,2 8,5 2,8"/></svg></span>
+          <span><strong>ADMIN and SUPERADMIN</strong> roles retain visibility and recovery rights.</span>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ── SLIDE 8: SALES DRILL-DOWN ────────────────────────── -->
+  <section class="slide" id="s8">
+    <div class="slide-inner">
+      <div class="eyebrow">Slide 08 — Feature</div>
+      <h2 class="slide-title">Transaction <span class="accent">Tracking</span></h2>
+      <div class="divider"></div>
+      <ul class="point-list">
+        <li>
+          <span class="bullet-icon"><svg viewBox="0 0 10 10"><polygon points="2,2 8,5 2,8"/></svg></span>
+          <span>Intuitive navigation from <strong>Customer List → Sales History</strong>.</span>
+        </li>
+        <li>
+          <span class="bullet-icon"><svg viewBox="0 0 10 10"><polygon points="2,2 8,5 2,8"/></svg></span>
+          <span>Drill-down capability to view <strong>line-item transaction details</strong>.</span>
+        </li>
+        <li>
+          <span class="bullet-icon"><svg viewBox="0 0 10 10"><polygon points="2,2 8,5 2,8"/></svg></span>
+          <span>Read-only historical auditing guarantees <strong>financial data remains untouched</strong>.</span>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ── SLIDE 9: PRODUCT CATALOGUE ───────────────────────── -->
+  <section class="slide" id="s9">
+    <div class="slide-inner">
+      <div class="eyebrow">Slide 09 — Security</div>
+      <h2 class="slide-title">UI Security <span class="accent">Enforcement</span></h2>
+      <div class="divider"></div>
+      <ul class="point-list">
+        <li>
+          <span class="bullet-icon"><svg viewBox="0 0 10 10"><polygon points="2,2 8,5 2,8"/></svg></span>
+          <span>Regex and UI scanning ensures <strong>ZERO mutation buttons</strong> exist on historical data.</span>
+        </li>
+        <li>
+          <span class="bullet-icon"><svg viewBox="0 0 10 10"><polygon points="2,2 8,5 2,8"/></svg></span>
+          <span>Total lockdown of <strong>Add / Edit / Delete</strong> actions on Sales and Product pages.</span>
+        </li>
+        <li>
+          <span class="bullet-icon"><svg viewBox="0 0 10 10"><polygon points="2,2 8,5 2,8"/></svg></span>
+          <span>Prevents <strong>accidental tampering</strong> by unauthorized roles.</span>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ── SLIDE 10: REPORTS ─────────────────────────────────── -->
+  <section class="slide" id="s10">
+    <div class="slide-inner">
+      <div class="eyebrow">Slide 10 — Analytics</div>
+      <h2 class="slide-title">Business <span class="accent">Insights</span></h2>
+      <div class="divider"></div>
+      <div class="stack-cards">
+        <div class="stack-card">
+          <div class="stack-card-label">Report Type</div>
+          <div class="stack-card-value">Top Customers</div>
+          <div class="stack-card-detail">Ranked by total transaction volume</div>
+        </div>
+        <div class="stack-card">
+          <div class="stack-card-label">Report Type</div>
+          <div class="stack-card-value">Product Revenue</div>
+          <div class="stack-card-detail">Overall revenue per product line</div>
+        </div>
+      </div>
+      <ul class="point-list">
+        <li>
+          <span class="bullet-icon"><svg viewBox="0 0 10 10"><polygon points="2,2 8,5 2,8"/></svg></span>
+          <span><strong>Aggregated data views</strong> for management reporting.</span>
+        </li>
+        <li>
+          <span class="bullet-icon"><svg viewBox="0 0 10 10"><polygon points="2,2 8,5 2,8"/></svg></span>
+          <span>Clean, readable UI for <strong>fast decision-making</strong>.</span>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ── SLIDE 11: LESSONS LEARNED ────────────────────────── -->
+  <section class="slide" id="s11">
+    <div class="slide-inner">
+      <div class="eyebrow">Slide 11 — Reflection</div>
+      <h2 class="slide-title">Project <span class="accent">Takeaways</span></h2>
+      <div class="divider"></div>
+      <ul class="point-list">
+        <li>
+          <span class="bullet-icon"><svg viewBox="0 0 10 10"><polygon points="2,2 8,5 2,8"/></svg></span>
+          <span>Mastering <strong>Row-Level Security (RLS)</strong> policies in PostgreSQL.</span>
+        </li>
+        <li>
+          <span class="bullet-icon"><svg viewBox="0 0 10 10"><polygon points="2,2 8,5 2,8"/></svg></span>
+          <span>The importance of aligning <strong>frontend UI gating</strong> with backend API security.</span>
+        </li>
+        <li>
+          <span class="bullet-icon"><svg viewBox="0 0 10 10"><polygon points="2,2 8,5 2,8"/></svg></span>
+          <span>Effective <strong>team collaboration</strong> and Git version control workflows.</span>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ── SLIDE 12: THANK YOU ───────────────────────────────── -->
+  <section class="slide" id="s12">
+    <div class="slide-inner">
+      <div class="eyebrow" style="justify-content:center">Sprint 3 — Final Defense</div>
+      <div class="qa-ring">🎓</div>
+      <h2 class="slide-title" style="text-align:center;font-size:clamp(3rem,8vw,6rem)">Questions<span class="accent">?</span></h2>
+      <p class="slide-subtitle" style="text-align:center">Team BiteLog · HopeCMS · Sprint 3</p>
+      <div class="team-chips">
+        <span class="team-chip">Thank you for listening</span>
+        <span class="team-chip">Open for Q&A</span>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ── NAVIGATION ─────────────────────────────────────────── -->
+<nav id="nav">
+  <button class="nav-btn" id="prevBtn" onclick="navigate(-1)">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="10,3 5,8 10,13"/></svg>
+    Prev
+  </button>
+  <div class="nav-dots" id="dots"></div>
+  <button class="nav-btn" id="nextBtn" onclick="navigate(1)">
+    Next
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,3 11,8 6,13"/></svg>
+  </button>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total  = slides.length;
+  let current  = 0;
+  let busy     = false;
+
+  // Build dots
+  const dotsContainer = document.getElementById('dots');
+  slides.forEach((_, i) => {
+    const d = document.createElement('button');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.setAttribute('aria-label', `Go to slide ${i+1}`);
+    d.onclick = () => goTo(i);
+    dotsContainer.appendChild(d);
+  });
+
+  function updateUI() {
+    const n = current + 1;
+    document.getElementById('cur').textContent = String(n).padStart(2,'0');
+    document.getElementById('tot').textContent = String(total).padStart(2,'0');
+    document.getElementById('progress-bar').style.width = `${(n/total)*100}%`;
+    document.querySelectorAll('.dot').forEach((d,i) => d.classList.toggle('active', i===current));
+  }
+
+  function goTo(idx) {
+    if (busy || idx === current || idx < 0 || idx >= total) return;
+    busy = true;
+
+    const prev = slides[current];
+    const next = slides[idx];
+
+    prev.classList.add('exit');
+    prev.addEventListener('animationend', () => {
+      prev.classList.remove('active', 'exit');
+    }, { once: true });
+
+    current = idx;
+    updateUI();
+
+    next.classList.add('active');
+    next.addEventListener('animationend', () => { busy = false; }, { once: true });
+    // Fallback in case animationend doesn't fire
+    setTimeout(() => { busy = false; }, 700);
+  }
+
+  function navigate(dir) { goTo(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ')  { e.preventDefault(); navigate(1); }
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')                     { e.preventDefault(); navigate(-1); }
+  });
+
+  // Touch / swipe support
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) navigate(dx < 0 ? 1 : -1);
+  });
+
+  updateUI();
+</script>
+</body>
+</html>
