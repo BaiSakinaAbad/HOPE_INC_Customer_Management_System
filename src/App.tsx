@@ -12,7 +12,7 @@ import Dashboard from './pages/superadmin/Dashboard';
 // Redirects "/" to the correct landing page based on role, or to /login if unauthenticated.
 const RootRedirect = () => {
   const { user, role, loading } = useAuth();
-  if (loading) return <LoadingSpinner />;
+  if (loading || (user && !role)) return <LoadingSpinner />;
   if (!user) return <Navigate to="/login" replace />;
   return <Navigate to={getDefaultPathForRole(role)} replace />;
 };
@@ -21,7 +21,7 @@ const RootRedirect = () => {
 // If already authenticated, redirect away from login/register.
 const AuthRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, role, loading } = useAuth();
-  if (loading) return <LoadingSpinner />;
+  if (loading || (user && !role)) return <LoadingSpinner />;
   if (user) return <Navigate to={getDefaultPathForRole(role)} replace />;
   return <>{children}</>;
 };

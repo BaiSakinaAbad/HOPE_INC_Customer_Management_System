@@ -74,6 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Prevent duplicate concurrent calls from getSession + onAuthStateChange race
     if (fetchInFlight.current) return;
     fetchInFlight.current = true;
+    setLoading(true);
 
     try {
       // Step 1: Primary lookup by UUID
@@ -159,6 +160,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null);
 
       if (session?.user) {
+        setLoading(true);
         fetchUserRole(session.user.id, session.user.email);
       } else {
         setRole(null);

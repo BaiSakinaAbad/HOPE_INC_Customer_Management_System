@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { NavigationProvider, useNavigation } from '../../providers/NavigationProvider';
 import { DashboardLayout } from '../../layouts/DashboardLayout';
 import { DashboardReports } from '../../components/dashboard/DashboardReports';
@@ -55,6 +55,22 @@ const DashboardRouter: React.FC = () => {
   const displayName = fullName || (metadata.username as string | undefined) || user?.email || 'User';
   const firstName = (metadata.first_name as string | undefined) || displayName.split(' ')[0] || 'User';
 
+  const reactNavigate = useNavigate();
+
+  React.useEffect(() => {
+    const pageNames: Record<PageId, string> = {
+      dashboard: 'Dashboard',
+      customers: 'Customers',
+      deleted: 'Deleted Customers',
+      sales: 'Sales',
+      products: 'Products',
+      employees: 'Employees',
+      logs: 'Audit Logs'
+    };
+    document.title = `BiteLog | ${pageNames[currentPage] || 'Dashboard'}`;
+    reactNavigate(`/${currentPage}`, { replace: true });
+  }, [currentPage, reactNavigate]);
+
   /**
    * Switches between different dashboard sections based on the navigation state.
    * Each route is guarded by its DB-backed permission flag.
@@ -109,7 +125,7 @@ const Dashboard: React.FC = () => {
 
   // Don't render until role is known — otherwise NavigationProvider
   // initializes with the wrong defaultPage and never corrects it.
-  if (!role && loading) return null;
+  if (!role) return null;
 
   // Derive initial page from URL pathname so refresh preserves the current view.
   // Falls back to role-based default if the URL doesn't match a known page.
