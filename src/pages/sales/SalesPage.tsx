@@ -9,7 +9,7 @@ import { getSales, type SaleTransaction } from '../../services/salesService';
 export const SalesPage: React.FC = () => {
   const { isDark } = useTheme();
   const C = getDashboardTokens(isDark);
-  const { role } = useAuth();
+  const { role, permissions } = useAuth();
   const { navParams } = useNavigation();
 
   const [sales, setSales] = useState<SaleTransaction[]>([]);
