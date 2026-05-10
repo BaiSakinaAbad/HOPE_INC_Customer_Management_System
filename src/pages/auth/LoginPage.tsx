@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AuthLayout } from '../../layouts/AuthLayout';
 import { GoogleButton } from '../../components/auth';
 import { Button, Input, Divider } from '../../components/ui';
 import { useTheme, tokens } from '../../providers/ThemeProvider';
+import { useAuth } from '../../providers/AuthProvider';
 import { supabase } from '../../lib/supabase';
+import { getDefaultPathForRole } from '../../components/ProtectedRoute';
 
 interface LoginPageProps {
   onSwitch: () => void;
   onLoginSuccess: () => void;
 }
-
-const POST_LOGIN_REDIRECT_KEY = 'post-login-redirect-pending';
 
 const LoginPage: React.FC<LoginPageProps> = ({ 
   onSwitch, 
@@ -18,6 +19,8 @@ const LoginPage: React.FC<LoginPageProps> = ({
 }) => {
   const { isDark } = useTheme();
   const t = isDark ? tokens.dark : tokens.light;
+  const navigate = useNavigate();
+  const { user, role, loading } = useAuth();
   
   // Form State
   const [email, setEmail] = useState('');
@@ -27,6 +30,13 @@ const LoginPage: React.FC<LoginPageProps> = ({
   // UI State
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Redirect once auth resolves after login
+  useEffect(() => {
+    if (user && role && !loading) {
+      navigate(getDefaultPathForRole(role), { replace: true });
+    }
+  }, [user, role, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); 
@@ -43,6 +53,7 @@ const LoginPage: React.FC<LoginPageProps> = ({
       setIsLoading(false);
     } else if (data.user) {
       onLoginSuccess();
+      // The useEffect above will handle redirect once role loads
     }
   };
 
@@ -54,9 +65,6 @@ const LoginPage: React.FC<LoginPageProps> = ({
           variant="luminous"
           label="Continue with Google"
           testId="google-login-btn"
-          onAuthStart={() => {
-            window.sessionStorage.setItem(POST_LOGIN_REDIRECT_KEY, String(Date.now()));
-          }}
         />
 
         <Divider variant="luminous" label="or email address" />
