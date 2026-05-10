@@ -19,9 +19,11 @@ interface TopbarProps {
   displayName: string;
   role: string;
   avatarUrl: string;
+  pendingCount?: number;
+  onBellClick?: () => void;
 }
 
-export const Topbar: React.FC<TopbarProps> = ({ isMobile, onMenuOpen, onLogout, isSigningOut, displayName, avatarUrl, role }) => {
+export const Topbar: React.FC<TopbarProps> = ({ isMobile, onMenuOpen, onLogout, isSigningOut, displayName, avatarUrl, role, pendingCount = 0, onBellClick }) => {
   const { isDark, toggle } = useTheme();
   const C = getDashboardTokens(isDark);
 
@@ -56,7 +58,37 @@ export const Topbar: React.FC<TopbarProps> = ({ isMobile, onMenuOpen, onLogout, 
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', paddingLeft: '16px', borderLeft: `1px solid ${C.outlineVariant}33` }}>
-          <Bell size={20} style={{ color: C.onSurfaceVariant, cursor: 'pointer' }} />
+          {/* Bell icon with notification badge */}
+          <button
+            onClick={onBellClick}
+            style={{
+              position: 'relative',
+              background: 'none', border: 'none', cursor: onBellClick ? 'pointer' : 'default',
+              color: C.onSurfaceVariant, display: 'flex', padding: '4px',
+            }}
+            title={pendingCount > 0 ? `${pendingCount} account${pendingCount !== 1 ? 's' : ''} pending activation` : 'Notifications'}
+          >
+            <Bell size={20} />
+            {pendingCount > 0 && (
+              <span style={{
+                position: 'absolute',
+                top: '-2px', right: '-4px',
+                minWidth: '18px', height: '18px',
+                borderRadius: '999px',
+                backgroundColor: '#ef4444',
+                color: '#fff',
+                fontSize: '10px', fontWeight: 800,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                padding: '0 4px',
+                border: `2px solid ${isDark ? C.surface : '#fff'}`,
+                lineHeight: 1,
+                boxShadow: '0 2px 6px rgba(239,68,68,0.4)',
+              }}>
+                {pendingCount > 99 ? '99+' : pendingCount}
+              </span>
+            )}
+          </button>
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <img
               src={avatarUrl}

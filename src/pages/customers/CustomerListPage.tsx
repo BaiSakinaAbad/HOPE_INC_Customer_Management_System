@@ -192,7 +192,13 @@ export const CustomerListPage: React.FC = () => {
               <RefreshCw size={13} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} /> Refresh
             </button>
             {canAddCustomer && (
-              <Button compact style={{ width: 'auto', padding: '0 20px', height: '35px' }} onClick={() => setIsAddModalOpen(true)}>
+              <Button
+                compact
+                /* Test hook for the customer creation action. */
+                data-testid="add-customer-btn"
+                style={{ width: 'auto', padding: '0 20px', height: '35px' }}
+                onClick={() => setIsAddModalOpen(true)}
+              >
                 <Plus size={16} style={{ marginRight: '6px' }} /> Add Customer
               </Button>
             )}
@@ -239,7 +245,8 @@ export const CustomerListPage: React.FC = () => {
             <DefaultTable.Th>Address</DefaultTable.Th>
             <DefaultTable.Th>Pay Term</DefaultTable.Th>
             <DefaultTable.Th>Status</DefaultTable.Th>
-            {canViewStamp && <DefaultTable.Th>Stamp</DefaultTable.Th>}
+            {/* Test hook for stamp column visibility checks. */}
+            {canViewStamp && <DefaultTable.Th data-testid="stamp-column">Stamp</DefaultTable.Th>}
             <DefaultTable.Th style={{ textAlign: 'center' }}>Actions</DefaultTable.Th>
           </tr>
         </thead>

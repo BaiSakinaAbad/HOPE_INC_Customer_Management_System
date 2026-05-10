@@ -25,8 +25,8 @@ const AuthContext = createContext<AuthContextType>({
   recordstatus: null,
   loading: true,
   permissions: {},
-  refreshPermissions: async () => {},
-  signOut: async () => {},
+  refreshPermissions: async () => { },
+  signOut: async () => { },
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
