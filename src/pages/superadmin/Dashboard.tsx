@@ -95,8 +95,7 @@ const DashboardRouter: React.FC = () => {
 // Wrap the router in the Navigation Provider
 /**
  * Root Dashboard component that initializes the navigation context with a default page
-<<<<<<< HEAD
- * based on the user's role.
+ * based on the user's role and current URL.
  *
  * IMPORTANT: We must wait for `role` to be loaded before rendering NavigationProvider,
  * because NavigationProvider's useState initializer only runs ONCE. If role is null
@@ -106,31 +105,23 @@ const DashboardRouter: React.FC = () => {
 const Dashboard: React.FC = () => {
   const { role, loading } = useAuth();
   const { canViewDashboard } = useRights();
+  const location = useLocation();
 
   // Don't render until role is known — otherwise NavigationProvider
   // initializes with the wrong defaultPage and never corrects it.
   if (!role && loading) return null;
 
-  // Users with dashboard access land on dashboard; everyone else lands on customers.
-  const defaultPage = canViewDashboard ? 'dashboard' : 'customers';
-=======
- * based on the user's role and current URL.
- */
-const Dashboard: React.FC = () => {
-  const { role } = useAuth();
-  const location = useLocation();
-
   // Derive initial page from URL pathname so refresh preserves the current view.
   // Falls back to role-based default if the URL doesn't match a known page.
-  const urlPage = pathToPageId(location.pathname);
+  // We only use the URL if it's not the root path (/) which should just route to default
+  const urlPage = location.pathname !== '/' && location.pathname !== '' ? pathToPageId(location.pathname) : null;
   
-  // Only superadmin gets the dashboard home; others default to customers.
-  const roleDefault = role === 'superadmin' ? 'dashboard' : 'customers';
+  // Users with dashboard access land on dashboard; everyone else lands on customers.
+  const roleDefault = canViewDashboard ? 'dashboard' : 'customers';
   
   // If URL maps to a valid page, use it; otherwise use role default.
   const defaultPage = urlPage || roleDefault;
 
->>>>>>> 9a11a4f073282ac5f46b07a323e5f03369bbe167
   return (
     <NavigationProvider defaultPage={defaultPage}>
       <DashboardRouter />
