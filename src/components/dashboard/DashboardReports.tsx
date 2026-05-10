@@ -321,12 +321,15 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
     if (!sales.length) return [];
     const sorted = [...sales].sort((a, b) => new Date(a.salesdate).getTime() - new Date(b.salesdate).getTime());
     const groups: Record<string, number> = {};
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     sorted.forEach(s => {
       const d = new Date(s.salesdate);
-      const key = `${d.getMonth() + 1}/${d.getDate()}`; 
+      const key = `${monthNames[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`; 
       groups[key] = (groups[key] || 0) + s.total;
     });
-    return Object.entries(groups).map(([label, value]) => ({ label, value })).slice(-7);
+    // Use short labels for x-axis (e.g. "Mar '11") but keep full date as the label for tooltips
+    const entries = Object.entries(groups).slice(-7);
+    return entries.map(([label, value]) => ({ label, value }));
   }, [sales]);
 
   const thStyle: React.CSSProperties = { padding: '12px 20px', fontSize: '11px', fontWeight: 700, color: C.onSurfaceVariant, textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'left', borderBottom: `1px solid ${C.outlineVariant}44` };
@@ -375,7 +378,7 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
       {!loading && !error && (
         <>
           {/* ── Stat Cards: 4-col grid, Revenue+Customers stacked col1, Products col2, Transactions col3-4 ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr', gridTemplateRows: 'auto auto', gap: '16px', marginBottom: '28px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(180px, 1fr) minmax(180px, 1fr) minmax(400px, 3fr)', gridTemplateRows: 'auto auto', gap: '16px', marginBottom: '28px' }}>
             {/* Col 1, Row 1: Total Revenue */}
             <div style={{ gridColumn: '1', gridRow: '1' }}>
               <StatCard icon={<DollarSign size={22} style={{ color: '#22c55e' }} />} label="Total Revenue" value={fmt(totalRevenue)} accent="#22c55e" isDark={isDark} C={C} />
