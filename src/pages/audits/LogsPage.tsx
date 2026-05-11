@@ -1,3 +1,4 @@
+// Shows all audit logs with search, filtering, and pagination
 import React, { useState, useEffect, useMemo } from 'react';
 import { ShieldAlert, Search, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';

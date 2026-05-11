@@ -1,3 +1,4 @@
+// Shows dashboard reports including sales, employees, customers, and pending accounts
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import {

@@ -1,3 +1,4 @@
+// AuthLayout — Wrapper for auth pages with theme support, backdrop decorations, and active user enforcement
 import React, { useEffect, useState } from 'react';
 import { useTheme, tokens } from '../providers/ThemeProvider';
 import { ThemeToggle } from '../components/ui/ThemeToggle';

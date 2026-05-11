@@ -1,3 +1,5 @@
+// employeeService — Handles employee CRUD operations via Supabase. Includes fetching,
+// status changes, and role updates with permission reset.
 import { supabase } from '../lib/supabase';
 import type { Employee, EmployeeRole, EmployeeStatus } from '../types/employee';
 import { resetPermissionsToDefaults } from './permissionService';

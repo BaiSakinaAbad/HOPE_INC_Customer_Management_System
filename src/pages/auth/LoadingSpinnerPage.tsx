@@ -1,3 +1,5 @@
+// LoadingSpinnerPage — Full-screen loading state shown during authentication.
+// Displays an animated spinner and progress bar while credentials are verified.
 import React from 'react';
 import { Key, ShieldCheck } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';

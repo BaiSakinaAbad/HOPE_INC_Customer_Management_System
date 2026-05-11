@@ -1,3 +1,4 @@
+//  Displays all employees with role-based access control,
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { RefreshCw, AlertTriangle, ShieldOff, Power, PowerOff, X, Check, Loader2, Lock, RotateCcw } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';

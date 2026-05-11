@@ -1,3 +1,4 @@
+// setupTests.ts — Test setup with Supabase mocks and QA hard-delete guard
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 

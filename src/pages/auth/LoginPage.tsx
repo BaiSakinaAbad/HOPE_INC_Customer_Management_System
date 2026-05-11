@@ -1,3 +1,5 @@
+// LoginPage — Email/password and Google OAuth sign-in form. Validates credentials
+// via Supabase Auth, displays inline errors, and triggers post-login redirect.
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthLayout } from '../../layouts/AuthLayout';
