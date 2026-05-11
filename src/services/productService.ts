@@ -1,3 +1,5 @@
+// productService — Fetches products and current prices from Supabase, joining with
+// the price_history table to provide complete product catalog and pricing data.
 import { supabase } from '../lib/supabase';
 
 export interface Product {

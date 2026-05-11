@@ -1,3 +1,5 @@
+//auditLogService — Handles all interaction with the audit_logs table. Provides
+// methods for fetching and formatting audit records, including event labeling and user information.
 import { supabase } from '../lib/supabase';
 import { PostgrestError } from '@supabase/supabase-js';
 

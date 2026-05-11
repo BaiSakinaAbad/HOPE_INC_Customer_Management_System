@@ -1,3 +1,4 @@
+// App.tsx — Main entry point with authentication, role-based routing, and theme management.
 import { useEffect, useState } from 'react';
 import './App.css';
 import { AuthProvider, useAuth } from './providers/AuthProvider';

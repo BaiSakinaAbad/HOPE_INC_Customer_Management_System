@@ -1,3 +1,5 @@
+// DeletedCustomersPage — Displays soft-deleted (inactive) customers. Allows
+// superadmin and admin roles to review and restore previously removed records.
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { RefreshCw, AlertTriangle, Inbox, ShieldOff, ChevronUp, ChevronDown, CheckCircle2 } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';

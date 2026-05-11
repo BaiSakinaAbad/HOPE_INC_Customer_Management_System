@@ -1,3 +1,5 @@
+// CustomerListPage — Main customer management view. Lists active customers in a
+// sortable, searchable table with role-gated actions for add, edit, and soft-delete.
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { RefreshCw, AlertTriangle, Users, ChevronUp, ChevronDown, Plus } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';

@@ -1,3 +1,5 @@
+// RegisterPage — New account registration form with name, username, email, and
+// password fields. Includes password strength indicator and Google OAuth option.
 import React, { useState } from 'react';
 import { AuthLayout } from '../../layouts/AuthLayout';
 import { GoogleButton, PasswordStrength } from '../../components/auth';
