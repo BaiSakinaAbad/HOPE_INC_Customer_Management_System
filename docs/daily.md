@@ -229,3 +229,72 @@ This file is the compilation of our daily standup meetings.
       Working on: Writing the first draft of the user manual.
       Blockers: None
    ```
+   --- 
+   ### SPRINT 3 WEEK 2
+
+May 08, 2026
+
+Time duration: 3:00 PM - 3:05 PM 
+
+Present Members: All members are present
+
+ *Prepared by:* @BaiSakinaAbad
+
+## Role-by-Role Reports
+
+**Sakina [M1]**
+
+```
+Completed: Implemented session limits/auto-logout; resolved chart hover UI issues.
+
+Working on: End-to-end testing and final bug fixing.
+
+Blockers: None.
+
+```
+
+**Saira [M2]**
+
+```
+Completed: Designed sample UI views, Bitelog logo, and brand typography.
+
+Working on: Refining charts on the main dashboard.
+
+Blockers: None.
+
+```
+
+**Peja [M3]**
+
+```
+Completed: Structured the Supabase database and refined the main table views.
+
+Working on: Maintaining prompt logs and addressing logic bugs.
+
+Blockers: None.
+
+```
+
+**Vinz [M4]**
+
+```
+Completed: Fixed data fetching issues; implemented audit logs and bug fixes.
+
+Working on: Comprehensive end-to-end testing and general bug fixes.
+
+Blockers: None.
+
+```
+
+**Klyne [M5]**
+
+```
+Completed: Monitoring Pull Requests and reviewing code merges.
+
+Working on: Manual QA testing and completing remaining project documentation.
+
+Blockers: None.
+
+```
+---
+End of report
