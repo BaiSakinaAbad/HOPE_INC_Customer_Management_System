@@ -16,7 +16,7 @@ import { DeletedRow } from '../../components/customers/DeletedRow';
 export const DeletedCustomersPage: React.FC = () => {
   const { isDark } = useTheme();
   const C = getDashboardTokens(isDark);
-  const { role, user } = useAuth();
+  const { role, user, permissions } = useAuth();
   const { canViewInactive, canActivate, canViewStamp } = useRights();
 
   const metadata = user?.user_metadata ?? {};
@@ -92,7 +92,8 @@ export const DeletedCustomersPage: React.FC = () => {
       confirmActivate.custno, 
       performedBy, 
       role ?? 'admin',
-      targetStatus
+      targetStatus,
+      permissions,
     );
     
     if (svcError) {

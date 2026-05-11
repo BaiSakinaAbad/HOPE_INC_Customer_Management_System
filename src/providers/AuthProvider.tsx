@@ -53,7 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!isMounted.current) return;
 
     // Overlay DB results on top of defaults (DB wins where present)
-    if (data) {
+    if (data && Object.keys(data).length > 0) {
       for (const [key, value] of Object.entries(data)) {
         merged[key] = value;
       }
@@ -74,6 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Prevent duplicate concurrent calls from getSession + onAuthStateChange race
     if (fetchInFlight.current) return;
     fetchInFlight.current = true;
+    setLoading(true);
 
     try {
       // Step 1: Primary lookup by UUID
@@ -159,6 +160,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null);
 
       if (session?.user) {
+        setLoading(true);
         fetchUserRole(session.user.id, session.user.email);
       } else {
         setRole(null);
@@ -229,6 +231,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     window.sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
+    // Clear navigation state so next login starts fresh (dashboard for superadmin, customers for others)
+    window.sessionStorage.removeItem('dashboard-nav-state');
     await supabase.auth.signOut();
   };
 

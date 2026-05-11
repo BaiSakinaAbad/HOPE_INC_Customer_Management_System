@@ -2,17 +2,14 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import {
-  TrendingUp, Users, ShoppingBag, DollarSign, UserCheck,
-  RefreshCw, BarChart3, Crown, Package, AlertCircle
+  TrendingUp, Users, ShoppingBag, DollarSign,
+  RefreshCw, BarChart3, Crown, Package
 } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
 import { getSales, type SaleTransaction } from '../../services/salesService';
-import { getEmployees } from '../../services/employeeService';
 import { getCustomers, getInactiveCustomerCount } from '../../services/customerService';
 import { useAuth } from '../../providers/AuthProvider';
-import { MiniBarChart } from '../ui/charts/MiniBarChart';
 import { MiniLineChart } from '../ui/charts/MiniLineChart';
-import type { Employee } from '../../types/employee';
 //dashboard reports
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -30,12 +27,7 @@ interface ProductRevenue {
   totalRevenue: number;
 }
 
-interface PendingAccount {
-  id: string;
-  username: string;
-  email: string;
-  role: string;
-}
+
 
 interface DashboardReportsProps {
   firstName: string;
@@ -201,7 +193,7 @@ const ProductsSoldCard: React.FC<{
     </div>
   );
 };
-
+// comment
 // ─── Shared Components ────────────────────────────────────────────────────────
 const ReportSection: React.FC<{
   title: string; icon: React.ReactNode; children: React.ReactNode; 
@@ -233,7 +225,7 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
   const { role } = useAuth();
 
   const [sales, setSales] = useState<SaleTransaction[]>([]);
-  const [pendingAccounts, setPendingAccounts] = useState<PendingAccount[]>([]);
+
   const [totalCustomers, setTotalCustomers] = useState(0);
   const [activeCustomers, setActiveCustomers] = useState(0);
   const [inactiveCustomers, setInactiveCustomers] = useState(0);
@@ -244,9 +236,8 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
     setLoading(true);
     setError(null);
     try {
-      const [salesRes, empRes, custRes, inactiveCount] = await Promise.all([
+      const [salesRes, custRes, inactiveCount] = await Promise.all([
         getSales(),
-        getEmployees(),
         role === 'superadmin' ? getCustomers('superadmin') : Promise.resolve({ data: null, error: null }),
         role === 'superadmin' ? getInactiveCustomerCount('superadmin') : Promise.resolve(0),
       ]);
@@ -261,11 +252,7 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
         setTotalCustomers(activeCount + inactiveCount);
       }
 
-      const employees = empRes.data ?? [];
-      const inactive = employees
-        .filter((e: Employee) => e.recordstatus === 'INACTIVE')
-        .map((e: Employee) => ({ id: e.id, username: e.username ?? '', email: e.email ?? '', role: e.role }));
-      setPendingAccounts(inactive);
+
     } catch (err: any) {
       setError(err.message || 'Failed to load dashboard data');
     }
@@ -322,12 +309,15 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
     if (!sales.length) return [];
     const sorted = [...sales].sort((a, b) => new Date(a.salesdate).getTime() - new Date(b.salesdate).getTime());
     const groups: Record<string, number> = {};
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     sorted.forEach(s => {
       const d = new Date(s.salesdate);
-      const key = `${d.getMonth() + 1}/${d.getDate()}`; 
+      const key = `${monthNames[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`; 
       groups[key] = (groups[key] || 0) + s.total;
     });
-    return Object.entries(groups).map(([label, value]) => ({ label, value })).slice(-7);
+    // Use short labels for x-axis (e.g. "Mar '11") but keep full date as the label for tooltips
+    const entries = Object.entries(groups).slice(-7);
+    return entries.map(([label, value]) => ({ label, value }));
   }, [sales]);
 
   const thStyle: React.CSSProperties = { padding: '12px 20px', fontSize: '11px', fontWeight: 700, color: C.onSurfaceVariant, textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'left', borderBottom: `1px solid ${C.outlineVariant}44` };
@@ -346,12 +336,11 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
   // Reset to page 1 when data changes
   useEffect(() => { setSalesPage(1); }, [customerSummary.length]);
 
-  const hasPending = pendingAccounts.length > 0;
-  const [pendingOverlayOpen, setPendingOverlayOpen] = useState(false);
+
 
   return (
     <div style={{ flex: 1, padding: '32px 24px 64px', fontFamily: "'Inter', sans-serif", maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
-      {/* ── Header: Welcome + Pending Button + Refresh ── */}
+      {/* ── Header: Welcome + Refresh ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', gap: '16px', flexWrap: 'wrap' }}>
         <div>
           <h1 style={{ fontSize: '28px', fontWeight: 900, color: C.onSurface, fontFamily: "'Plus Jakarta Sans', sans-serif", margin: '0 0 8px 0' }}>
@@ -360,13 +349,6 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
           <p style={{ fontSize: '14px', color: C.onSurfaceVariant, margin: 0 }}>Here's what's happening with your business today.</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-          {hasPending && (
-            <button onClick={() => setPendingOverlayOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '10px', border: 'none', backgroundColor: '#f59e0b', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(245,158,11,0.35)', transition: 'transform 0.15s, box-shadow 0.15s' }}>
-              <UserCheck size={14} />
-              <span>Pending Activation</span>
-              <span style={{ backgroundColor: '#fff', color: '#d97706', fontSize: '11px', fontWeight: 800, padding: '1px 7px', borderRadius: '99px', minWidth: '20px', textAlign: 'center' }}>{pendingAccounts.length}</span>
-            </button>
-          )}
           <button onClick={() => void load()} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '10px', border: `1px solid ${C.outlineVariant}55`, backgroundColor: 'transparent', color: C.onSurfaceVariant, fontSize: '12px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer' }}>
             <RefreshCw size={12} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} /> Refresh
           </button>
@@ -376,7 +358,7 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
       {!loading && !error && (
         <>
           {/* ── Stat Cards: 4-col grid, Revenue+Customers stacked col1, Products col2, Transactions col3-4 ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr', gridTemplateRows: 'auto auto', gap: '16px', marginBottom: '28px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(180px, 1fr) minmax(180px, 1fr) minmax(400px, 3fr)', gridTemplateRows: 'auto auto', gap: '16px', marginBottom: '28px' }}>
             {/* Col 1, Row 1: Total Revenue */}
             <div style={{ gridColumn: '1', gridRow: '1' }}>
               <StatCard icon={<DollarSign size={22} style={{ color: '#22c55e' }} />} label="Total Revenue" value={fmt(totalRevenue)} accent="#22c55e" isDark={isDark} C={C} />
@@ -533,35 +515,7 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
         </>
       )}
 
-      {/* ── Pending Activation Overlay ── */}
-      {pendingOverlayOpen && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 100, backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }} onClick={() => setPendingOverlayOpen(false)}>
-          <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '480px', maxHeight: '80vh', backgroundColor: isDark ? C.surfaceContainerHigh : '#ffffff', borderRadius: '20px', border: `1px solid ${C.outlineVariant}33`, boxShadow: isDark ? '0 10px 40px rgba(0,0,0,0.5)' : '0 10px 30px rgba(0,0,0,0.1)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ padding: '20px 24px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${C.outlineVariant}33` }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: '#f59e0b18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><UserCheck size={18} style={{ color: '#f59e0b' }} /></div>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: C.onSurface }}>Pending Activation</h3>
-                  <p style={{ margin: '2px 0 0', fontSize: '12px', color: C.onSurfaceVariant }}>{pendingAccounts.length} account{pendingAccounts.length !== 1 ? 's' : ''} awaiting activation</p>
-                </div>
-              </div>
-              <button type="button" onClick={() => setPendingOverlayOpen(false)} style={{ background: 'none', border: 'none', color: C.onSurfaceVariant, cursor: 'pointer', padding: '4px', fontSize: '20px', lineHeight: 1 }}>×</button>
-            </div>
-            <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {pendingAccounts.map(acc => (
-                <div key={acc.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', borderRadius: '12px', backgroundColor: isDark ? C.surfaceContainer : '#fef9ee', border: `1px solid ${isDark ? C.outlineVariant : '#fde68a'}44` }}>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: '#f59e0b18', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><AlertCircle size={16} style={{ color: '#f59e0b' }} /></div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '13px', fontWeight: 700, color: C.onSurface, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{acc.username || acc.email}</div>
-                    <div style={{ fontSize: '11px', color: C.onSurfaceVariant, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{acc.email}</div>
-                  </div>
-                  <span style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', padding: '4px 10px', borderRadius: '6px', backgroundColor: isDark ? '#f59e0b22' : '#fef3c7', color: '#d97706', flexShrink: 0 }}>{acc.role} · Inactive</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 };
