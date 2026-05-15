@@ -33,8 +33,8 @@ const hasValidPendingRedirect = () => {
 };
 
 const AppContent = () => {
-  // 1. Grab 'role' and 'recordstatus' alongside 'user'
-  const { user, role, recordstatus, signOut } = useAuth(); 
+  // 1. Grab 'role', 'recordstatus', and 'loading' alongside 'user'
+  const { user, role, recordstatus, loading, signOut } = useAuth(); 
   const { isDark } = useTheme();
   const C = getDashboardTokens(isDark);
   
@@ -76,7 +76,7 @@ const AppContent = () => {
     return <InactiveAccountModal isDark={isDark} C={C} onSignOut={signOut} />;
   }
 
-  if (user && pendingRedirect) {
+  if (user && (pendingRedirect || loading)) {
     return <LoadingSpinner />;
   }
 

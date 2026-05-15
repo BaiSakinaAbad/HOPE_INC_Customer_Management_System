@@ -229,6 +229,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     window.sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
+    window.sessionStorage.removeItem('dashboard-nav-state');
     await supabase.auth.signOut();
   };
 

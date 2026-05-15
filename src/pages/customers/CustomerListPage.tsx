@@ -6,6 +6,7 @@ import { useRights } from '../../hooks/useRights';
 import { getCustomers, softDeleteCustomer, updateCustomer, createCustomer, getInactiveCustomerCount } from '../../services/customerService';
 import type { Customer } from '../../types/customer';
 import { DefaultTable, Button, SearchBar, DashboardHeader } from '../../components/ui';
+import { useNavigation } from '../../providers/NavigationProvider';
 
 // Import our new Feature Components
 import { CustomerRow } from '../../components/customers/CustomerRow';
@@ -29,6 +30,10 @@ export const CustomerListPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [inactiveTotal, setInactiveTotal] = useState(0);
   
+  // Navigation context for initial filters
+  const { navParams } = useNavigation();
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>(navParams?.statusFilter ?? 'ALL');
+
   // Search state is much simpler now
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sortAsc, setSortAsc] = useState<boolean | null>(null);
@@ -64,6 +69,11 @@ export const CustomerListPage: React.FC = () => {
 
   const filtered = useMemo(() => {
     let result = customers;
+    
+    if (statusFilter !== 'ALL') {
+      result = result.filter(cust => cust.recordstatus === statusFilter);
+    }
+
     const q = debouncedSearch.trim().toLowerCase();
     if (q) {
       result = result.filter(cust => 
@@ -79,7 +89,7 @@ export const CustomerListPage: React.FC = () => {
       });
     }
     return result;
-  }, [customers, debouncedSearch, sortAsc]);
+  }, [customers, debouncedSearch, sortAsc, statusFilter]);
 
   const paginated = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
@@ -200,10 +210,32 @@ export const CustomerListPage: React.FC = () => {
         }
       />
 
-      {/* Extracted Search Bar */}
+      {/* Extracted Search Bar & Filters */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
-        <SearchBar onSearch={setDebouncedSearch} placeholder="Search by name, address, code, pay term…" />
-        {debouncedSearch.trim() && !loading && (
+        <div style={{ flex: 1, minWidth: '250px' }}>
+          <SearchBar onSearch={setDebouncedSearch} placeholder="Search by name, address, code, pay term…" />
+        </div>
+        {canViewStamp && (
+          <select 
+            value={statusFilter} 
+            onChange={(e) => setStatusFilter(e.target.value as any)}
+            style={{ 
+              padding: '9px 12px', 
+              borderRadius: '8px', 
+              border: `1px solid ${C.outlineVariant}55`, 
+              backgroundColor: isDark ? C.surfaceContainer : '#fff',
+              color: C.onSurface,
+              fontSize: '13px',
+              fontWeight: 500,
+              outline: 'none'
+            }}
+          >
+            <option value="ALL">All Statuses</option>
+            <option value="ACTIVE">Active Only</option>
+            <option value="INACTIVE">Inactive Only</option>
+          </select>
+        )}
+        {(debouncedSearch.trim() || statusFilter !== 'ALL') && !loading && (
           <span style={{ fontSize: '12px', color: C.onSurfaceVariant, padding: '5px 10px', borderRadius: '7px', backgroundColor: isDark ? `${C.surfaceContainerHigh}88` : `${C.outlineVariant}22` }}>
             {filtered.length} of {customers.length} shown
           </span>

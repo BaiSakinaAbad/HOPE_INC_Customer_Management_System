@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 export interface LinePoint { label: string; value: number }
 
 //Line Chart
-export const MiniLineChart: React.FC<{ points: LinePoint[]; color: string; isDark: boolean }> = ({ points, color, isDark }) => {
+export const MiniLineChart: React.FC<{ points: LinePoint[]; color: string; isDark: boolean; onPointClick?: (index: number) => void; selectedIndex?: number | null }> = ({ points, color, isDark, onPointClick, selectedIndex }) => {
   const [hovered, setHovered] = useState<number | null>(null);
   if (points.length === 0) return null;
 
@@ -89,6 +89,10 @@ export const MiniLineChart: React.FC<{ points: LinePoint[]; color: string; isDar
                 }}
                 onMouseEnter={() => setHovered(i)}
                 onMouseLeave={() => setHovered(null)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPointClick?.(i);
+                }}
               >
                 {/* Vertical dash line on hover */}
                 {hovered === i && (
@@ -115,10 +119,10 @@ export const MiniLineChart: React.FC<{ points: LinePoint[]; color: string; isDar
                   borderRadius: '50%',
                   backgroundColor: isDark ? '#0d1834' : '#fff', // Match card background
                   border: `2px solid ${color}`,
-                  zIndex: 10,
+                  zIndex: selectedIndex === i ? 15 : 10,
                   transition: 'all 0.2s',
-                  boxShadow: hovered === i ? `0 0 15px ${color}` : 'none',
-                  ...(hovered === i ? { transform: 'translate(-50%, -50%) scale(1.5)', backgroundColor: color } : {})
+                  boxShadow: (hovered === i || selectedIndex === i) ? `0 0 15px ${color}` : 'none',
+                  ...((hovered === i || selectedIndex === i) ? { transform: 'translate(-50%, -50%) scale(1.5)', backgroundColor: color } : {})
                 }}
               />
             ))}
@@ -153,7 +157,9 @@ export const MiniLineChart: React.FC<{ points: LinePoint[]; color: string; isDar
            {coords.map((c, i) => (
              <span key={i} style={{ 
                position: 'absolute', left: `${c.x}%`, transform: 'translateX(-50%)',
-               fontSize: '12px', color: color, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' 
+               fontSize: '12px', color: color, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em',
+               opacity: selectedIndex === null || selectedIndex === i ? 1 : 0.4,
+               transition: 'opacity 0.2s'
              }}>
                {points[i].label}
              </span>

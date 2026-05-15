@@ -33,21 +33,24 @@ const NavigationContext = createContext<NavigationContextType>({
 export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children, defaultPage = 'dashboard' }) => {
   const [currentPage, setCurrentPage] = useState<PageId>(() => {
     try {
-      // If the role requires a specific defaultPage (non-dashboard), always honour it.
-      // This prevents a stale 'dashboard' value in sessionStorage from trapping
-      // restricted roles (e.g. 'user') on the home screen they cannot access.
-      if (defaultPage !== 'dashboard') return defaultPage;
       const raw = window.sessionStorage.getItem(NAV_STATE_KEY);
-      if (!raw) return defaultPage;
-      const parsed = JSON.parse(raw) as { page?: string };
-      if (parsed.page && VALID_PAGES.includes(parsed.page as PageId)) {
-        return parsed.page as PageId;
+      if (raw) {
+        const parsed = JSON.parse(raw) as { page?: string };
+        if (parsed.page && VALID_PAGES.includes(parsed.page as PageId)) {
+          const storedPage = parsed.page as PageId;
+          // Security check: if stored is 'dashboard' but role default is not dashboard, deny access.
+          if (storedPage === 'dashboard' && defaultPage !== 'dashboard') {
+            return defaultPage;
+          }
+          return storedPage;
+        }
       }
       return defaultPage;
     } catch {
       return defaultPage;
     }
   });
+
   const [navParams, setNavParams] = useState<Record<string, any>>(() => {
     try {
       const raw = window.sessionStorage.getItem(NAV_STATE_KEY);
@@ -70,6 +73,13 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
       JSON.stringify({ page: currentPage, params: navParams }),
     );
   }, [currentPage, navParams]);
+
+  // Dynamic role change check: if defaultPage changes to non-dashboard, kick from dashboard
+  useEffect(() => {
+    if (currentPage === 'dashboard' && defaultPage !== 'dashboard') {
+      setCurrentPage(defaultPage);
+    }
+  }, [defaultPage, currentPage]);
 
   return (
     <NavigationContext.Provider value={{ currentPage, navParams, navigate }}>
