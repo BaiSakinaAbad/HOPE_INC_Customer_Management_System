@@ -106,5 +106,31 @@ export const auditLogService = {
       console.error('Unexpected error fetching audit logs:', err);
       return { logs: [], error: err as PostgrestError };
     }
-  }
+  },
+
+  /**
+   * Delete one or more audit log entries by ID.
+   * Returns the count of deleted rows, or an error.
+   */
+  async deleteLogs(
+    ids: string[],
+  ): Promise<{ count: number; error: PostgrestError | null }> {
+    if (!ids.length) return { count: 0, error: null };
+    try {
+      const { error, count } = await supabase
+        .from('audit_logs')
+        .delete({ count: 'exact' })
+        .in('id', ids);
+
+      if (error) {
+        console.error('Error deleting audit logs:', error);
+        return { count: 0, error };
+      }
+
+      return { count: count ?? ids.length, error: null };
+    } catch (err) {
+      console.error('Unexpected error deleting audit logs:', err);
+      return { count: 0, error: err as PostgrestError };
+    }
+  },
 };
