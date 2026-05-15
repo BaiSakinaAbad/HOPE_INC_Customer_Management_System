@@ -134,6 +134,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerOpen, onClose }) => {
               icon={Trash2}
               active={currentPage === 'deleted'}
               onClick={() => handleNav('deleted')}
+              /* Test hook for the deleted customers navigation entry. */
+              dataTestId="nav-deleted-customers"
               C={C}
               isDark={isDark}
             />
@@ -164,14 +166,16 @@ interface SidebarItemProps {
   C: DashboardTokens;
   isDark: boolean;
   onClick: () => void;
+  dataTestId?: string;
 }
 
-const SidebarItem: React.FC<SidebarItemProps> = ({ label, icon: Icon, active, C, isDark, onClick }) => {
+const SidebarItem: React.FC<SidebarItemProps> = ({ label, icon: Icon, active, C, isDark, onClick, dataTestId }) => {
   const [hovered, setHovered] = useState(false);
 
   return (
     <button
       type="button"
+      data-testid={dataTestId}
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}

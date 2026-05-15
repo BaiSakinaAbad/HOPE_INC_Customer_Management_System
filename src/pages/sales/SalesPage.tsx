@@ -1,3 +1,4 @@
+// Displays all sales with complete details including payment, item lines, and transaction history.
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { CircleDollarSign, BarChart2, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
@@ -9,7 +10,7 @@ import { getSales, type SaleTransaction } from '../../services/salesService';
 export const SalesPage: React.FC = () => {
   const { isDark } = useTheme();
   const C = getDashboardTokens(isDark);
-  const { role } = useAuth();
+  const { role, permissions } = useAuth();
   const { navParams } = useNavigation();
 
   const [sales, setSales] = useState<SaleTransaction[]>([]);

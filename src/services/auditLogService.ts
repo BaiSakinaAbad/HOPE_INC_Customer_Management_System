@@ -1,3 +1,5 @@
+//auditLogService — Handles all interaction with the audit_logs table. Provides
+// methods for fetching and formatting audit records, including event labeling and user information.
 import { supabase } from '../lib/supabase';
 import { PostgrestError } from '@supabase/supabase-js';
 
@@ -63,9 +65,22 @@ export function formatAuditTable(tableName: string): string {
 
 export const auditLogService = {
   /**
-   * Fetch all audit logs, sorted by most recent first
+   * Fetch all audit logs, sorted by most recent first.
+   * Requires admin or superadmin role (canViewLogs is role-derived).
    */
-  async fetchLogs(limit: number = 100, offset: number = 0): Promise<{ logs: AuditLog[]; error: PostgrestError | null }> {
+  async fetchLogs(
+    limit: number = 100,
+    offset: number = 0,
+    role?: string,
+  ): Promise<{ logs: AuditLog[]; error: PostgrestError | null }> {
+    // Guard: only admin/superadmin can view logs
+    if (role) {
+      const normalizedRole = role.toLowerCase();
+      if (normalizedRole !== 'admin' && normalizedRole !== 'superadmin') {
+        return { logs: [], error: { message: 'Permission denied: you do not have access to view audit logs.', details: '', hint: '', code: 'PERM_DENIED' } as PostgrestError };
+      }
+    }
+
     try {
       const { data, error } = await supabase
         .from('audit_logs')
@@ -91,5 +106,31 @@ export const auditLogService = {
       console.error('Unexpected error fetching audit logs:', err);
       return { logs: [], error: err as PostgrestError };
     }
-  }
+  },
+
+  /**
+   * Delete one or more audit log entries by ID.
+   * Returns the count of deleted rows, or an error.
+   */
+  async deleteLogs(
+    ids: string[],
+  ): Promise<{ count: number; error: PostgrestError | null }> {
+    if (!ids.length) return { count: 0, error: null };
+    try {
+      const { error, count } = await supabase
+        .from('audit_logs')
+        .delete({ count: 'exact' })
+        .in('id', ids);
+
+      if (error) {
+        console.error('Error deleting audit logs:', error);
+        return { count: 0, error };
+      }
+
+      return { count: count ?? ids.length, error: null };
+    } catch (err) {
+      console.error('Unexpected error deleting audit logs:', err);
+      return { count: 0, error: err as PostgrestError };
+    }
+  },
 };

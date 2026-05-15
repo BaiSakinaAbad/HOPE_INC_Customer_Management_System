@@ -1,3 +1,5 @@
+// PriceHistoryModal — Displays historical price records for a product with
+// proper theming and empty-state handling.
 import React from 'react';
 import { X } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';

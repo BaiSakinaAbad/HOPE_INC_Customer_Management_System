@@ -1,3 +1,5 @@
+// CustomerListPage — Main customer management view. Lists active customers in a
+// sortable, searchable table with role-gated actions for add, edit, and soft-delete.
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { RefreshCw, AlertTriangle, Users, ChevronUp, ChevronDown, Plus } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
@@ -17,7 +19,7 @@ import { AddCustomerModal } from '../../components/customers/AddCustomerModal';
 export const CustomerListPage: React.FC = () => {
   const { isDark } = useTheme();
   const C = getDashboardTokens(isDark);
-  const { role, user } = useAuth();
+  const { role, user, permissions } = useAuth();
   const { canViewStamp, canSoftDelete, canEditCustomer: canEdit, canAddCustomer } = useRights();
 
   const metadata = user?.user_metadata ?? {};
@@ -106,7 +108,8 @@ export const CustomerListPage: React.FC = () => {
       confirmDelete.custno, 
       performedBy, 
       role ?? 'employee',
-      confirmDelete.recordstatus
+      confirmDelete.recordstatus,
+      permissions,
     );
     
     if (svcError) {
@@ -123,7 +126,7 @@ export const CustomerListPage: React.FC = () => {
     setActionError(null);
     const performedBy = displayName;
     
-    const { error: svcError } = await updateCustomer(custno, data, performedBy, role ?? 'employee');
+    const { error: svcError } = await updateCustomer(custno, data, performedBy, role ?? 'employee', permissions);
     
     if (svcError) {
       setActionError(svcError);
@@ -139,7 +142,7 @@ export const CustomerListPage: React.FC = () => {
     setActionError(null);
     const performedBy = displayName;
     
-    const { error: svcError } = await createCustomer(data, performedBy, role ?? 'employee');
+    const { error: svcError } = await createCustomer(data, performedBy, role ?? 'employee', permissions);
     
     if (svcError) {
       setActionError(svcError);
@@ -202,7 +205,13 @@ export const CustomerListPage: React.FC = () => {
               <RefreshCw size={13} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} /> Refresh
             </button>
             {canAddCustomer && (
-              <Button compact style={{ width: 'auto', padding: '0 20px', height: '35px' }} onClick={() => setIsAddModalOpen(true)}>
+              <Button
+                compact
+                /* Test hook for the customer creation action. */
+                data-testid="add-customer-btn"
+                style={{ width: 'auto', padding: '0 20px', height: '35px' }}
+                onClick={() => setIsAddModalOpen(true)}
+              >
                 <Plus size={16} style={{ marginRight: '6px' }} /> Add Customer
               </Button>
             )}
@@ -271,7 +280,8 @@ export const CustomerListPage: React.FC = () => {
             <DefaultTable.Th>Address</DefaultTable.Th>
             <DefaultTable.Th>Pay Term</DefaultTable.Th>
             <DefaultTable.Th>Status</DefaultTable.Th>
-            {canViewStamp && <DefaultTable.Th>Stamp</DefaultTable.Th>}
+            {/* Test hook for stamp column visibility checks. */}
+            {canViewStamp && <DefaultTable.Th data-testid="stamp-column">Stamp</DefaultTable.Th>}
             <DefaultTable.Th style={{ textAlign: 'center' }}>Actions</DefaultTable.Th>
           </tr>
         </thead>
