@@ -1,6 +1,7 @@
 // RegisterPage — New account registration form with name, username, email, and
 // password fields. Includes password strength indicator and Google OAuth option.
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AuthLayout } from '../../layouts/AuthLayout';
 import { GoogleButton, PasswordStrength } from '../../components/auth';
 import { Button, Input, Divider } from '../../components/ui';
@@ -10,6 +11,29 @@ import { supabase } from '../../lib/supabase';
 interface RegisterPageProps {
   onSwitch: () => void;
 }
+
+type PolicyType = 'terms' | 'privacy';
+
+const policyContent: Record<PolicyType, { title: string; intro: string; items: string[] }> = {
+  terms: {
+    title: 'Terms of Service',
+    intro: 'These terms explain how BiteLog helps teams manage customer records, sales activity, and employee access responsibly.',
+    items: [
+      'Use the system only for legitimate customer management and business operations.',
+      'Keep account credentials private and assign access based on each team member role.',
+      'Customer, product, and sales records should be accurate, respectful, and work-related.',
+    ],
+  },
+  privacy: {
+    title: 'Privacy Policy',
+    intro: 'This privacy notice summarizes how a customer management system may protect operational data.',
+    items: [
+      'We store profile details, customer records, sales logs, and audit activity needed to run the workspace.',
+      'Role-based permissions limit who can view, create, update, or delete sensitive business records.',
+      'Audit logs may be used to review account activity, improve security, and support compliance checks.',
+    ],
+  },
+};
 
 const RegisterPage: React.FC<RegisterPageProps> = ({ 
   onSwitch
@@ -29,6 +53,12 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [activePolicy, setActivePolicy] = useState<PolicyType | null>(null);
+
+  const openPolicy = (policy: PolicyType) => (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    setActivePolicy(policy);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,7 +124,6 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
 
-          {/* Name row */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
             <Input 
               compact 
@@ -145,7 +174,6 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
             required 
           />
 
-          {/* Password + strength */}
           <div>
             <Input
               compact
@@ -162,7 +190,6 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
             <PasswordStrength password={password} variant="luminous" />
           </div>
 
-          {/* Terms */}
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', margin: '4px 0' }}>
             <input
               type="checkbox"
@@ -181,9 +208,9 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
               }}
             >
               I agree to the{' '}
-              <a href="#" style={{ color: isDark ? '#b89fff' : t.primary, fontWeight: 500 }}>Terms of Service</a>
+              <a href="#" onClick={openPolicy('terms')} style={{ color: isDark ? '#b89fff' : t.primary, fontWeight: 500 }}>Terms of Service</a>
               {' '}and{' '}
-              <a href="#" style={{ color: isDark ? '#b89fff' : t.primary, fontWeight: 500 }}>Privacy Policy</a>.
+              <a href="#" onClick={openPolicy('privacy')} style={{ color: isDark ? '#b89fff' : t.primary, fontWeight: 500 }}>Privacy Policy</a>.
             </label>
           </div>
 
@@ -215,6 +242,71 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
           </button>
         </p>
       </div>
+
+      {activePolicy && createPortal(
+        <div
+          className="policy-modal-backdrop"
+          role="presentation"
+          onMouseDown={() => setActivePolicy(null)}
+        >
+          <section
+            className="policy-modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="policy-modal-title"
+            onMouseDown={(event) => event.stopPropagation()}
+            style={{
+              background: isDark
+                ? 'linear-gradient(180deg, rgba(34, 30, 64, 0.98), rgba(22, 19, 43, 0.98))'
+                : 'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(246,242,255,0.98))',
+              border: `1px solid ${isDark ? 'rgba(184, 159, 255, 0.22)' : 'rgba(131, 79, 255, 0.16)'}`,
+              color: t.onSurface,
+              boxShadow: isDark
+                ? '0 24px 70px rgba(3, 2, 14, 0.62)'
+                : '0 24px 70px rgba(83, 62, 150, 0.18)',
+            }}
+          >
+            <header className="policy-modal-header">
+              <div>
+                {/* Updated this line to show dynamic document title */}
+                <p style={{ color: isDark ? 'rgba(208, 201, 235, 0.68)' : t.onSurfaceVariant }}>
+                  BiteLog {activePolicy === 'privacy' ? 'Privacy Policy' : 'Terms of Service'}
+                </p>
+                <h3 id="policy-modal-title">{policyContent[activePolicy].title}</h3>
+              </div>
+              <button
+                type="button"
+                aria-label="Close policy"
+                onClick={() => setActivePolicy(null)}
+                style={{ color: isDark ? 'rgba(238,232,255,0.82)' : t.onSurfaceVariant }}
+              >
+                x
+              </button>
+            </header>
+
+            <p className="policy-modal-intro" style={{ color: isDark ? 'rgba(224, 218, 246, 0.76)' : t.onSurfaceVariant }}>
+              {policyContent[activePolicy].intro}
+            </p>
+
+            <ul className="policy-modal-list">
+              {policyContent[activePolicy].items.map((item) => (
+                <li key={item} style={{ color: isDark ? 'rgba(238, 232, 255, 0.86)' : t.onSurface }}>
+                  {item}
+                </li>
+              ))}
+            </ul>
+
+            <button
+              type="button"
+              className="policy-modal-action"
+              onClick={() => setActivePolicy(null)}
+            >
+              Got it
+            </button>
+          </section>
+        </div>,
+        document.body
+      )}
     </AuthLayout>
   );
 };
