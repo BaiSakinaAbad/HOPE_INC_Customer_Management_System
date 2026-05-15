@@ -111,14 +111,97 @@ const DataSection: React.FC<{
 
   // Case 1: Both exist but are identical (pre-fix trigger bug)
   if (identical) {
+    // ── Special handling for user_permission: infer grant/revoke from is_granted ──
+    if (log.table_name === 'user_permission') {
+      const snap      = log.new_data ?? log.old_data ?? {};
+      const isGranted = snap.is_granted as boolean | undefined;
+      const permId    = snap.permission_id as string | undefined;
+      const userId    = snap.user_id as string | undefined;
+
+      const actionLabel  = isGranted === true  ? 'GRANTED'
+                         : isGranted === false ? 'REVOKED'
+                         : 'UPDATED';
+      const actionColor  = isGranted === true  ? '#22c55e'
+                         : isGranted === false ? C.error
+                         : '#eab308';
+      const actionBg     = isGranted === true  ? 'rgba(34,197,94,0.10)'
+                         : isGranted === false ? `${C.error}15`
+                         : '#eab3081a';
+
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Inferred action pill */}
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: '10px',
+            padding: '10px 16px', borderRadius: '10px',
+            backgroundColor: actionBg, border: `1px solid ${actionColor}33`,
+          }}>
+            <span style={{
+              fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em',
+              padding: '2px 8px', borderRadius: '5px',
+              backgroundColor: actionColor, color: '#fff',
+            }}>
+              {actionLabel}
+            </span>
+            <span style={{ fontSize: '13px', color: C.onSurface }}>
+              Permission <strong style={{ fontFamily: 'monospace', color: actionColor }}>
+                {permId ?? '—'}
+              </strong> was <strong>{actionLabel.toLowerCase()}</strong>
+              {isGranted === undefined && ' (value unknown)'}
+            </span>
+          </div>
+
+          {/* Detail cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
+            {permId && (
+              <div style={{
+                padding: '12px 14px', borderRadius: '8px',
+                backgroundColor: isDark ? '#ffffff08' : '#00000006',
+                border: `1px solid ${C.outlineVariant}22`,
+              }}>
+                <div style={{ fontSize: '11px', color: C.onSurfaceVariant, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Permission</div>
+                <div style={{ fontSize: '13px', fontWeight: 600, fontFamily: 'monospace', color: C.onSurface }}>{permId}</div>
+              </div>
+            )}
+            <div style={{
+              padding: '12px 14px', borderRadius: '8px',
+              backgroundColor: isDark ? '#ffffff08' : '#00000006',
+              border: `1px solid ${C.outlineVariant}22`,
+            }}>
+              <div style={{ fontSize: '11px', color: C.onSurfaceVariant, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Status</div>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: actionColor }}>
+                {isGranted === true ? 'Granted' : isGranted === false ? 'Revoked' : '—'}
+              </div>
+            </div>
+            {userId && (
+              <div style={{
+                padding: '12px 14px', borderRadius: '8px',
+                backgroundColor: isDark ? '#ffffff08' : '#00000006',
+                border: `1px solid ${C.outlineVariant}22`,
+              }}>
+                <div style={{ fontSize: '11px', color: C.onSurfaceVariant, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Affected User</div>
+                <div style={{ fontSize: '12px', fontFamily: 'monospace', color: C.onSurface, wordBreak: 'break-all' }}>{userId}</div>
+              </div>
+            )}
+          </div>
+
+          <p style={{ margin: 0, fontSize: '12px', color: C.onSurfaceVariant, opacity: 0.6, fontStyle: 'italic' }}>
+            Action inferred from recorded state — exact before/after values are unavailable for this entry.
+          </p>
+        </div>
+      );
+    }
+
+    // ── All other tables with identical data: show softened notice + raw snapshot ──
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <div style={{
           padding: '10px 14px', borderRadius: '8px', fontSize: '12px',
-          backgroundColor: '#eab30812', border: '1px solid #eab30833',
-          color: '#eab308', fontFamily: 'Inter, sans-serif',
+          backgroundColor: isDark ? '#ffffff08' : '#00000006',
+          border: `1px solid ${C.outlineVariant}33`,
+          color: C.onSurfaceVariant, fontFamily: 'Inter, sans-serif',
         }}>
-          ⚠ This log was recorded before the trigger fix — old and new data are identical. Only a snapshot is shown.
+          ℹ Before/after diff is unavailable for this entry — only the recorded snapshot is shown.
         </div>
         <div>
           <h3 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: 600, color: C.onSurface }}>Data Snapshot</h3>

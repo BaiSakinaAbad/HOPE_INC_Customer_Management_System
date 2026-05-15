@@ -41,7 +41,7 @@ export const DefaultTableContainer: React.FC<{ children: React.ReactNode; pagina
           <div>
             Showing <strong style={{ color: C.onSurface }}>{Math.min((pagination.currentPage - 1) * pagination.itemsPerPage + 1, pagination.totalItems)}</strong> to <strong style={{ color: C.onSurface }}>{Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems)}</strong> of <strong style={{ color: C.onSurface }}>{pagination.totalItems}</strong> entries
           </div>
-          <div style={{ display: 'flex', gap: '6px' }}>
+          <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
             <button
               onClick={() => pagination.onPageChange(Math.max(1, pagination.currentPage - 1))}
               disabled={pagination.currentPage === 1}
@@ -55,27 +55,58 @@ export const DefaultTableContainer: React.FC<{ children: React.ReactNode; pagina
             >
               <ChevronLeft size={16} />
             </button>
-            
-            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(page => {
-              const isActive = page === pagination.currentPage;
-              return (
-                <button
-                  key={page}
-                  onClick={() => pagination.onPageChange(page)}
-                  style={{
-                    minWidth: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    borderRadius: '6px',
-                    border: isActive ? 'none' : `1px solid ${C.outlineVariant}55`,
-                    backgroundColor: isActive ? '#834fff' : 'transparent',
-                    color: isActive ? '#fff' : C.onSurface,
-                    fontWeight: isActive ? 700 : 500,
-                    cursor: 'pointer',
-                  }}
-                >
-                  {page}
-                </button>
-              );
-            })}
+
+            {/* Windowed page buttons with ellipsis */}
+            {(() => {
+              const total = pagination.totalPages;
+              const cur   = pagination.currentPage;
+              const WINDOW = 2; // pages shown on each side of current
+
+              // Build the set of page numbers to show
+              const pages = new Set<number>();
+              pages.add(1);
+              pages.add(total);
+              for (let p = Math.max(1, cur - WINDOW); p <= Math.min(total, cur + WINDOW); p++) {
+                pages.add(p);
+              }
+              const sorted = [...pages].sort((a, b) => a - b);
+
+              const items: (number | 'ellipsis')[] = [];
+              for (let i = 0; i < sorted.length; i++) {
+                if (i > 0 && sorted[i] - sorted[i - 1] > 1) items.push('ellipsis');
+                items.push(sorted[i]);
+              }
+
+              return items.map((item, idx) => {
+                if (item === 'ellipsis') {
+                  return (
+                    <span key={`e-${idx}`} style={{ padding: '0 4px', color: C.onSurfaceVariant, fontSize: '13px', userSelect: 'none' }}>
+                      …
+                    </span>
+                  );
+                }
+                const isActive = item === cur;
+                return (
+                  <button
+                    key={item}
+                    onClick={() => pagination.onPageChange(item)}
+                    style={{
+                      minWidth: '32px', height: '32px', padding: '0 6px',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      borderRadius: '6px',
+                      border: isActive ? 'none' : `1px solid ${C.outlineVariant}55`,
+                      backgroundColor: isActive ? '#834fff' : 'transparent',
+                      color: isActive ? '#fff' : C.onSurface,
+                      fontWeight: isActive ? 700 : 500,
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {item}
+                  </button>
+                );
+              });
+            })()}
 
             <button
               onClick={() => pagination.onPageChange(Math.min(pagination.totalPages, pagination.currentPage + 1))}
