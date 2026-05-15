@@ -57,13 +57,8 @@ describe('Customer Visibility & React Query Enforcement', () => {
 
   describe('Data Visibility: INACTIVE Customers', () => {
     const mockDbData = [
-<<<<<<< HEAD
-      { id: 1, name: 'Active Customer', recordstatus: 'ACTIVE' },
-      { id: 2, name: 'Hidden Inactive Customer', recordstatus: 'INACTIVE' }
-=======
       { custno: 'C0001', custname: 'Active Customer', recordstatus: 'ACTIVE' },
       { custno: 'C0002', custname: 'Hidden Inactive Customer', recordstatus: 'INACTIVE' },
->>>>>>> f7207e6 (test: enforce sprint 2 security gating, view-only checks, and sprint 2 log)
     ];
 
     beforeEach(() => {
@@ -98,13 +93,8 @@ describe('Customer Visibility & React Query Enforcement', () => {
 
   describe('Data Recovery: ADMIN Action Rights', () => {
     it('shows a "Recover" button ONLY for ADMIN/SUPERADMIN on INACTIVE rows', async () => {
-<<<<<<< HEAD
-      const inactiveData = [{ id: 99, name: 'Deleted Corp', recordstatus: 'INACTIVE' }];
-      
-=======
       const inactiveData = [{ custno: '99', custname: 'Deleted Corp', recordstatus: 'INACTIVE' }];
 
->>>>>>> f7207e6 (test: enforce sprint 2 security gating, view-only checks, and sprint 2 log)
       vi.mocked(supabase.from).mockReturnValue({
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({

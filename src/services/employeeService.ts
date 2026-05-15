@@ -1,8 +1,24 @@
+// employeeService — Handles employee CRUD operations via Supabase. Includes fetching,
+// status changes, and role updates with permission reset.
 import { supabase } from '../lib/supabase';
 import type { Employee, EmployeeRole, EmployeeStatus } from '../types/employee';
 import { resetPermissionsToDefaults } from './permissionService';
 
-export async function getEmployees() {
+/** Shorthand: check if a specific permission is granted. */
+const hasPermission = (permissions: Record<string, boolean>, id: string): boolean =>
+  permissions[id] === true;
+
+/**
+ * Fetch all employees.
+ * Requires ADM_VIEW permission.
+ */
+export async function getEmployees(
+  permissions?: Record<string, boolean>,
+) {
+  if (permissions && !hasPermission(permissions, 'ADM_VIEW')) {
+    return { data: null, error: 'Permission denied: you do not have access to view users.' };
+  }
+
   const { data, error } = await supabase
     .from('app_user')
     .select('id, username, email, role, record_status')
@@ -19,8 +35,27 @@ export async function getEmployees() {
   return { data: rows as Employee[] | null, error: error?.message || null };
 }
 
-export async function updateEmployeeStatus(id: string, currentStatus: EmployeeStatus) {
+/**
+ * Toggle employee active/inactive status.
+ * Requires ADM_USER (to activate) or ADM_DEACTIVATE (to deactivate) permission.
+ */
+export async function updateEmployeeStatus(
+  id: string,
+  currentStatus: EmployeeStatus,
+  permissions?: Record<string, boolean>,
+) {
   const newStatus: EmployeeStatus = currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+
+  // Check the correct permission based on the action being performed
+  if (permissions) {
+    if (currentStatus === 'ACTIVE' && !hasPermission(permissions, 'ADM_DEACTIVATE')) {
+      return { error: 'Permission denied: you do not have permission to deactivate users.' };
+    }
+    if (currentStatus === 'INACTIVE' && !hasPermission(permissions, 'ADM_USER')) {
+      return { error: 'Permission denied: you do not have permission to activate users.' };
+    }
+  }
+
   const { error } = await supabase
     .from('app_user')
     .update({ record_status: newStatus })
@@ -50,18 +85,31 @@ export async function updateEmployeeStatus(id: string, currentStatus: EmployeeSt
   return { error: null };
 }
 
+/**
+ * Change an employee's role.
+ * Requires ADM_ROLE permission + must be superadmin actor.
+ */
 export async function updateEmployeeRole(
   id: string,
   targetCurrentRole: EmployeeRole,
   newRole: EmployeeRole,
   actorRole: string,
+  permissions?: Record<string, boolean>,
 ) {
+  // Permission check: ADM_ROLE
+  if (permissions && !hasPermission(permissions, 'ADM_ROLE')) {
+    return { error: 'Permission denied: you do not have permission to change roles.' };
+  }
+
   const normalizedActorRole = actorRole.toLowerCase();
   if (normalizedActorRole !== 'superadmin') {
     return { error: 'Only superadmin can change employee roles.' };
   }
   if (targetCurrentRole === 'superadmin') {
     return { error: 'Superadmin role cannot be changed.' };
+  }
+  if (newRole === 'superadmin') {
+    return { error: 'Users cannot be promoted to superadmin.' };
   }
   if (targetCurrentRole === newRole) {
     return { error: null };

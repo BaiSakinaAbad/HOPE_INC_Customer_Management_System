@@ -4,7 +4,8 @@ import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
 import { MiniBarChart } from './charts/MiniBarChart';
 import { MiniLineChart } from './charts/MiniLineChart';
 import { MiniDonutChart } from './charts/MiniDonutChart';
-//dashboard header
+
+/**Fixed Merge Conflicts */
 
 export interface DashboardHeaderProps {
   title: string;
@@ -15,11 +16,10 @@ export interface DashboardHeaderProps {
   totalCount: number;
   activeCount?: number;
   inactiveCount?: number;
-
   roleDisplay: string;
   policyDescription: React.ReactNode;
   allowedActions?: string[];
-  /** When false, only the active count is shown. Defaults to true. */
+  /** When false, only the active count is shown (no inactive dot). Defaults to true. */
   showInactiveCount?: boolean;
   /** Chart type for the stats card. Defaults to 'bar'. */
   chartType?: 'bar' | 'line' | 'none';
@@ -29,7 +29,6 @@ export interface DashboardHeaderProps {
   showStatsCard?: boolean;
 }
 
-/* ─── Main component ─── */
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   title,
   description,
@@ -39,7 +38,6 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   totalCount,
   activeCount,
   inactiveCount,
-
   roleDisplay,
   policyDescription,
   allowedActions,
@@ -51,7 +49,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   const { isDark } = useTheme();
   const C = getDashboardTokens(isDark);
 
-  const safeActive   = activeCount   ?? 0;
+  // Safety checks for numeric values
+  const safeActive = activeCount ?? 0;
   const safeInactive = inactiveCount ?? 0;
 
   return (
@@ -80,37 +79,33 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         )}
       </div>
 
-      {/* Cards Row: Access Policy and Registered Accounts */}
+      {/* Cards Row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', marginBottom: '32px' }}>
         
-        {/* Access Policy Card — no graph */}
+        {/* Access Policy Card */}
         <div style={{
           backgroundColor: isDark ? 'rgb(13, 24, 52)' : '#ffffff',
-          borderRadius: '16px', padding: '20px',
+          borderRadius: '16px', padding: '24px',
           border: isDark ? '1px solid rgba(255,255,255,0.03)' : `1px solid ${C.outlineVariant}33`,
           boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.5)' : '0 2px 10px rgba(0,0,0,0.02)',
-          display: 'flex', flexDirection: 'column',
-          minHeight: '140px'
+          display: 'flex', alignItems: 'flex-start', gap: '20px',
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-             <div style={{ color: '#17c3b2' }}>
-               <Info size={18} />
-             </div>
-             <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#17c3b2' }}>
-               ACCESS POLICY
-             </span>
+          <div style={{
+            width: '52px', height: '52px', borderRadius: '14px', flexShrink: 0,
+            backgroundColor: isDark ? 'rgba(23, 195, 178, 0.15)' : 'rgba(23, 195, 178, 0.08)', 
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Info size={24} style={{ color: '#17c3b2' }} />
           </div>
-          
-          <span style={{ fontSize: '12px', color: isDark ? '#8b94a5' : C.onSurfaceVariant, marginBottom: '4px', fontWeight: 500 }}>
-            Current Role Access
-          </span>
-          <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '24px', fontWeight: 700, color: '#17c3b2', lineHeight: 1, marginBottom: '8px' }}>
-            {roleDisplay}
-          </span>
-          
-          <div style={{ marginTop: 'auto' }}>
-            {allowedActions && allowedActions.length > 0 ? (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+          <div style={{ flex: 1 }}>
+            <h3 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '18px', fontWeight: 700, color: '#17c3b2', margin: '0 0 6px' }}>
+              Access Policy
+            </h3>
+            <p style={{ fontSize: '13px', color: C.onSurfaceVariant, margin: '0 0 8px', lineHeight: 1.5 }}>
+              You are currently operating under <strong style={{ color: isDark ? '#fff' : '#1a1a2e' }}>{roleDisplay} Access</strong>.
+            </p>
+            {allowedActions && allowedActions.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '12px' }}>
                 {allowedActions.map((action, i) => (
                   <span key={i} style={{
                     fontSize: '11px', fontWeight: 600, padding: '4px 8px',
@@ -122,15 +117,11 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                   </span>
                 ))}
               </div>
-            ) : (
-              <p style={{ fontSize: '12px', color: isDark ? '#8b94a5' : C.onSurfaceVariant, margin: 0, lineHeight: 1.5 }}>
-                {policyDescription}
-              </p>
             )}
           </div>
         </div>
 
-        {/* Stats Card - Bar Chart */}
+        {/* Stats Card */}
         {showStatsCard && (
           <div style={{
             backgroundColor: isDark ? 'rgb(13, 24, 52)' : '#ffffff',
@@ -150,7 +141,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             </div>
             
             <span style={{ fontSize: '12px', color: isDark ? '#8b94a5' : C.onSurfaceVariant, marginBottom: '4px', fontWeight: 500 }}>
-              Customer Total
+              Total Count
             </span>
             <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '28px', fontWeight: 700, color: isDark ? '#a1a9fe' : '#1a1a2e', lineHeight: 1 }}>
               {totalCount.toLocaleString()}

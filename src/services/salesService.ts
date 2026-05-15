@@ -1,5 +1,10 @@
+/**
+ * Sales Service
+ * Handles data fetching and transformation for sales transactions and history.
+ */
 import { supabase } from '../lib/supabase';
 
+/** Represents a single product line item in a sales transaction */
 export interface SaleDetail {
   product_code: string;
   description: string;
@@ -8,6 +13,7 @@ export interface SaleDetail {
   totalPrice: number;
 }
 
+/** Represents a full sales transaction with its associated details and actor information */
 export interface SaleTransaction {
   transno: string;
   salesdate: string;
@@ -19,7 +25,23 @@ export interface SaleTransaction {
   details: SaleDetail[];
 }
 
-export async function getSales(custno?: string): Promise<{ data: SaleTransaction[] | null; error: string | null }> {
+/** Shorthand: check if a specific permission is granted. */
+const hasPermission = (permissions: Record<string, boolean>, id: string): boolean =>
+  permissions[id] === true;
+
+/**
+ * Fetch all sales transactions, optionally filtered by customer.
+ * Requires SALES_VIEW permission.
+ */
+export async function getSales(
+  custno?: string,
+  permissions?: Record<string, boolean>,
+): Promise<{ data: SaleTransaction[] | null; error: string | null }> {
+  if (permissions && !hasPermission(permissions, 'SALES_VIEW')) {
+    return { data: null, error: 'Permission denied: you do not have access to view sales.' };
+  }
+
+  // Fetch raw sales data with related table joins
   let query = supabase
     .from('sales')
     .select(`
@@ -43,6 +65,7 @@ export async function getSales(custno?: string): Promise<{ data: SaleTransaction
     return { data: null, error: error.message };
   }
 
+  // Fetch price history to determine the unit price for each product
   const { data: prices, error: priceError } = await supabase
     .from('price_history')
     .select('product_code, unit_price, effective_date')
@@ -52,6 +75,7 @@ export async function getSales(custno?: string): Promise<{ data: SaleTransaction
     return { data: null, error: priceError.message };
   }
 
+  // Map the latest prices for quick lookup
   const latestPrices = new Map<string, number>();
   for (const price of prices ?? []) {
     if (!latestPrices.has(price.product_code)) {
@@ -59,6 +83,7 @@ export async function getSales(custno?: string): Promise<{ data: SaleTransaction
     }
   }
 
+  // Transform raw Supabase response into SaleTransaction objects
   const transformed = (sales || []).map((sale: any) => {
     let total = 0;
     const details = (sale.sales_detail || []).map((detail: any) => {

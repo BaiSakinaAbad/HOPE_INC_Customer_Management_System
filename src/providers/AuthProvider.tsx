@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import { fetchUserPermissions, getDefaultPermissions } from '../services/permissionService';
+import { fetchUserPermissions, getDefaultPermissions, resetPermissionsToDefaults } from '../services/permissionService';
 
 const POST_LOGIN_REDIRECT_KEY = 'post-login-redirect-pending';
 
@@ -25,8 +25,8 @@ const AuthContext = createContext<AuthContextType>({
   recordstatus: null,
   loading: true,
   permissions: {},
-  refreshPermissions: async () => {},
-  signOut: async () => {},
+  refreshPermissions: async () => { },
+  signOut: async () => { },
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -53,7 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!isMounted.current) return;
 
     // Overlay DB results on top of defaults (DB wins where present)
-    if (data) {
+    if (data && Object.keys(data).length > 0) {
       for (const [key, value] of Object.entries(data)) {
         merged[key] = value;
       }
@@ -74,6 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Prevent duplicate concurrent calls from getSession + onAuthStateChange race
     if (fetchInFlight.current) return;
     fetchInFlight.current = true;
+    setLoading(true);
 
     try {
       // Step 1: Primary lookup by UUID
@@ -159,6 +160,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null);
 
       if (session?.user) {
+        setLoading(true);
         fetchUserRole(session.user.id, session.user.email);
       } else {
         setRole(null);
@@ -174,8 +176,63 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
+  /**
+   * Realtime subscription: detect role changes made directly in the DB.
+   * When the role column changes, reset permissions to the new role's defaults
+   * and reload them into state.
+   */
+  useEffect(() => {
+    const currentUser = user ?? session?.user;
+    if (!currentUser) return;
+
+    const channel = supabase
+      .channel(`app_user_role_${currentUser.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'app_user',
+          filter: `id=eq.${currentUser.id}`,
+        },
+        async (payload) => {
+          if (!isMounted.current) return;
+          const newRole = (payload.new as { role?: string }).role;
+          const oldRole = (payload.old as { role?: string }).role;
+          const newStatus = (payload.new as { record_status?: string }).record_status;
+
+          // Update record status if changed
+          if (newStatus !== undefined) {
+            setRecordstatus(newStatus);
+          }
+
+          // If role didn't change, ignore
+          if (!newRole || newRole.toLowerCase() === oldRole?.toLowerCase()) return;
+
+          const normalizedNew = newRole.toLowerCase();
+          console.log(`[AuthProvider] Realtime role change detected: ${oldRole} → ${newRole}`);
+          setRole(normalizedNew);
+
+          // Reset permissions in DB to new role's defaults, then reload
+          const { error: resetErr } = await resetPermissionsToDefaults(currentUser.id, normalizedNew);
+          if (resetErr) {
+            console.error('[AuthProvider] Failed to reset permissions on role change:', resetErr);
+          }
+
+          await loadPermissions(currentUser.id, normalizedNew);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [user, session, loadPermissions]);
+
   const signOut = async () => {
     window.sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
+    // Clear navigation state so next login starts fresh (dashboard for superadmin, customers for others)
+    window.sessionStorage.removeItem('dashboard-nav-state');
     await supabase.auth.signOut();
   };
 
