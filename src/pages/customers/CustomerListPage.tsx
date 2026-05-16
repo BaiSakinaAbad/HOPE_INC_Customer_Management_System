@@ -15,6 +15,7 @@ import { CustomerRow } from '../../components/customers/CustomerRow';
 import { ActionModal } from '../../components/customers/ActionModal';
 import { EditCustomerModal } from '../../components/customers/EditCustomerModal';
 import { AddCustomerModal } from '../../components/customers/AddCustomerModal';
+import { CustomerDetailsPanel } from '../../components/customers/CustomerDetailsPanel';
 import { TableSkeleton } from '../../components/ui/Skeletons';
 
 export const CustomerListPage: React.FC = () => {
@@ -48,7 +49,8 @@ export const CustomerListPage: React.FC = () => {
     setCurrentPage(1);
   }, [debouncedSearch]);
   
-  // Modal State
+  // Modal & Selection State
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Customer | null>(null);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -162,7 +164,17 @@ export const CustomerListPage: React.FC = () => {
   const displayTotal = canViewStamp ? activeCount + inactiveTotal : activeCount;
 
   return (
-    <div style={{ flex: 1, padding: '32px 24px 48px', fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ display: 'flex', flex: 1, flexDirection: 'row', overflow: 'hidden', fontFamily: 'Inter, sans-serif' }}>
+      
+      {/* Left Panel (60% or 100%) */}
+      <div style={{ 
+        flex: selectedCustomer ? '0 0 60%' : '1', 
+        padding: '32px 24px 48px', 
+        overflowY: 'auto',
+        transition: 'flex 0.3s ease',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
       
      <DashboardHeader
         title="Customer Registry"
@@ -309,12 +321,28 @@ export const CustomerListPage: React.FC = () => {
               canViewStamp={canViewStamp}
               canSoftDelete={canSoftDelete}
               canEdit={canEdit}
+              isSelected={selectedCustomer?.custno === cust.custno}
+              onClick={() => setSelectedCustomer(cust.custno === selectedCustomer?.custno ? null : cust)}
               onEdit={setEditingCustomer}
               onDelete={setConfirmDelete}
             />
           ))}
         </tbody>
       </DefaultTable.Container>
+      )}
+
+      </div>
+
+      {/* Right Panel (40%) */}
+      {selectedCustomer && (
+        <div style={{ flex: '0 0 40%', height: '100%', overflow: 'hidden' }}>
+          <CustomerDetailsPanel
+            customer={selectedCustomer}
+            onClose={() => setSelectedCustomer(null)}
+            C={C}
+            isDark={isDark}
+          />
+        </div>
       )}
 
       <ActionModal
