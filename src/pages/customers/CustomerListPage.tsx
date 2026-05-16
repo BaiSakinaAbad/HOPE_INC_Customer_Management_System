@@ -36,6 +36,7 @@ export const CustomerListPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [inactiveTotal, setInactiveTotal] = useState(0);
+  const [totalItems, setTotalItems] = useState(0);
   
   // Navigation context for initial filters
   const { navParams } = useNavigation();
@@ -63,15 +64,16 @@ export const CustomerListPage: React.FC = () => {
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const [{ data, error: svcError }, count] = await Promise.all([
-      getCustomers(role ?? 'employee'),
-      getInactiveCustomerCount(role ?? 'employee'),
+    const [{ data, count, error: svcError }, inactiveCount] = await Promise.all([
+      getCustomers(role ?? 'employee', permissions, currentPage, itemsPerPage),
+      getInactiveCustomerCount(role ?? 'employee', permissions),
     ]);
     setCustomers(svcError ? [] : (data ?? []));
-    setInactiveTotal(count);
+    setTotalItems(count ?? 0);
+    setInactiveTotal(inactiveCount);
     setError(svcError);
     setLoading(false);
-  }, [role]);
+  }, [role, permissions, currentPage, itemsPerPage]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -100,9 +102,8 @@ export const CustomerListPage: React.FC = () => {
   }, [customers, debouncedSearch, sortAsc, statusFilter]);
 
   const paginated = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filtered.slice(start, start + itemsPerPage);
-  }, [filtered, currentPage]);
+    return filtered; // Server-side paginated
+  }, [filtered]);
 
   const handleSoftDelete = async () => {
     if (!confirmDelete) return;
@@ -260,7 +261,7 @@ export const CustomerListPage: React.FC = () => {
         )}
         {(debouncedSearch.trim() || statusFilter !== 'ALL') && !loading && (
           <span style={{ fontSize: '12px', color: C.onSurfaceVariant, padding: '5px 10px', borderRadius: '7px', backgroundColor: isDark ? `${C.surfaceContainerHigh}88` : `${C.outlineVariant}22` }}>
-            {filtered.length} of {customers.length} shown
+            {filtered.length} shown
           </span>
         )}
       </div>
@@ -281,8 +282,8 @@ export const CustomerListPage: React.FC = () => {
         <DefaultTable.Container
         pagination={{
           currentPage,
-          totalPages: Math.ceil(filtered.length / itemsPerPage),
-          totalItems: filtered.length,
+          totalPages: Math.ceil(totalItems / itemsPerPage),
+          totalItems: totalItems,
           itemsPerPage,
           onPageChange: setCurrentPage,
         }}

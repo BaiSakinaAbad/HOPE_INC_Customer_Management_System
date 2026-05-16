@@ -17,4 +17,5 @@ export interface Customer {
 export interface CustomerServiceResult<T> {
   data: T | null;
   error: string | null;
+  count?: number;
 }
