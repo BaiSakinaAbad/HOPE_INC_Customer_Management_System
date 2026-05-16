@@ -54,6 +54,9 @@ export const CustomerDetailsPanel: React.FC<CustomerDetailsPanelProps> = ({ cust
     return () => { mounted = false; };
   }, [customer.custno]);
 
+  const totalSales = sales.reduce((sum, sale) => sum + sale.total, 0);
+  const totalOrders = sales.length;
+
   return (
     <div style={{
       width: '100%',
@@ -115,6 +118,37 @@ export const CustomerDetailsPanel: React.FC<CustomerDetailsPanelProps> = ({ cust
           </div>
         )}
       </div>
+
+      {/* Metrics Summary Hero Card */}
+      {!loading && sales.length > 0 && (
+        <div style={{
+          margin: '24px 24px 0 24px',
+          padding: '24px',
+          borderRadius: '16px',
+          backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#f8f8fc',
+          border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'}`,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div>
+            <div style={{ fontSize: '11px', color: C.onSurfaceVariant, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, marginBottom: '8px' }}>
+              Accumulated Sales
+            </div>
+            <div style={{ fontSize: '28px', fontWeight: 800, color: '#34d399', lineHeight: 1 }}>
+              {totalSales.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+            </div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: '11px', color: C.onSurfaceVariant, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, marginBottom: '8px' }}>
+              Total Orders
+            </div>
+            <div style={{ fontSize: '20px', fontWeight: 700, color: C.onSurface, lineHeight: 1 }}>
+              {totalOrders} {totalOrders === 1 ? 'Transaction' : 'Transactions'}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Sections B, C, D: Sales History and Items Breakdown */}
       <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
