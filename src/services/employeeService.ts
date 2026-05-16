@@ -3,6 +3,7 @@
 import { supabase } from '../lib/supabase';
 import type { Employee, EmployeeRole, EmployeeStatus } from '../types/employee';
 import { resetPermissionsToDefaults } from './permissionService';
+import { withCache, invalidateCache } from './cache';
 
 /** Shorthand: check if a specific permission is granted. */
 const hasPermission = (permissions: Record<string, boolean>, id: string): boolean =>
@@ -19,20 +20,22 @@ export async function getEmployees(
     return { data: null, error: 'Permission denied: you do not have access to view users.' };
   }
 
-  const { data, error } = await supabase
-    .from('app_user')
-    .select('id, username, email, role, record_status')
-    .order('email', { ascending: true });
+  return withCache('employees_all', async () => {
+    const { data, error } = await supabase
+      .from('app_user')
+      .select('id, username, email, role, record_status')
+      .order('email', { ascending: true });
 
-  const rows = (data ?? []).map((row) => ({
-    id: String(row.id || ''),
-    username: row.username,
-    email: row.email,
-    role: String(row.role ?? 'USER').toLowerCase() as EmployeeRole,
-    recordstatus: String(row.record_status || 'ACTIVE').toUpperCase() as EmployeeStatus,
-  }));
+    const rows = (data ?? []).map((row) => ({
+      id: String(row.id || ''),
+      username: row.username,
+      email: row.email,
+      role: String(row.role ?? 'USER').toLowerCase() as EmployeeRole,
+      recordstatus: String(row.record_status || 'ACTIVE').toUpperCase() as EmployeeStatus,
+    }));
 
-  return { data: rows as Employee[] | null, error: error?.message || null };
+    return { data: rows as Employee[] | null, error: error?.message || null };
+  });
 }
 
 /**
@@ -82,6 +85,7 @@ export async function updateEmployeeStatus(
     }
   }
 
+  invalidateCache('employees_all');
   return { error: null };
 }
 
@@ -129,5 +133,6 @@ export async function updateEmployeeRole(
     // Don't block the role change — permissions reset is best-effort
   }
 
+  invalidateCache('employees_all');
   return { error: null };
 }

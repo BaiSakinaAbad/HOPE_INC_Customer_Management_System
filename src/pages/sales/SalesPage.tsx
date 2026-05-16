@@ -6,6 +6,7 @@ import { useAuth } from '../../providers/AuthProvider';
 import { useNavigation } from '../../providers/NavigationProvider';
 import { DefaultTable, SearchBar, DashboardHeader, Button } from '../../components/ui';
 import { getSales, type SaleTransaction } from '../../services/salesService';
+import { TableSkeleton } from '../../components/ui/Skeletons';
 
 export const SalesPage: React.FC = () => {
   const { isDark } = useTheme();
@@ -154,8 +155,12 @@ export const SalesPage: React.FC = () => {
         </div>
       )}
 
+      {/* Loading Skeleton */}
+      {loading && <TableSkeleton rows={itemsPerPage} />}
+
       {/* Table */}
-      <DefaultTable.Container
+      {!loading && (
+        <DefaultTable.Container
         pagination={{
           currentPage,
           totalPages: Math.ceil(filtered.length / itemsPerPage),
@@ -261,6 +266,7 @@ export const SalesPage: React.FC = () => {
           ))}
         </tbody>
       </DefaultTable.Container>
+      )}
     </div>
   );
 };

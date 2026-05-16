@@ -9,6 +9,7 @@
  */
 import { supabase } from '../lib/supabase';
 import type { Customer, CustomerServiceResult } from '../types/customer';
+import { withCache, invalidateCache } from './cache';
 
 const COLS = `
   custno:customer_no,
@@ -40,22 +41,24 @@ const hasPermission = (permissions: Record<string, boolean>, id: string): boolea
  * Requires CUST_VIEW permission.
  */
 export async function getCustomers(
-  _role: string,
+  role: string,
   permissions?: Record<string, boolean>,
 ): Promise<CustomerServiceResult<Customer[]>> {
   if (permissions && !hasPermission(permissions, 'CUST_VIEW')) {
     return { data: null, error: 'Permission denied: you do not have access to view customers.' };
   }
 
-  const { data, error } = await supabase
-    .from('customers')
-    .select(COLS)
-    .eq('record_status', 'ACTIVE')
-    .order('customer_name', { ascending: true });
+  return withCache(`customers_active_${role}`, async () => {
+    const { data, error } = await supabase
+      .from('customers')
+      .select(COLS)
+      .eq('record_status', 'ACTIVE')
+      .order('customer_name', { ascending: true });
 
-  if (error) return { data: null, error: error.message };
-  const rows = (data as Customer[]) ?? [];
-  return { data: rows, error: null };
+    if (error) return { data: null, error: error.message };
+    const rows = (data as Customer[]) ?? [];
+    return { data: rows, error: null };
+  });
 }
 
 /**
@@ -63,22 +66,24 @@ export async function getCustomers(
  * Requires CUST_VIEW_INACTIVE permission.
  */
 export async function getDeletedCustomers(
-  _role: string,
+  role: string,
   permissions?: Record<string, boolean>,
 ): Promise<CustomerServiceResult<Customer[]>> {
   if (permissions && !hasPermission(permissions, 'CUST_VIEW_INACTIVE')) {
     return { data: null, error: 'Permission denied: you do not have access to view inactive customers.' };
   }
 
-  const { data, error } = await supabase
-    .from('customers')
-    .select(COLS)
-    .eq('record_status', 'INACTIVE')
-    .order('customer_name', { ascending: true });
+  return withCache(`customers_inactive_${role}`, async () => {
+    const { data, error } = await supabase
+      .from('customers')
+      .select(COLS)
+      .eq('record_status', 'INACTIVE')
+      .order('customer_name', { ascending: true });
 
-  if (error) return { data: null, error: error.message };
-  const rows = (data as Customer[]) ?? [];
-  return { data: rows, error: null };
+    if (error) return { data: null, error: error.message };
+    const rows = (data as Customer[]) ?? [];
+    return { data: rows, error: null };
+  });
 }
 
 /**
@@ -86,16 +91,18 @@ export async function getDeletedCustomers(
  * Requires CUST_VIEW_INACTIVE permission.
  */
 export async function getInactiveCustomerCount(
-  _role: string,
+  role: string,
   permissions?: Record<string, boolean>,
 ): Promise<number> {
   if (permissions && !hasPermission(permissions, 'CUST_VIEW_INACTIVE')) return 0;
 
-  const { count } = await supabase
-    .from('customers')
-    .select('customer_no', { count: 'exact', head: true })
-    .eq('record_status', 'INACTIVE');
-  return count ?? 0;
+  return withCache(`customers_inactive_count_${role}`, async () => {
+    const { count } = await supabase
+      .from('customers')
+      .select('customer_no', { count: 'exact', head: true })
+      .eq('record_status', 'INACTIVE');
+    return count ?? 0;
+  });
 }
 
 /**
@@ -121,6 +128,7 @@ export async function softDeleteCustomer(
     .eq('customer_no', custno);
 
   if (error) return { data: null, error: error.message };
+  invalidateCache('customers', true);
   return { data: null, error: null };
 }
 
@@ -146,6 +154,7 @@ export async function activateCustomer(
     .eq('customer_no', custno);
 
   if (error) return { data: null, error: error.message };
+  invalidateCache('customers', true);
   return { data: null, error: null };
 }
 
@@ -175,6 +184,7 @@ export async function updateCustomer(
     .eq('customer_no', custno);
 
   if (error) return { data: null, error: error.message };
+  invalidateCache('customers', true);
   return { data: null, error: null };
 }
 
@@ -224,5 +234,6 @@ export async function createCustomer(
     });
 
   if (error) return { data: null, error: error.message };
+  invalidateCache('customers', true);
   return { data: null, error: null };
 }

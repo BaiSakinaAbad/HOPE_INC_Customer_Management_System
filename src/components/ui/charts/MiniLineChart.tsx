@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 export interface LinePoint { label: string; value: number }
 
 //Line Chart
-export const MiniLineChart: React.FC<{ points: LinePoint[]; color: string; isDark: boolean }> = ({ points, color, isDark }) => {
+export const MiniLineChart: React.FC<{ points: LinePoint[]; color: string; isDark: boolean; onPointClick?: (index: number) => void; selectedIndex?: number | null }> = ({ points, color, isDark, onPointClick, selectedIndex }) => {
   const [hovered, setHovered] = useState<number | null>(null);
   if (points.length === 0) return null;
 
@@ -105,6 +105,10 @@ export const MiniLineChart: React.FC<{ points: LinePoint[]; color: string; isDar
                 }}
                 onMouseEnter={() => setHovered(i)}
                 onMouseLeave={() => setHovered(null)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPointClick?.(i);
+                }}
               >
                 {/* Vertical dash line on hover */}
                 {hovered === i && (
@@ -131,10 +135,10 @@ export const MiniLineChart: React.FC<{ points: LinePoint[]; color: string; isDar
                   borderRadius: '50%',
                   backgroundColor: isDark ? '#0d1834' : '#fff', // Match card background
                   border: `2px solid ${color}`,
-                  zIndex: 10,
+                  zIndex: selectedIndex === i ? 15 : 10,
                   transition: 'all 0.2s',
-                  boxShadow: hovered === i ? `0 0 15px ${color}` : 'none',
-                  ...(hovered === i ? { transform: 'translate(-50%, -50%) scale(1.5)', backgroundColor: color } : {})
+                  boxShadow: (hovered === i || selectedIndex === i) ? `0 0 15px ${color}` : 'none',
+                  ...((hovered === i || selectedIndex === i) ? { transform: 'translate(-50%, -50%) scale(1.5)', backgroundColor: color } : {})
                 }}
               />
             ))}
@@ -177,15 +181,19 @@ export const MiniLineChart: React.FC<{ points: LinePoint[]; color: string; isDar
               const shortLabel = yearMatch
                 ? rawLabel.replace(/,\s*\d{4}$/, ` '${yearMatch[1].slice(2)}`)
                 : rawLabel;
+              
               // Anchor last label to the right, first to the left, rest centered
               const isLast = i === coords.length - 1;
               const isFirst = i === 0;
               const transform = isLast ? 'translateX(-100%)' : isFirst ? 'translateX(0%)' : 'translateX(-50%)';
+              
               return (
                 <span key={i} style={{ 
                   position: 'absolute', left: `${c.x}%`, transform,
                   fontSize: '10px', color: color, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em',
                   whiteSpace: 'nowrap',
+                  opacity: selectedIndex === null || selectedIndex === i ? 1 : 0.4,
+                  transition: 'opacity 0.2s'
                 }}>
                   {shortLabel}
                 </span>
