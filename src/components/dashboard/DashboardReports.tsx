@@ -126,9 +126,11 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
       return sales.filter(s => s.details.some(d => d.product_code === filter.code));
     }
     if (filter.type === 'DATE') {
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       return sales.filter(s => {
         const d = new Date(s.salesdate);
-        return `${d.getMonth() + 1}/${d.getDate()}` === filter.label;
+        const key = `${monthNames[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+        return key === filter.label;
       });
     }
     return sales;
@@ -169,7 +171,7 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
   }, [filteredSales]);
 
   const topProductsByQuantity = useMemo(() => {
-    return [...productRevenue].sort((a, b) => b.totalQuantity - a.totalQuantity).slice(0, 3);
+    return [...productRevenue].sort((a, b) => b.totalQuantity - a.totalQuantity);
   }, [productRevenue]);
 
   const totalRevenue = useMemo(() => filteredSales.reduce((s, t) => s + t.total, 0), [filteredSales]);
@@ -181,8 +183,9 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
   }, [filteredSales]);
 
   const salesTrend = useMemo(() => {
-    if (!filteredSales.length) return [];
-    const sorted = [...filteredSales].sort((a, b) => new Date(a.salesdate).getTime() - new Date(b.salesdate).getTime());
+    const dataSource = filter.type === 'DATE' ? sales : filteredSales;
+    if (!dataSource.length) return [];
+    const sorted = [...dataSource].sort((a, b) => new Date(a.salesdate).getTime() - new Date(b.salesdate).getTime());
     const groups: Record<string, number> = {};
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     sorted.forEach(s => {
@@ -292,7 +295,7 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
           {/* ── Main report content ── */}
           <div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px', marginBottom: '28px' }}>
-              <ReportSection title="Top 5 Customers" icon={<Crown size={16} style={{ color: '#f59e0b' }} />} C={C} isDark={isDark}>
+              <ReportSection title={`Top ${topCustomers.length} Customer${topCustomers.length === 1 ? '' : 's'}`} icon={<Crown size={16} style={{ color: '#f59e0b' }} />} C={C} isDark={isDark}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead style={{ backgroundColor: isDark ? `${C.surfaceContainer}88` : '#f9f9fc' }}>
                     <tr>
@@ -325,7 +328,7 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
                 </table>
               </ReportSection>
 
-              <ReportSection title="Product Revenue Breakdown" icon={<ShoppingBag size={16} style={{ color: C.secondary }} />} C={C} isDark={isDark}>
+              <ReportSection title={`Product Revenue Breakdown (${productRevenue.length} Products Shown)`} icon={<ShoppingBag size={16} style={{ color: C.secondary }} />} C={C} isDark={isDark}>
                 <div onClick={(e) => e.stopPropagation()} style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '14px', maxHeight: '360px', overflowY: 'auto' }}>
                   {productRevenue.map((p, i) => {
                     const maxRev = productRevenue[0]?.totalRevenue || 1;

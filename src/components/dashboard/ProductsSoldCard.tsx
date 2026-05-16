@@ -15,7 +15,16 @@ export const ProductsSoldCard: React.FC<{
   const maxQty = Math.max(...topProducts.map(p => p.totalQuantity), 1);
 
   return (
-    <div style={{
+    <>
+      <style>
+        {`
+          .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+          .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+          .custom-scrollbar::-webkit-scrollbar-thumb { background: ${isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)'}; border-radius: 4px; }
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: ${isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.25)'}; }
+        `}
+      </style>
+      <div style={{
       backgroundColor: isDark ? 'rgb(13, 24, 52)' : '#ffffff',
       borderRadius: '16px', padding: '20px',
       border: isDark ? '1px solid rgba(255,255,255,0.03)' : `1px solid ${C.outlineVariant}33`,
@@ -28,8 +37,8 @@ export const ProductsSoldCard: React.FC<{
       </div>
       <span style={{ fontSize: '12px', color: isDark ? '#8b94a5' : C.onSurfaceVariant, marginBottom: '4px', fontWeight: 500 }}>Unique Products Total</span>
       <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '28px', fontWeight: 700, color: isDark ? '#fbbf24' : '#1a1a2e', lineHeight: 1, marginBottom: '12px' }}>{totalCount.toLocaleString()}</span>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', flex: 1 }}>
-        {topProducts.map((p, i) => {
+      <div className="max-h-[240px] overflow-y-auto custom-scrollbar overscroll-contain transform-gpu" style={{ display: 'flex', flexDirection: 'column', gap: '14px', paddingRight: '4px' }}>
+        {topProducts.slice(0, 15).map((p, i) => {
           const isSelected = currentFilter.type === 'PRODUCT' && currentFilter.code === p.productCode;
           return (
             <div
@@ -58,5 +67,6 @@ export const ProductsSoldCard: React.FC<{
         })}
       </div>
     </div>
+    </>
   );
 };
