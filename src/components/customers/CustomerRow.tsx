@@ -34,6 +34,8 @@ interface CustomerRowProps {
   canViewStamp: boolean;
   canSoftDelete: boolean;
   canEdit: boolean;
+  isSelected: boolean;
+  onClick: () => void;
   onEdit: (customer: Customer) => void;
   onDelete: (customer: Customer) => void;
 }
@@ -42,7 +44,7 @@ interface CustomerRowProps {
 const DropdownItem: React.FC<{
   icon: React.ReactNode;
   label: string;
-  onClick: () => void;
+  onClick: (e: React.MouseEvent) => void;
   C: DashboardTokens;
   dataTestId?: string;
   danger?: boolean;
@@ -77,28 +79,11 @@ const DropdownItem: React.FC<{
 
 // React.memo prevents re-renders if props haven't changed
 export const CustomerRow: React.FC<CustomerRowProps> = React.memo(({
-  customer: c, C, isDark, canViewStamp, canSoftDelete, canEdit, onEdit, onDelete,
+  customer: c, C, isDark, canViewStamp, canSoftDelete, canEdit, isSelected, onClick, onEdit, onDelete,
 }) => {
   const { navigate } = useNavigation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const [isSalesExpanded, setIsSalesExpanded] = useState(false);
-  const [sales, setSales] = useState<SaleTransaction[]>([]);
-  const [salesLoading, setSalesLoading] = useState(false);
-
-  const handleToggleSales = async () => {
-    setDropdownOpen(false);
-    if (!isSalesExpanded) {
-      setIsSalesExpanded(true);
-      setSalesLoading(true);
-      const { data } = await getSales(c.custno);
-      setSales(data || []);
-      setSalesLoading(false);
-    } else {
-      setIsSalesExpanded(false);
-    }
-  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -116,18 +101,31 @@ export const CustomerRow: React.FC<CustomerRowProps> = React.memo(({
 
   return (
     <React.Fragment>
-    <DefaultTable.Tr>
+    <DefaultTable.Tr 
+      onClick={onClick}
+      style={{ 
+        cursor: 'pointer',
+        backgroundColor: isSelected ? (isDark ? `${C.primary}22` : `${C.primary}11`) : undefined,
+      }}
+    >
       <DefaultTable.Td style={{ fontFamily: 'monospace', fontSize: '12px', fontWeight: 700, color: C.primary }}>
         {c.custno}
       </DefaultTable.Td>
-      <DefaultTable.Td style={{ fontWeight: 600 }}>{c.custname}</DefaultTable.Td>
+      <DefaultTable.Td 
+        style={{ fontWeight: 600, maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+        title={c.custname}
+      >
+        {c.custname}
+      </DefaultTable.Td>
       <DefaultTable.Td
         style={{ color: C.onSurfaceVariant, maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
         title={c.address ?? ''}
       >
         {c.address || '—'}
       </DefaultTable.Td>
-      <DefaultTable.Td style={{ color: C.onSurfaceVariant }}>{c.payterm || '—'}</DefaultTable.Td>
+      <DefaultTable.Td style={{ color: C.onSurfaceVariant, maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={c.payterm ?? ''}>
+        {c.payterm || '—'}
+      </DefaultTable.Td>
       <DefaultTable.Td><StatusBadge status={c.recordstatus} /></DefaultTable.Td>
       
       {canViewStamp && (
@@ -143,7 +141,7 @@ export const CustomerRow: React.FC<CustomerRowProps> = React.memo(({
         <div style={{ position: 'relative', display: 'inline-block' }} ref={dropdownRef}>
           <button
             type="button"
-            onClick={() => setDropdownOpen(!dropdownOpen)}
+            onClick={(e) => { e.stopPropagation(); setDropdownOpen(!dropdownOpen); }}
             style={{
               background: dropdownOpen ? `${C.primary}15` : 'none', 
               border: 'none', cursor: 'pointer',
@@ -167,17 +165,11 @@ export const CustomerRow: React.FC<CustomerRowProps> = React.memo(({
               padding: '4px', display: 'flex', flexDirection: 'column', gap: '2px',
               textAlign: 'left'
             }}>
-              <DropdownItem 
-                icon={<ShoppingCart size={15} />} 
-                label={isSalesExpanded ? "Hide Sales" : "View Sales"} 
-                onClick={handleToggleSales} 
-                C={C} 
-              />
               {canEdit && (
                 <DropdownItem 
                   icon={<Edit2 size={15} />} 
                   label="Edit" 
-                  onClick={() => { setDropdownOpen(false); onEdit(c); }} 
+                  onClick={(e) => { e.stopPropagation(); setDropdownOpen(false); onEdit(c); }} 
                   C={C}
                   /* Test hook for the per-row edit action. */
                   dataTestId="edit-customer-btn"
@@ -187,7 +179,7 @@ export const CustomerRow: React.FC<CustomerRowProps> = React.memo(({
                 <DropdownItem
                   icon={<Trash2 size={15} />}
                   label="Delete"
-                  onClick={() => { setDropdownOpen(false); onDelete(c); }}
+                  onClick={(e) => { e.stopPropagation(); setDropdownOpen(false); onDelete(c); }}
                   C={C}
                   /* Test hook for the per-row delete action. */
                   dataTestId="delete-customer-btn"
@@ -199,94 +191,6 @@ export const CustomerRow: React.FC<CustomerRowProps> = React.memo(({
         </div>
       </DefaultTable.Td>
     </DefaultTable.Tr>
-
-    {isSalesExpanded && (
-      <DefaultTable.Tr>
-        <DefaultTable.Td colSpan={8} style={{ padding: 0, backgroundColor: isDark ? `${C.surfaceContainerHigh}40` : '#f8f8fb' }}>
-          <div style={{ padding: '24px', borderTop: `1px solid ${C.outlineVariant}33`, borderBottom: `1px solid ${C.outlineVariant}33` }}>
-            <h4 style={{ margin: '0 0 16px 0', color: C.onSurface, fontSize: '14px', fontWeight: 700 }}>
-              Sales History for {c.custname}
-            </h4>
-            
-            {salesLoading ? (
-              <p style={{ color: C.onSurfaceVariant, fontSize: '13px' }}>Loading sales...</p>
-            ) : sales.length === 0 ? (
-              <p style={{ color: C.onSurfaceVariant, fontSize: '13px' }}>No sales transactions found.</p>
-            ) : (
-              <div style={{ 
-                backgroundColor: isDark ? C.surfaceContainer : '#fff', 
-                borderRadius: '8px', 
-                border: `1px solid ${C.outlineVariant}55`,
-                overflow: 'hidden'
-              }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-                  <thead style={{ backgroundColor: isDark ? `${C.surfaceContainerHigh}88` : '#f1f1f5' }}>
-                    <tr>
-                      <th style={{ padding: '10px 16px', color: C.onSurfaceVariant, fontWeight: 600, borderBottom: `1px solid ${C.outlineVariant}44` }}>Transaction No</th>
-                      <th style={{ padding: '10px 16px', color: C.onSurfaceVariant, fontWeight: 600, borderBottom: `1px solid ${C.outlineVariant}44` }}>Date</th>
-                      <th style={{ padding: '10px 16px', color: C.onSurfaceVariant, fontWeight: 600, borderBottom: `1px solid ${C.outlineVariant}44` }}>Facilitated By</th>
-                      <th style={{ padding: '10px 16px', color: C.onSurfaceVariant, fontWeight: 600, borderBottom: `1px solid ${C.outlineVariant}44`, textAlign: 'right' }}>Grand Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sales.map((sale, idx) => (
-                      <React.Fragment key={sale.transno}>
-                        <tr style={{ backgroundColor: isDark ? `${C.surfaceContainerHigh}33` : '#fdfdfd' }}>
-                          <td style={{ padding: '10px 16px', fontWeight: 700, color: C.onSurface }}>{sale.transno}</td>
-                          <td style={{ padding: '10px 16px', color: C.onSurfaceVariant }}>{new Date(sale.salesdate).toLocaleDateString()}</td>
-                          <td style={{ padding: '10px 16px', color: C.onSurface }}>{sale.employeeName}</td>
-                          <td style={{ padding: '10px 16px', color: C.onSurface, textAlign: 'right', fontWeight: 700, fontSize: '14px' }}>
-                            {sale.total.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td colSpan={4} style={{ padding: '0 16px 16px 16px', borderBottom: idx < sales.length - 1 ? `1px solid ${C.outlineVariant}55` : 'none' }}>
-                            <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '4px', fontSize: '12px' }}>
-                              <thead style={{ borderBottom: `1px solid ${C.outlineVariant}33` }}>
-                                <tr>
-                                  <th style={{ padding: '4px 8px', color: C.onSurfaceVariant, fontWeight: 500, textAlign: 'left' }}>Product</th>
-                                  <th style={{ padding: '4px 8px', color: C.onSurfaceVariant, fontWeight: 500, textAlign: 'right' }}>Qty</th>
-                                  <th style={{ padding: '4px 8px', color: C.onSurfaceVariant, fontWeight: 500, textAlign: 'right' }}>Price</th>
-                                  <th style={{ padding: '4px 8px', color: C.onSurfaceVariant, fontWeight: 500, textAlign: 'right' }}>Subtotal</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {sale.details?.map((d, i) => (
-                                  <tr key={i} style={{ borderBottom: `1px dashed ${C.outlineVariant}22` }}>
-                                    <td style={{ padding: '6px 8px', color: C.onSurface }}>{d.description} <span style={{ opacity: 0.5 }}>({d.product_code})</span></td>
-                                    <td style={{ padding: '6px 8px', color: C.onSurface, textAlign: 'right' }}>{d.quantity}</td>
-                                    <td style={{ padding: '6px 8px', color: C.onSurfaceVariant, textAlign: 'right' }}>
-                                      {d.unitPrice.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
-                                    </td>
-                                    <td style={{ padding: '6px 8px', color: C.onSurface, textAlign: 'right', fontWeight: 600 }}>
-                                      {d.totalPrice.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </td>
-                        </tr>
-                      </React.Fragment>
-                    ))}
-                  </tbody>
-                  <tfoot>
-                    <tr style={{ backgroundColor: isDark ? `${C.surfaceContainerHigh}dd` : '#f4f4f8', borderTop: `2px solid ${C.outlineVariant}66` }}>
-                      <td colSpan={3} style={{ padding: '12px 16px', fontWeight: 700, color: C.onSurface, textAlign: 'right', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '12px' }}>
-                        Total Sales
-                      </td>
-                      <td style={{ padding: '12px 16px', color: '#22c55e', textAlign: 'right', fontWeight: 800, fontSize: '16px' }}>
-                        {sales.reduce((sum, sale) => sum + sale.total, 0).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            )}
-          </div>
-        </DefaultTable.Td>
-      </DefaultTable.Tr>
-    )}
     </React.Fragment>
   );
 });
