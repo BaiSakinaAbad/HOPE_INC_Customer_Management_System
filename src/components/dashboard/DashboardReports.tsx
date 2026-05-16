@@ -95,7 +95,7 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
         setActiveCustomers(activeCount);
         setInactiveCustomers(inactiveCount);
         setTotalCustomers(activeCount + inactiveCount);
-        
+
         const statusMap = new Map<string, string>();
         customersData.forEach((c: Customer) => statusMap.set(c.custno, c.recordstatus));
         setCustomerStatusMap(statusMap);
@@ -191,7 +191,7 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     sorted.forEach(s => {
       const d = new Date(s.salesdate);
-      const key = `${monthNames[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`; 
+      const key = `${monthNames[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
       groups[key] = (groups[key] || 0) + s.total;
     });
     return Object.entries(groups).map(([label, value]) => ({ label, value })).slice(-7);
@@ -251,16 +251,16 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <div style={{ color: C.primary }}><BarChart3 size={18} /></div>
                 <span style={{ fontSize: '13px', color: C.onSurface, fontWeight: 500 }}>
-                  Filtering dashboard by: 
+                  Filtering dashboard by:
                   <strong style={{ color: C.primary, marginLeft: '6px' }}>
-                    {filter.type === 'CUSTOMER_STATUS' ? `${filter.status} Customers` : 
-                     filter.type === 'CUSTOMER' ? `Customer: ${filter.name}` : 
-                     filter.type === 'PRODUCT' ? `Product: ${filter.name}` : 
-                     `Date: ${filter.label}`}
+                    {filter.type === 'CUSTOMER_STATUS' ? `${filter.status} Customers` :
+                      filter.type === 'CUSTOMER' ? `Customer: ${filter.name}` :
+                        filter.type === 'PRODUCT' ? `Product: ${filter.name}` :
+                          `Date: ${filter.label}`}
                   </strong>
                 </span>
               </div>
-              <button 
+              <button
                 onClick={(e) => { e.stopPropagation(); setFilter({ type: 'NONE' }); }}
                 style={{
                   padding: '6px 12px', borderRadius: '6px', border: `1px solid ${C.outlineVariant}55`,
@@ -282,12 +282,12 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
             {/* Col 1, Row 2: Registered Customers (or fallback) */}
             <div style={{ gridColumn: '1', gridRow: '2' }}>
               {role === 'superadmin'
-                ? <RegisteredCustomersCard 
-                    totalCount={totalCustomers} activeCount={activeCustomers} 
-                    inactiveCount={inactiveCustomers} isDark={isDark} C={C} 
-                    onFilter={(f) => setFilter(f === 'ALL' ? { type: 'NONE' } : { type: 'CUSTOMER_STATUS', status: f })}
-                    currentFilter={filter}
-                  />
+                ? <RegisteredCustomersCard
+                  totalCount={totalCustomers} activeCount={activeCustomers}
+                  inactiveCount={inactiveCustomers} isDark={isDark} C={C}
+                  onFilter={(f) => setFilter(f === 'ALL' ? { type: 'NONE' } : { type: 'CUSTOMER_STATUS', status: f })}
+                  currentFilter={filter}
+                />
                 : <StatCard icon={<Package size={22} style={{ color: '#6366f1' }} />} label="Unique Products" value={uniqueProducts} accent="#6366f1" isDark={isDark} C={C} />
               }
             </div>
@@ -303,167 +303,167 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
 
           {/* ── Main report content ── */}
           <div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px', marginBottom: '28px' }}>
-                <ReportSection title="Top 5 Customers" icon={<Crown size={16} style={{ color: '#f59e0b' }} />} C={C} isDark={isDark}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead style={{ backgroundColor: isDark ? `${C.surfaceContainer}88` : '#f9f9fc' }}>
-                      <tr>
-                        <th style={{ ...thStyle, width: '30px' }}>#</th>
-                        <th style={thStyle}>Customer</th>
-                        <th style={{ ...thStyle, textAlign: 'right' }}>Transactions</th>
-                        <th style={{ ...thStyle, textAlign: 'right' }}>Revenue</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {topCustomers.map((c, i) => (
-                        <tr 
-                          key={c.custno} 
-                          onClick={(e) => { e.stopPropagation(); setFilter({ type: 'CUSTOMER', custno: c.custno, name: c.customerName }); }}
-                          style={{ 
-                            borderBottom: i < topCustomers.length - 1 ? trBorderStyle : 'none',
-                            cursor: 'pointer',
-                            backgroundColor: filter.type === 'CUSTOMER' && filter.custno === c.custno ? (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)') : 'transparent'
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.01)'}
-                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = filter.type === 'CUSTOMER' && filter.custno === c.custno ? (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)') : 'transparent'}
-                        >
-                          <td style={{ ...tdStyle, fontWeight: 800, color: i === 0 ? '#f59e0b' : i === 1 ? '#9ca3af' : i === 2 ? '#b45309' : C.onSurfaceVariant }}>{i + 1}</td>
-                          <td style={tdStyle}><div style={{ fontWeight: 600 }}>{c.customerName}</div><div style={{ fontSize: '11px', color: C.onSurfaceVariant, fontFamily: 'monospace' }}>{c.custno}</div></td>
-                          <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 600 }}>{c.transactionCount}</td>
-                          <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#22c55e' }}>{fmt(c.totalRevenue)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </ReportSection>
-
-                <ReportSection title="Product Revenue Breakdown" icon={<ShoppingBag size={16} style={{ color: C.secondary }} />} C={C} isDark={isDark}>
-                  <div onClick={(e) => e.stopPropagation()} style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '14px', maxHeight: '360px', overflowY: 'auto' }}>
-                    {productRevenue.map((p, i) => {
-                      const maxRev = productRevenue[0]?.totalRevenue || 1;
-                      const isSelected = filter.type === 'PRODUCT' && filter.code === p.productCode;
-                      return (
-                        <div 
-                          key={p.productCode}
-                          onClick={(e) => { e.stopPropagation(); setFilter({ type: 'PRODUCT', code: p.productCode, name: p.description }); }}
-                          style={{ 
-                            cursor: 'pointer', transition: 'all 0.2s',
-                            padding: '8px', borderRadius: '8px',
-                            backgroundColor: isSelected ? (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)') : 'transparent',
-                            opacity: (filter.type === 'PRODUCT' && !isSelected) ? 0.4 : 1
-                          }}
-                          onMouseEnter={(e) => { if (!isSelected) { e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.01)'; } }}
-                          onMouseLeave={(e) => { if (!isSelected) { e.currentTarget.style.backgroundColor = 'transparent'; } }}
-                        >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '6px' }}>
-                            <div><span style={{ fontSize: '13px', fontWeight: 600, color: C.onSurface }}>{p.description}</span></div>
-                            <div style={{ textAlign: 'right' }}><span style={{ fontSize: '13px', fontWeight: 700, color: '#22c55e' }}>{fmt(p.totalRevenue)}</span></div>
-                          </div>
-                          <BarVisual value={p.totalRevenue} max={maxRev} color={i === 0 ? '#22c55e' : i === 1 ? C.primary : C.secondary} />
-                        </div>
-                      );
-                    })}
-                  </div>
-                </ReportSection>
-              </div>
-
-              {/* ── Customer Sales Summary with pagination ── */}
-              <ReportSection title="Customer Sales Summary" icon={<BarChart3 size={16} style={{ color: C.primary }} />} C={C} isDark={isDark}>
-                <div onClick={(e) => e.stopPropagation()} style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead style={{ backgroundColor: isDark ? `${C.surfaceContainer}88` : '#f9f9fc' }}>
-                      <tr>
-                        <th style={thStyle}>Customer No</th>
-                        <th style={thStyle}>Customer Name</th>
-                        <th style={{ ...thStyle, textAlign: 'right' }}>Transactions</th>
-                        <th style={{ ...thStyle, textAlign: 'right' }}>Total Revenue</th>
-                        <th style={{ ...thStyle, width: '200px' }}>Share</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {paginatedSummary.map((c, i) => (
-                        <tr 
-                          key={c.custno} 
-                          onClick={(e) => { e.stopPropagation(); setFilter({ type: 'CUSTOMER', custno: c.custno, name: c.customerName }); }}
-                          style={{ 
-                            borderBottom: i < paginatedSummary.length - 1 ? trBorderStyle : 'none',
-                            cursor: 'pointer',
-                            backgroundColor: filter.type === 'CUSTOMER' && filter.custno === c.custno ? (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)') : 'transparent'
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.01)'}
-                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = filter.type === 'CUSTOMER' && filter.custno === c.custno ? (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)') : 'transparent'}
-                        >
-                          <td style={{ ...tdStyle, fontFamily: 'monospace', fontWeight: 700, color: C.primary }}>{c.custno}</td>
-                          <td style={{ ...tdStyle, fontWeight: 600 }}>{c.customerName}</td>
-                          <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 600 }}>{c.transactionCount}</td>
-                          <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#22c55e' }}>{fmt(c.totalRevenue)}</td>
-                          <td style={{ ...tdStyle, paddingRight: '24px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                              <BarVisual value={c.totalRevenue} max={totalRevenue} color={C.primary} />
-                              <span style={{ fontSize: '11px', fontWeight: 600, color: C.onSurfaceVariant, minWidth: '40px', textAlign: 'right' }}>{totalRevenue > 0 ? `${((c.totalRevenue / totalRevenue) * 100).toFixed(1)}%` : '0%'}</span>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                {/* ── Pagination Controls ── */}
-                {salesTotalPages > 1 && (
-                  <div onClick={(e) => e.stopPropagation()} style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '14px 24px', borderTop: `1px solid ${C.outlineVariant}33`,
-                  }}>
-                    <span style={{ fontSize: '12px', color: C.onSurfaceVariant, fontWeight: 500 }}>
-                      Showing {((salesPage - 1) * SALES_PAGE_SIZE) + 1}–{Math.min(salesPage * SALES_PAGE_SIZE, customerSummary.length)} of {customerSummary.length}
-                    </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <button
-                        onClick={() => setSalesPage(p => Math.max(1, p - 1))}
-                        disabled={salesPage <= 1}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px', marginBottom: '28px' }}>
+              <ReportSection title="Top 5 Customers" icon={<Crown size={16} style={{ color: '#f59e0b' }} />} C={C} isDark={isDark}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead style={{ backgroundColor: isDark ? `${C.surfaceContainer}88` : '#f9f9fc' }}>
+                    <tr>
+                      <th style={{ ...thStyle, width: '30px' }}>#</th>
+                      <th style={thStyle}>Customer</th>
+                      <th style={{ ...thStyle, textAlign: 'right' }}>Transactions</th>
+                      <th style={{ ...thStyle, textAlign: 'right' }}>Revenue</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {topCustomers.map((c, i) => (
+                      <tr
+                        key={c.custno}
+                        onClick={(e) => { e.stopPropagation(); setFilter({ type: 'CUSTOMER', custno: c.custno, name: c.customerName }); }}
                         style={{
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          width: '32px', height: '32px', borderRadius: '8px',
-                          border: `1px solid ${C.outlineVariant}44`, backgroundColor: 'transparent',
-                          color: salesPage <= 1 ? `${C.onSurfaceVariant}44` : C.onSurfaceVariant,
-                          cursor: salesPage <= 1 ? 'not-allowed' : 'pointer',
+                          borderBottom: i < topCustomers.length - 1 ? trBorderStyle : 'none',
+                          cursor: 'pointer',
+                          backgroundColor: filter.type === 'CUSTOMER' && filter.custno === c.custno ? (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)') : 'transparent'
                         }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.01)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = filter.type === 'CUSTOMER' && filter.custno === c.custno ? (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)') : 'transparent'}
                       >
-                        <ChevronLeft size={16} />
-                      </button>
-                      {Array.from({ length: salesTotalPages }, (_, i) => i + 1).map(page => (
-                        <button
-                          key={page}
-                          onClick={() => setSalesPage(page)}
-                          style={{
-                            minWidth: '32px', height: '32px', borderRadius: '8px',
-                            border: page === salesPage ? `1px solid ${C.primary}` : `1px solid ${C.outlineVariant}44`,
-                            backgroundColor: page === salesPage ? `${C.primary}18` : 'transparent',
-                            color: page === salesPage ? C.primary : C.onSurfaceVariant,
-                            fontSize: '12px', fontWeight: page === salesPage ? 700 : 500,
-                            cursor: 'pointer', padding: '0 6px',
-                          }}
-                        >
-                          {page}
-                        </button>
-                      ))}
-                      <button
-                        onClick={() => setSalesPage(p => Math.min(salesTotalPages, p + 1))}
-                        disabled={salesPage >= salesTotalPages}
-                        style={{
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          width: '32px', height: '32px', borderRadius: '8px',
-                          border: `1px solid ${C.outlineVariant}44`, backgroundColor: 'transparent',
-                          color: salesPage >= salesTotalPages ? `${C.onSurfaceVariant}44` : C.onSurfaceVariant,
-                          cursor: salesPage >= salesTotalPages ? 'not-allowed' : 'pointer',
-                        }}
-                      >
-                        <ChevronRight size={16} />
-                      </button>
-                    </div>
-                  </div>
-                )}
+                        <td style={{ ...tdStyle, fontWeight: 800, color: i === 0 ? '#f59e0b' : i === 1 ? '#9ca3af' : i === 2 ? '#b45309' : C.onSurfaceVariant }}>{i + 1}</td>
+                        <td style={tdStyle}><div style={{ fontWeight: 600 }}>{c.customerName}</div><div style={{ fontSize: '11px', color: C.onSurfaceVariant, fontFamily: 'monospace' }}>{c.custno}</div></td>
+                        <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 600 }}>{c.transactionCount}</td>
+                        <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#22c55e' }}>{fmt(c.totalRevenue)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </ReportSection>
+
+              <ReportSection title="Product Revenue Breakdown" icon={<ShoppingBag size={16} style={{ color: C.secondary }} />} C={C} isDark={isDark}>
+                <div onClick={(e) => e.stopPropagation()} style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '14px', maxHeight: '360px', overflowY: 'auto' }}>
+                  {productRevenue.map((p, i) => {
+                    const maxRev = productRevenue[0]?.totalRevenue || 1;
+                    const isSelected = filter.type === 'PRODUCT' && filter.code === p.productCode;
+                    return (
+                      <div
+                        key={p.productCode}
+                        onClick={(e) => { e.stopPropagation(); setFilter({ type: 'PRODUCT', code: p.productCode, name: p.description }); }}
+                        style={{
+                          cursor: 'pointer', transition: 'all 0.2s',
+                          padding: '8px', borderRadius: '8px',
+                          backgroundColor: isSelected ? (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)') : 'transparent',
+                          opacity: (filter.type === 'PRODUCT' && !isSelected) ? 0.4 : 1
+                        }}
+                        onMouseEnter={(e) => { if (!isSelected) { e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.01)'; } }}
+                        onMouseLeave={(e) => { if (!isSelected) { e.currentTarget.style.backgroundColor = 'transparent'; } }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '6px' }}>
+                          <div><span style={{ fontSize: '13px', fontWeight: 600, color: C.onSurface }}>{p.description}</span></div>
+                          <div style={{ textAlign: 'right' }}><span style={{ fontSize: '13px', fontWeight: 700, color: '#22c55e' }}>{fmt(p.totalRevenue)}</span></div>
+                        </div>
+                        <BarVisual value={p.totalRevenue} max={maxRev} color={i === 0 ? '#22c55e' : i === 1 ? C.primary : C.secondary} />
+                      </div>
+                    );
+                  })}
+                </div>
+              </ReportSection>
+            </div>
+
+            {/* ── Customer Sales Summary with pagination ── */}
+            <ReportSection title="Customer Sales Summary" icon={<BarChart3 size={16} style={{ color: C.primary }} />} C={C} isDark={isDark}>
+              <div onClick={(e) => e.stopPropagation()} style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead style={{ backgroundColor: isDark ? `${C.surfaceContainer}88` : '#f9f9fc' }}>
+                    <tr>
+                      <th style={thStyle}>Customer No</th>
+                      <th style={thStyle}>Customer Name</th>
+                      <th style={{ ...thStyle, textAlign: 'right' }}>Transactions</th>
+                      <th style={{ ...thStyle, textAlign: 'right' }}>Total Revenue</th>
+                      <th style={{ ...thStyle, width: '200px' }}>Share</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedSummary.map((c, i) => (
+                      <tr
+                        key={c.custno}
+                        onClick={(e) => { e.stopPropagation(); setFilter({ type: 'CUSTOMER', custno: c.custno, name: c.customerName }); }}
+                        style={{
+                          borderBottom: i < paginatedSummary.length - 1 ? trBorderStyle : 'none',
+                          cursor: 'pointer',
+                          backgroundColor: filter.type === 'CUSTOMER' && filter.custno === c.custno ? (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)') : 'transparent'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.01)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = filter.type === 'CUSTOMER' && filter.custno === c.custno ? (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)') : 'transparent'}
+                      >
+                        <td style={{ ...tdStyle, fontFamily: 'monospace', fontWeight: 700, color: C.primary }}>{c.custno}</td>
+                        <td style={{ ...tdStyle, fontWeight: 600 }}>{c.customerName}</td>
+                        <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 600 }}>{c.transactionCount}</td>
+                        <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#22c55e' }}>{fmt(c.totalRevenue)}</td>
+                        <td style={{ ...tdStyle, paddingRight: '24px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <BarVisual value={c.totalRevenue} max={totalRevenue} color={C.primary} />
+                            <span style={{ fontSize: '11px', fontWeight: 600, color: C.onSurfaceVariant, minWidth: '40px', textAlign: 'right' }}>{totalRevenue > 0 ? `${((c.totalRevenue / totalRevenue) * 100).toFixed(1)}%` : '0%'}</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {/* ── Pagination Controls ── */}
+              {salesTotalPages > 1 && (
+                <div onClick={(e) => e.stopPropagation()} style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  padding: '14px 24px', borderTop: `1px solid ${C.outlineVariant}33`,
+                }}>
+                  <span style={{ fontSize: '12px', color: C.onSurfaceVariant, fontWeight: 500 }}>
+                    Showing {((salesPage - 1) * SALES_PAGE_SIZE) + 1}–{Math.min(salesPage * SALES_PAGE_SIZE, customerSummary.length)} of {customerSummary.length}
+                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <button
+                      onClick={() => setSalesPage(p => Math.max(1, p - 1))}
+                      disabled={salesPage <= 1}
+                      style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        width: '32px', height: '32px', borderRadius: '8px',
+                        border: `1px solid ${C.outlineVariant}44`, backgroundColor: 'transparent',
+                        color: salesPage <= 1 ? `${C.onSurfaceVariant}44` : C.onSurfaceVariant,
+                        cursor: salesPage <= 1 ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                    {Array.from({ length: salesTotalPages }, (_, i) => i + 1).map(page => (
+                      <button
+                        key={page}
+                        onClick={() => setSalesPage(page)}
+                        style={{
+                          minWidth: '32px', height: '32px', borderRadius: '8px',
+                          border: page === salesPage ? `1px solid ${C.primary}` : `1px solid ${C.outlineVariant}44`,
+                          backgroundColor: page === salesPage ? `${C.primary}18` : 'transparent',
+                          color: page === salesPage ? C.primary : C.onSurfaceVariant,
+                          fontSize: '12px', fontWeight: page === salesPage ? 700 : 500,
+                          cursor: 'pointer', padding: '0 6px',
+                        }}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => setSalesPage(p => Math.min(salesTotalPages, p + 1))}
+                      disabled={salesPage >= salesTotalPages}
+                      style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        width: '32px', height: '32px', borderRadius: '8px',
+                        border: `1px solid ${C.outlineVariant}44`, backgroundColor: 'transparent',
+                        color: salesPage >= salesTotalPages ? `${C.onSurfaceVariant}44` : C.onSurfaceVariant,
+                        cursor: salesPage >= salesTotalPages ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </ReportSection>
           </div>
         </>
       )}

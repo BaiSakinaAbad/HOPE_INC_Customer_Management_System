@@ -13,13 +13,13 @@ export const RegisteredCustomersCard: React.FC<{
   currentFilter: DashboardFilter;
 }> = ({ totalCount, activeCount, inactiveCount, isDark, C, onFilter, currentFilter }) => {
   const [hoverArea, setHoverArea] = useState<'CARD' | 'ACTIVE' | 'INACTIVE' | null>(null);
-  
+
   const isStatusFilter = currentFilter.type === 'CUSTOMER_STATUS';
   const isActiveSelected = isStatusFilter && currentFilter.status === 'ACTIVE';
   const isInactiveSelected = isStatusFilter && currentFilter.status === 'INACTIVE';
 
   return (
-    <div 
+    <div
       onClick={(e) => { e.stopPropagation(); onFilter('ALL'); }}
       onMouseEnter={() => setHoverArea('CARD')}
       onMouseLeave={() => setHoverArea(null)}
@@ -28,8 +28,8 @@ export const RegisteredCustomersCard: React.FC<{
         backgroundColor: isDark ? 'rgb(13, 24, 52)' : '#ffffff',
         borderRadius: '16px', padding: '20px',
         border: isDark ? '1px solid rgba(255,255,255,0.03)' : `1px solid ${C.outlineVariant}33`,
-        boxShadow: hoverArea === 'CARD' 
-          ? (isDark ? '0 8px 32px rgba(0,0,0,0.6)' : '0 8px 24px rgba(0,0,0,0.08)') 
+        boxShadow: hoverArea === 'CARD'
+          ? (isDark ? '0 8px 32px rgba(0,0,0,0.6)' : '0 8px 24px rgba(0,0,0,0.08)')
           : (isDark ? '0 4px 20px rgba(0,0,0,0.5)' : '0 2px 10px rgba(0,0,0,0.02)'),
         display: 'flex', flexDirection: 'column',
         minHeight: '140px',
@@ -53,12 +53,12 @@ export const RegisteredCustomersCard: React.FC<{
         {totalCount.toLocaleString()}
       </span>
       <div style={{ display: 'flex', gap: '16px', marginTop: 'auto', paddingTop: '10px' }}>
-        <div 
+        <div
           onClick={(e) => { e.stopPropagation(); onFilter('ACTIVE'); }}
           onMouseEnter={(e) => { e.stopPropagation(); setHoverArea('ACTIVE'); }}
           onMouseLeave={(e) => { e.stopPropagation(); setHoverArea('CARD'); }}
-          style={{ 
-            display: 'flex', alignItems: 'center', gap: '6px', 
+          style={{
+            display: 'flex', alignItems: 'center', gap: '6px',
             cursor: 'pointer',
             padding: '4px 8px', borderRadius: '6px', marginLeft: '-8px',
             backgroundColor: (hoverArea === 'ACTIVE' || isActiveSelected) ? (isDark ? 'rgba(34,197,94,0.1)' : 'rgba(34,197,94,0.08)') : 'transparent',
@@ -70,12 +70,12 @@ export const RegisteredCustomersCard: React.FC<{
           <span style={{ fontSize: '11px', color: isDark ? '#8b94a5' : C.onSurfaceVariant, fontWeight: 500 }}>Active</span>
           <span style={{ fontSize: '13px', fontWeight: 700, color: '#22c55e' }}>{activeCount}</span>
         </div>
-        <div 
+        <div
           onClick={(e) => { e.stopPropagation(); onFilter('INACTIVE'); }}
           onMouseEnter={(e) => { e.stopPropagation(); setHoverArea('INACTIVE'); }}
           onMouseLeave={(e) => { e.stopPropagation(); setHoverArea('CARD'); }}
-          style={{ 
-            display: 'flex', alignItems: 'center', gap: '6px', 
+          style={{
+            display: 'flex', alignItems: 'center', gap: '6px',
             cursor: 'pointer',
             padding: '4px 8px', borderRadius: '6px', marginLeft: '-4px',
             backgroundColor: (hoverArea === 'INACTIVE' || isInactiveSelected) ? (isDark ? 'rgba(255,95,116,0.1)' : 'rgba(255,95,116,0.08)') : 'transparent',

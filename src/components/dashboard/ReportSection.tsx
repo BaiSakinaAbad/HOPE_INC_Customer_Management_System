@@ -2,7 +2,7 @@ import React from 'react';
 import { getDashboardTokens } from '../../providers/ThemeProvider';
 
 export const ReportSection: React.FC<{
-  title: string; icon: React.ReactNode; children: React.ReactNode; 
+  title: string; icon: React.ReactNode; children: React.ReactNode;
   C: ReturnType<typeof getDashboardTokens>; isDark: boolean;
 }> = ({ title, icon, children, C, isDark }) => (
   <div style={{ borderRadius: '16px', backgroundColor: isDark ? C.surfaceContainerHigh : '#fff', border: `1px solid ${C.outlineVariant}44`, overflow: 'hidden' }}>

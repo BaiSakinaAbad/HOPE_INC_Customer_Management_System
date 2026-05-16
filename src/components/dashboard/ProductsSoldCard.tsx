@@ -32,28 +32,28 @@ export const ProductsSoldCard: React.FC<{
         {topProducts.map((p, i) => {
           const isSelected = currentFilter.type === 'PRODUCT' && currentFilter.code === p.productCode;
           return (
-          <div 
-            key={p.description} 
-            onClick={(e) => { e.stopPropagation(); onFilter(p.productCode, p.description); }}
-            style={{ 
-              cursor: 'pointer', transition: 'all 0.2s', 
-              opacity: (currentFilter.type === 'PRODUCT' && !isSelected) ? 0.4 : 0.9,
-              padding: '8px', borderRadius: '8px',
-              backgroundColor: isSelected ? (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)') : 'transparent'
-            }}
-            onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.opacity = '1'; e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)'; }}
-            onMouseLeave={(e) => { if (!isSelected) { e.currentTarget.style.opacity = (currentFilter.type === 'PRODUCT') ? '0.4' : '0.9'; e.currentTarget.style.backgroundColor = 'transparent'; } }}
-          >
-            <div style={{ fontSize: '10px', fontWeight: 600, color: isDark ? '#8b94a5' : C.onSurfaceVariant, marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {p.description.length > 25 ? p.description.substring(0, 25) + '...' : p.description}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ flex: 1, height: '18px', borderRadius: '9px', backgroundColor: `${colors[i % colors.length]}15`, overflow: 'hidden' }}>
-                <div style={{ width: `${(p.totalQuantity / maxQty) * 100}%`, height: '100%', borderRadius: '4px', backgroundColor: colors[i % colors.length], transition: 'width 0.6s ease' }} />
+            <div
+              key={p.description}
+              onClick={(e) => { e.stopPropagation(); onFilter(p.productCode, p.description); }}
+              style={{
+                cursor: 'pointer', transition: 'all 0.2s',
+                opacity: (currentFilter.type === 'PRODUCT' && !isSelected) ? 0.4 : 0.9,
+                padding: '8px', borderRadius: '8px',
+                backgroundColor: isSelected ? (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)') : 'transparent'
+              }}
+              onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.opacity = '1'; e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)'; }}
+              onMouseLeave={(e) => { if (!isSelected) { e.currentTarget.style.opacity = (currentFilter.type === 'PRODUCT') ? '0.4' : '0.9'; e.currentTarget.style.backgroundColor = 'transparent'; } }}
+            >
+              <div style={{ fontSize: '10px', fontWeight: 600, color: isDark ? '#8b94a5' : C.onSurfaceVariant, marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {p.description.length > 25 ? p.description.substring(0, 25) + '...' : p.description}
               </div>
-              <span style={{ fontSize: '11px', fontWeight: 700, color: colors[i % colors.length], minWidth: '28px', textAlign: 'right' }}>{p.totalQuantity}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ flex: 1, height: '18px', borderRadius: '9px', backgroundColor: `${colors[i % colors.length]}15`, overflow: 'hidden' }}>
+                  <div style={{ width: `${(p.totalQuantity / maxQty) * 100}%`, height: '100%', borderRadius: '4px', backgroundColor: colors[i % colors.length], transition: 'width 0.6s ease' }} />
+                </div>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: colors[i % colors.length], minWidth: '28px', textAlign: 'right' }}>{p.totalQuantity}</span>
+              </div>
             </div>
-          </div>
           );
         })}
       </div>
