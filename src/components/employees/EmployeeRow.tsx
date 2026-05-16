@@ -1,3 +1,4 @@
+// Displays a single employee row with action dropdown, role selector, status badge, and permission-based UI. Includes themed styling and keyboard navigation support.
 import React, { useEffect, useRef, useState } from 'react';
 import { ChevronDown, MoreHorizontal, Power, PowerOff, Shield } from 'lucide-react';
 import { type DashboardTokens } from '../../providers/ThemeProvider';

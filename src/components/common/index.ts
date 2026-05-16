@@ -1,5 +1,6 @@
 /** Central export point for common UI layout components like Sidebar, Topbar, and Footer. */
+export { AccessDenied } from './AccessDenied';
 export { Footer } from './Footer';
 export { MainContent } from './MainContent';
 export { Sidebar } from './Sidebar';
-export { Topbar } from './Topbar';
+export { Topbar } from './Topbar';

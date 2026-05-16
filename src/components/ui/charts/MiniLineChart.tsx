@@ -8,11 +8,13 @@ export const MiniLineChart: React.FC<{ points: LinePoint[]; color: string; isDar
   if (points.length === 0) return null;
 
   const maxVal = Math.max(...points.map(p => p.value), 1) * 1.15; // 15% headroom
-  const height = 140; // Increased height for better visibility
+  const height = 140;
   
-  // Calculate coordinates in percentages (0 to 100)
+  // Inset data points so the first and last don't sit at the very edges
+  // This leaves room for x-axis labels and tooltips at both ends
+  const PAD = 6; // percent padding on each side
   const coords = points.map((p, i) => ({
-    x: points.length > 1 ? (i / (points.length - 1)) * 100 : 50,
+    x: points.length > 1 ? PAD + (i / (points.length - 1)) * (100 - PAD * 2) : 50,
     y: 100 - (p.value / maxVal) * 100, 
   }));
 
@@ -27,6 +29,20 @@ export const MiniLineChart: React.FC<{ points: LinePoint[]; color: string; isDar
   }
 
   const fillPath = `${linePath} L100,100 L0,100 Z`;
+
+  // Tooltip edge-aware transform: shift left if near right edge, right if near left
+  const getTooltipTransform = (xPct: number) => {
+    if (xPct > 85) return 'translateX(-85%)';
+    if (xPct < 15) return 'translateX(-15%)';
+    return 'translateX(-50%)';
+  };
+
+  // Same for the arrow
+  const getArrowLeft = (xPct: number) => {
+    if (xPct > 85) return '85%';
+    if (xPct < 15) return '15%';
+    return '50%';
+  };
 
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
@@ -44,7 +60,7 @@ export const MiniLineChart: React.FC<{ points: LinePoint[]; color: string; isDar
         </div>
 
         {/* Chart Area */}
-        <div style={{ flex: 1, position: 'relative' }}>
+        <div style={{ flex: 1, position: 'relative', overflow: 'visible' }}>
           
           {/* Subtle Horizontal Grid Lines */}
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}` }} />
@@ -133,16 +149,20 @@ export const MiniLineChart: React.FC<{ points: LinePoint[]; color: string; isDar
             <div style={{
               position: 'absolute',
               left: `${coords[hovered].x}%`,
-              top: `calc(${coords[hovered].y}% - 35px)`,
-              transform: 'translateX(-50%)',
+              top: `calc(${coords[hovered].y}% - 48px)`,
+              transform: getTooltipTransform(coords[hovered].x),
               backgroundColor: isDark ? '#1e2330' : '#1a1a2e', color: '#fff',
-              padding: '6px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: 700,
+              padding: '8px 14px', borderRadius: '8px', fontSize: '13px', fontWeight: 700,
               whiteSpace: 'nowrap', zIndex: 20, pointerEvents: 'none',
               boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+              textAlign: 'center',
             }}>
-              ${points[hovered].value.toLocaleString()}
+              <div style={{ fontSize: '10px', fontWeight: 600, opacity: 0.75, marginBottom: '2px' }}>
+                {points[hovered].label}
+              </div>
+              <div>${points[hovered].value.toLocaleString()}</div>
               <div style={{
-                position: 'absolute', bottom: '-5px', left: '50%', transform: 'translateX(-50%)',
+                position: 'absolute', bottom: '-5px', left: getArrowLeft(coords[hovered].x), transform: 'translateX(-50%)',
                 width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent',
                 borderTop: `6px solid ${isDark ? '#1e2330' : '#1a1a2e'}`,
               }} />
@@ -153,17 +173,32 @@ export const MiniLineChart: React.FC<{ points: LinePoint[]; color: string; isDar
 
        {/* X-axis labels */}
       <div style={{ display: 'flex', width: '100%', paddingLeft: '48px' /* Align with chart area approx */ }}>
-        <div style={{ flex: 1, position: 'relative', height: '16px' }}>
-           {coords.map((c, i) => (
-             <span key={i} style={{ 
-               position: 'absolute', left: `${c.x}%`, transform: 'translateX(-50%)',
-               fontSize: '12px', color: color, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em',
-               opacity: selectedIndex === null || selectedIndex === i ? 1 : 0.4,
-               transition: 'opacity 0.2s'
-             }}>
-               {points[i].label}
-             </span>
-           ))}
+        <div style={{ flex: 1, position: 'relative', height: '20px' }}>
+           {coords.map((c, i) => {
+              // Shorten label for x-axis: "Mar 21, 2011" → "Mar 21 '11"
+              const rawLabel = points[i].label;
+              const yearMatch = rawLabel.match(/,\s*(\d{4})$/);
+              const shortLabel = yearMatch
+                ? rawLabel.replace(/,\s*\d{4}$/, ` '${yearMatch[1].slice(2)}`)
+                : rawLabel;
+              
+              // Anchor last label to the right, first to the left, rest centered
+              const isLast = i === coords.length - 1;
+              const isFirst = i === 0;
+              const transform = isLast ? 'translateX(-100%)' : isFirst ? 'translateX(0%)' : 'translateX(-50%)';
+              
+              return (
+                <span key={i} style={{ 
+                  position: 'absolute', left: `${c.x}%`, transform,
+                  fontSize: '10px', color: color, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em',
+                  whiteSpace: 'nowrap',
+                  opacity: selectedIndex === null || selectedIndex === i ? 1 : 0.4,
+                  transition: 'opacity 0.2s'
+                }}>
+                  {shortLabel}
+                </span>
+              );
+           })}
         </div>
       </div>
     </div>

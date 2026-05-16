@@ -14,7 +14,7 @@ import { TableSkeleton } from '../../components/ui/Skeletons';
 export const ProductCataloguePage: React.FC = () => {
   const { isDark } = useTheme();
   const C = getDashboardTokens(isDark);
-  const { role } = useAuth();
+  const { role, permissions } = useAuth();
 
   // State for product data, loading, and error handling
   const [products, setProducts] = useState<Product[]>([]);

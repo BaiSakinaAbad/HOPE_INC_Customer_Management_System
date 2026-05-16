@@ -27,7 +27,22 @@ export interface SaleTransaction {
 
 import { withCache } from './cache';
 
-export async function getSales(custno?: string): Promise<{ data: SaleTransaction[] | null; error: string | null }> {
+/** Shorthand: check if a specific permission is granted. */
+const hasPermission = (permissions: Record<string, boolean>, id: string): boolean =>
+  permissions[id] === true;
+
+/**
+ * Fetch all sales transactions, optionally filtered by customer.
+ * Requires SALES_VIEW permission.
+ */
+export async function getSales(
+  custno?: string,
+  permissions?: Record<string, boolean>,
+): Promise<{ data: SaleTransaction[] | null; error: string | null }> {
+  if (permissions && !hasPermission(permissions, 'SALES_VIEW')) {
+    return { data: null, error: 'Permission denied: you do not have access to view sales.' };
+  }
+
   const cacheKey = custno ? `sales_${custno}` : 'sales_all';
   
   return withCache(cacheKey, async () => {
@@ -44,6 +59,7 @@ export async function getSales(custno?: string): Promise<{ data: SaleTransaction
         sales_detail ( product_code, quantity, products ( description ) )
       `)
       .order('sales_date', { ascending: false });
+
 
     if (custno) {
       query = query.eq('customer_no', custno);

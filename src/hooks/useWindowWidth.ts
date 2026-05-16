@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 
+// useWindowWidth — Simple hook to track window width with breakpoint constants
 export const BP = { mobile: 640, tablet: 1024 } as const;
 
 export function useWindowWidth(): number {

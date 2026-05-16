@@ -1,3 +1,4 @@
+//  Displays all employees with role-based access control,
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { RefreshCw, AlertTriangle, ShieldOff, Power, PowerOff, X, Check, Loader2, Lock, RotateCcw } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
@@ -18,7 +19,7 @@ const MODULE_ORDER = ['Customer Module', 'Sales Module', 'Product Module', 'Admi
 export const EmployeeListPage: React.FC = () => {
   const { isDark } = useTheme();
   const C = getDashboardTokens(isDark);
-  const { role, refreshPermissions } = useAuth();
+  const { role, user, refreshPermissions, permissions } = useAuth();
   const { canManageEmployees, canChangeRoles, canDeactivateUsers, canActivateUsers } = useRights();
 
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -56,7 +57,11 @@ export const EmployeeListPage: React.FC = () => {
       return targetRole !== 'superadmin';
     }
 
-    // Admin cannot edit permissions (they can only view user-role perms)
+    // Admin can edit permissions for users (but not other admins or superadmins)
+    if (actorRole === 'admin') {
+      return targetRole === 'user';
+    }
+
     return false;
   }, [viewingPermissionsFor, role]);
 
@@ -151,6 +156,7 @@ export const EmployeeListPage: React.FC = () => {
     const { error: svcError } = await updateEmployeeStatus(
       pendingStatusAction.id,
       pendingStatusAction.recordstatus,
+      permissions,
     );
 
     if (svcError) {
@@ -174,6 +180,7 @@ export const EmployeeListPage: React.FC = () => {
       employee.role,
       newRole,
       role ?? 'admin',
+      permissions,
     );
     if (svcError) {
       setActionError(svcError);
@@ -298,6 +305,7 @@ export const EmployeeListPage: React.FC = () => {
               roleUpdating={roleUpdatingUserId === emp.id}
               onRoleChange={handleRoleChange}
               canEditStatus={
+                emp.id !== user?.id &&
                 emp.role !== 'superadmin' && (
                   emp.recordstatus === 'ACTIVE' ? canDeactivateUsers : canActivateUsers
                 )
@@ -426,7 +434,13 @@ export const EmployeeListPage: React.FC = () => {
                   {permissionsError}
                 </div>
               ) : (
-                (groupedPermissions.find(g => g.module === activePermTab)?.perms ?? []).map((perm) => (
+                (groupedPermissions.find(g => g.module === activePermTab)?.perms ?? []).map((perm) => {
+                  // Admin-category permissions (ADM_*) are only editable by superadmins
+                  const isAdminPerm = perm.permission_id.startsWith('ADM_');
+                  const actorRole = (role ?? '').toLowerCase();
+                  const canToggleThis = canEditTargetPermissions && (!isAdminPerm || actorRole === 'superadmin');
+
+                  return (
                   <div key={perm.permission_id} style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     padding: '14px 0', borderBottom: `1px solid ${C.outlineVariant}12`,
@@ -441,15 +455,15 @@ export const EmployeeListPage: React.FC = () => {
                     </div>
                     <button
                       type="button"
-                      disabled={!canEditTargetPermissions || togglingPermId === perm.permission_id}
+                      disabled={!canToggleThis || togglingPermId === perm.permission_id}
                       onClick={() => handleTogglePermission(perm.permission_id, perm.is_granted)}
                       style={{
                         width: '46px', height: '26px', borderRadius: '13px',
                         backgroundColor: perm.is_granted ? '#22c55e' : (isDark ? '#4a4a5a' : '#d1d5db'),
                         position: 'relative', border: 'none',
-                        cursor: canEditTargetPermissions ? 'pointer' : 'default',
+                        cursor: canToggleThis ? 'pointer' : 'default',
                         transition: 'background-color 0.2s', padding: 0,
-                        opacity: canEditTargetPermissions ? 1 : 0.6, flexShrink: 0,
+                        opacity: canToggleThis ? 1 : 0.6, flexShrink: 0,
                       }}
                     >
                       <div style={{
@@ -471,8 +485,8 @@ export const EmployeeListPage: React.FC = () => {
                       </div>
                     </button>
                   </div>
-                ))
-              )}
+                  );
+                })              )}
             </div>
 
             {canEditTargetPermissions && (

@@ -1,3 +1,5 @@
+// productService — Fetches products and current prices from Supabase, joining with
+// the price_history table to provide complete product catalog and pricing data.
 import { supabase } from '../lib/supabase';
 
 export interface Product {
@@ -10,12 +12,27 @@ export interface Product {
 
 import { withCache } from './cache';
 
-export async function getProducts(): Promise<{ data: Product[] | null; error: string | null }> {
+/** Shorthand: check if a specific permission is granted. */
+const hasPermission = (permissions: Record<string, boolean>, id: string): boolean =>
+  permissions[id] === true;
+
+/**
+ * Fetch all products with pricing.
+ * Requires PROD_VIEW permission.
+ */
+export async function getProducts(
+  permissions?: Record<string, boolean>,
+): Promise<{ data: Product[] | null; error: string | null }> {
+  if (permissions && !hasPermission(permissions, 'PROD_VIEW')) {
+    return { data: null, error: 'Permission denied: you do not have access to view products.' };
+  }
+
   return withCache('products_all', async () => {
     const { data: products, error: pError } = await supabase
       .from('products')
       .select('prodcode:product_code, description, unit')
       .order('product_code', { ascending: true });
+
 
     if (pError) return { data: null, error: pError.message };
 

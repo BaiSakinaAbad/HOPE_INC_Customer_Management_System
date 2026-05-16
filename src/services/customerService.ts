@@ -5,6 +5,7 @@
  *  1. NO `.delete()` calls anywhere in this file — soft-delete only.
  *  2. `getCustomers` adds `record_status = ACTIVE` filter for non-elevated roles.
  *  3. `stamp` is auto-generated as "<ACTION> by <ROLE>:<user> @ <ISO timestamp>".
+ *  4. Permission checks use DB-backed permission flags (not just role strings).
  */
 import { supabase } from '../lib/supabase';
 import type { Customer, CustomerServiceResult } from '../types/customer';
@@ -19,9 +20,6 @@ const COLS = `
   stamp:audit_stamp
 `;
 
-/** Roles that may fetch ALL records (including INACTIVE). */
-const ELEVATED = ['admin', 'superadmin'] as const;
-
 /** Build a human-readable audit stamp under 60 chars. */
 const buildStamp = (action: string, role: string, performedBy: string) => {
   const user = performedBy.split('@')[0].substring(0, 15);
@@ -30,14 +28,26 @@ const buildStamp = (action: string, role: string, performedBy: string) => {
   return stamp.substring(0, 60);
 };
 
+// ── Permission-checking helper ───────────────────────────────────────────────
+
+/** Shorthand: check if a specific permission is granted. */
+const hasPermission = (permissions: Record<string, boolean>, id: string): boolean =>
+  permissions[id] === true;
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Fetch customers.
- * - `employee` (any non-elevated role): ACTIVE records only.
- * - `admin` / `superadmin`: all records (UI filters table, but header uses counts).
+ * Fetch active customers.
+ * Requires CUST_VIEW permission.
  */
-export async function getCustomers(role: string): Promise<CustomerServiceResult<Customer[]>> {
+export async function getCustomers(
+  role: string,
+  permissions?: Record<string, boolean>,
+): Promise<CustomerServiceResult<Customer[]>> {
+  if (permissions && !hasPermission(permissions, 'CUST_VIEW')) {
+    return { data: null, error: 'Permission denied: you do not have access to view customers.' };
+  }
+
   return withCache(`customers_active_${role}`, async () => {
     const { data, error } = await supabase
       .from('customers')
@@ -52,14 +62,17 @@ export async function getCustomers(role: string): Promise<CustomerServiceResult<
 }
 
 /**
- * Fetch soft-deleted (INACTIVE) customers — for admin / superadmin only.
- * UI must gate access; this function fetches without role check as an
- * additional safety layer is provided by Supabase RLS policies.
+ * Fetch soft-deleted (INACTIVE) customers.
+ * Requires CUST_VIEW_INACTIVE permission.
  */
-export async function getDeletedCustomers(role: string): Promise<CustomerServiceResult<Customer[]>> {
-  if (!(ELEVATED as readonly string[]).includes(role.toLowerCase())) {
-    return { data: null, error: 'Access denied' };
+export async function getDeletedCustomers(
+  role: string,
+  permissions?: Record<string, boolean>,
+): Promise<CustomerServiceResult<Customer[]>> {
+  if (permissions && !hasPermission(permissions, 'CUST_VIEW_INACTIVE')) {
+    return { data: null, error: 'Permission denied: you do not have access to view inactive customers.' };
   }
+
   return withCache(`customers_inactive_${role}`, async () => {
     const { data, error } = await supabase
       .from('customers')
@@ -75,10 +88,14 @@ export async function getDeletedCustomers(role: string): Promise<CustomerService
 
 /**
  * Returns the total count of INACTIVE customers — for the stats card.
- * Admin / superadmin only.
+ * Requires CUST_VIEW_INACTIVE permission.
  */
-export async function getInactiveCustomerCount(role: string): Promise<number> {
-  if (!(ELEVATED as readonly string[]).includes(role.toLowerCase())) return 0;
+export async function getInactiveCustomerCount(
+  role: string,
+  permissions?: Record<string, boolean>,
+): Promise<number> {
+  if (permissions && !hasPermission(permissions, 'CUST_VIEW_INACTIVE')) return 0;
+
   return withCache(`customers_inactive_count_${role}`, async () => {
     const { count } = await supabase
       .from('customers')
@@ -90,6 +107,7 @@ export async function getInactiveCustomerCount(role: string): Promise<number> {
 
 /**
  * Soft-delete a customer by setting `record_status` to 'INACTIVE'.
+ * Requires CUST_DEL permission.
  * ⚠️ This NEVER issues a SQL DELETE — only an UPDATE.
  */
 export async function softDeleteCustomer(
@@ -97,10 +115,12 @@ export async function softDeleteCustomer(
   performedBy: string,
   role: string,
   currentStatus: 'ACTIVE' | 'INACTIVE' = 'ACTIVE',
+  permissions?: Record<string, boolean>,
 ): Promise<CustomerServiceResult<null>> {
-  if (role.toLowerCase() !== 'superadmin') {
-    return { data: null, error: 'Only superadmin can soft-delete.' };
+  if (permissions && !hasPermission(permissions, 'CUST_DEL')) {
+    return { data: null, error: 'Permission denied: you do not have permission to delete customers.' };
   }
+
   const stamp = buildStamp(`Deleted [${currentStatus}]`, role, performedBy);
   const { error } = await supabase
     .from('customers')
@@ -114,17 +134,19 @@ export async function softDeleteCustomer(
 
 /**
  * Restore a soft-deleted customer by setting `record_status` to 'ACTIVE'.
- * Admin / superadmin only — enforced at the UI layer via useRights().
+ * Requires CUST_RECOVER permission.
  */
 export async function activateCustomer(
   custno: string,
   performedBy: string,
   role: string,
   targetStatus: 'ACTIVE' | 'INACTIVE' = 'ACTIVE',
+  permissions?: Record<string, boolean>,
 ): Promise<CustomerServiceResult<null>> {
-  if (!(ELEVATED as readonly string[]).includes(role.toLowerCase())) {
-    return { data: null, error: 'Only admin and superadmin can restore.' };
+  if (permissions && !hasPermission(permissions, 'CUST_RECOVER')) {
+    return { data: null, error: 'Permission denied: you do not have permission to restore customers.' };
   }
+
   const stamp = buildStamp('Restored', role, performedBy);
   const { error } = await supabase
     .from('customers')
@@ -138,16 +160,19 @@ export async function activateCustomer(
 
 /**
  * Update a customer's information.
+ * Requires CUST_EDIT permission.
  */
 export async function updateCustomer(
   custno: string,
   updates: Partial<Pick<Customer, 'custname' | 'address' | 'payterm'>>,
   performedBy: string,
   role: string,
+  permissions?: Record<string, boolean>,
 ): Promise<CustomerServiceResult<null>> {
-  if (!(ELEVATED as readonly string[]).includes(role.toLowerCase())) {
-    return { data: null, error: 'Only admin and superadmin can edit customers.' };
+  if (permissions && !hasPermission(permissions, 'CUST_EDIT')) {
+    return { data: null, error: 'Permission denied: you do not have permission to edit customers.' };
   }
+
   const stamp = buildStamp('Updated', role, performedBy);
   const dbUpdates: Record<string, string | null> = { audit_stamp: stamp };
   if (updates.custname !== undefined) dbUpdates.customer_name = updates.custname;
@@ -165,15 +190,18 @@ export async function updateCustomer(
 
 /**
  * Create a new customer with auto-generated custno.
+ * Requires CUST_ADD permission.
  */
 export async function createCustomer(
   data: Pick<Customer, 'custname' | 'address' | 'payterm'>,
   performedBy: string,
   role: string,
+  permissions?: Record<string, boolean>,
 ): Promise<CustomerServiceResult<null>> {
-  if (!(ELEVATED as readonly string[]).includes(role.toLowerCase())) {
-    return { data: null, error: 'Only admin and superadmin can add customers.' };
+  if (permissions && !hasPermission(permissions, 'CUST_ADD')) {
+    return { data: null, error: 'Permission denied: you do not have permission to add customers.' };
   }
+
   // Get the highest customer number currently in the DB.
   const { data: maxRecord, error: maxError } = await supabase
     .from('customers')

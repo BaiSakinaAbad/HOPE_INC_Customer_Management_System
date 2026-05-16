@@ -44,9 +44,10 @@ const DropdownItem: React.FC<{
   label: string;
   onClick: () => void;
   C: DashboardTokens;
+  dataTestId?: string;
   danger?: boolean;
   success?: boolean;
-}> = ({ icon, label, onClick, C, danger, success }) => {
+}> = ({ icon, label, onClick, C, dataTestId, danger, success }) => {
   const [hovered, setHovered] = useState(false);
   const color = danger ? C.error : success ? '#16a34a' : C.onSurface;
   const hoverBg = danger ? `${C.error}15` : success ? 'rgba(34,197,94,0.12)' : `${C.primary}10`;
@@ -54,6 +55,7 @@ const DropdownItem: React.FC<{
   return (
     <button
       type="button"
+      data-testid={dataTestId}
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -176,7 +178,9 @@ export const CustomerRow: React.FC<CustomerRowProps> = React.memo(({
                   icon={<Edit2 size={15} />} 
                   label="Edit" 
                   onClick={() => { setDropdownOpen(false); onEdit(c); }} 
-                  C={C} 
+                  C={C}
+                  /* Test hook for the per-row edit action. */
+                  dataTestId="edit-customer-btn"
                 />
               )}
               {canSoftDelete && (
@@ -185,6 +189,8 @@ export const CustomerRow: React.FC<CustomerRowProps> = React.memo(({
                   label="Delete"
                   onClick={() => { setDropdownOpen(false); onDelete(c); }}
                   C={C}
+                  /* Test hook for the per-row delete action. */
+                  dataTestId="delete-customer-btn"
                   danger
                 />
               )}

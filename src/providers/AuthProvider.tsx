@@ -39,6 +39,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isMounted = useRef(true);
   // Guard against concurrent fetchUserRole calls (getSession + onAuthStateChange race)
   const fetchInFlight = useRef(false);
+  // Tracks the user ID that has been fully initialised (role + permissions loaded).
+  // Component-level ref so it survives React strict-mode double-invocations.
+  const loadedUserIdRef = useRef<string>('');
 
   /**
    * Load permissions: start with role defaults, then overlay any DB results.
@@ -53,7 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!isMounted.current) return;
 
     // Overlay DB results on top of defaults (DB wins where present)
-    if (data) {
+    if (data && Object.keys(data).length > 0) {
       for (const [key, value] of Object.entries(data)) {
         merged[key] = value;
       }
@@ -70,10 +73,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [user, session, role, loadPermissions]);
 
-  const fetchUserRole = async (userId: string, userEmail?: string) => {
+  const fetchUserRole = async (userId: string, userEmail?: string, showLoading = true) => {
     // Prevent duplicate concurrent calls from getSession + onAuthStateChange race
     if (fetchInFlight.current) return;
     fetchInFlight.current = true;
+    if (showLoading) setLoading(true);
 
     try {
       // Step 1: Primary lookup by UUID
@@ -146,26 +150,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
+        loadedUserIdRef.current = session.user.id;
         fetchUserRole(session.user.id, session.user.email);
       } else {
         setLoading(false);
       }
     });
 
-    // Listen for future auth changes (login, logout, token refresh)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    // Listen for auth changes (login / logout).
+    //
+    // We explicitly ignore events that Supabase fires silently when the
+    // window regains focus so the UI never flashes a loading screen:
+    //   • TOKEN_REFRESHED  — silent JWT refresh on focus / timer
+    //   • INITIAL_SESSION  — already handled by getSession() above
+    //   • SIGNED_IN with the same user ID — can accompany TOKEN_REFRESHED
+    //
+    // A full role-fetch only runs when the user ID genuinely changes
+    // (different account) or when the session is cleared (sign-out).
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!isMounted.current) return;
+
+      // Always keep the raw token up-to-date (never triggers loading)
       setSession(session);
       setUser(session?.user ?? null);
 
-      if (session?.user) {
-        fetchUserRole(session.user.id, session.user.email);
-      } else {
+      // Signed out — clear state
+      if (!session?.user) {
+        loadedUserIdRef.current = '';
         setRole(null);
         setRecordstatus(null);
         setPermissions({});
         setLoading(false);
+        return;
       }
+
+      const incomingId = session.user.id;
+
+      // Skip if it's a background/silent event or the same user is already loaded
+      if (
+        event === 'TOKEN_REFRESHED' ||
+        event === 'INITIAL_SESSION'  ||
+        incomingId === loadedUserIdRef.current
+      ) {
+        return;
+      }
+
+      // Genuinely new user signing in — run full initialisation
+      loadedUserIdRef.current = incomingId;
+      fetchUserRole(session.user.id, session.user.email, true);
     });
 
     return () => {
@@ -229,6 +261,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     window.sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
+    // Clear navigation state so next login starts fresh (dashboard for superadmin, customers for others)
     window.sessionStorage.removeItem('dashboard-nav-state');
     await supabase.auth.signOut();
   };

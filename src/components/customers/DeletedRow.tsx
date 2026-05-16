@@ -56,6 +56,8 @@ export const DeletedRow: React.FC<DeletedRowProps> = React.memo(({
         <DefaultTable.Td style={{ textAlign: 'center' }}>
           <button
             type="button"
+            /* Test hook for customer-specific restore actions. */
+            data-testid={`recover-btn-${c.custno}`}
             onClick={() => onActivate(c)}
             onMouseEnter={() => setBtnHovered(true)}
             onMouseLeave={() => setBtnHovered(false)}
