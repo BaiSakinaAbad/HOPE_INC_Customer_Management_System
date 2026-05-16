@@ -1,8 +1,14 @@
+/**
+ * The 40% side-overlay panel component for the Customer Registry layout.
+ * Displays customer metadata, a detailed transaction breakdown, and features an 
+ * interactive popup tracing the historical pricing data of individual purchased items.
+ */
 import React, { useState, useEffect } from 'react';
 import { X, Clock, DollarSign, TrendingUp, Package } from 'lucide-react';
 import { type Customer } from '../../types/customer';
 import { type DashboardTokens } from '../../providers/ThemeProvider';
 import { getSales, type SaleTransaction } from '../../services/salesService';
+import { getProductPriceHistory } from '../../services/productService';
 
 interface CustomerDetailsPanelProps {
   customer: Customer;
@@ -14,21 +20,25 @@ interface CustomerDetailsPanelProps {
 export const CustomerDetailsPanel: React.FC<CustomerDetailsPanelProps> = ({ customer, onClose, C, isDark }) => {
   const [sales, setSales] = useState<SaleTransaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activePriceProduct, setActivePriceProduct] = useState<string | null>(null);
+  const [activePriceProduct, setActivePriceProduct] = useState<{ code: string, desc: string } | null>(null);
+  const [priceHistoryData, setPriceHistoryData] = useState<{effdate: string; unitprice: number}[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
-  const getProductHistory = (productCode: string) => {
-    return sales
-      .filter(s => s.details.some(d => d.product_code === productCode))
-      .map(s => {
-        const detail = s.details.find(d => d.product_code === productCode)!;
-        return {
-          transno: s.transno,
-          date: new Date(s.salesdate).toLocaleDateString(),
-          price: detail.unitPrice
-        };
-      })
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  };
+  useEffect(() => {
+    let mounted = true;
+    if (activePriceProduct) {
+      setLoadingHistory(true);
+      void getProductPriceHistory(activePriceProduct.code).then(({ data }) => {
+        if (mounted) {
+          setPriceHistoryData(data || []);
+          setLoadingHistory(false);
+        }
+      });
+    } else {
+      setPriceHistoryData([]);
+    }
+    return () => { mounted = false; };
+  }, [activePriceProduct]);
 
   useEffect(() => {
     let mounted = true;
@@ -171,50 +181,74 @@ export const CustomerDetailsPanel: React.FC<CustomerDetailsPanelProps> = ({ cust
                           <div style={{ position: 'relative' }}>
                             <button 
                               type="button"
-                              onClick={() => setActivePriceProduct(activePriceProduct === d.product_code ? null : d.product_code)}
+                              onClick={() => setActivePriceProduct(activePriceProduct?.code === d.product_code ? null : { code: d.product_code, desc: d.description })}
                               title="View Price History" 
                               style={{ 
                                 display: 'flex', alignItems: 'center', justifyContent: 'center', 
                                 padding: '3px', borderRadius: '4px', 
-                                backgroundColor: activePriceProduct === d.product_code ? C.primary : `${C.primary}15`, 
-                                color: activePriceProduct === d.product_code ? '#fff' : C.primary, 
+                                backgroundColor: activePriceProduct?.code === d.product_code ? C.primary : `${C.primary}15`, 
+                                color: activePriceProduct?.code === d.product_code ? '#fff' : C.primary, 
                                 cursor: 'pointer', flexShrink: 0, border: 'none', transition: 'all 0.2s'
                               }}
                             >
                               <TrendingUp size={12} strokeWidth={2.5} />
                             </button>
                             
-                            {activePriceProduct === d.product_code && (
+                            {activePriceProduct?.code === d.product_code && (
                               <div style={{
                                 position: 'absolute',
                                 top: '100%',
                                 left: 0,
                                 marginTop: '8px',
                                 zIndex: 50,
-                                minWidth: '240px',
-                                backgroundColor: isDark ? C.surfaceContainerHigh : '#ffffff',
-                                border: `1px solid ${C.outlineVariant}55`,
-                                borderRadius: '8px',
-                                boxShadow: isDark ? '0 8px 32px rgba(0,0,0,0.6)' : '0 8px 24px rgba(0,0,0,0.12)',
-                                padding: '12px',
-                                cursor: 'default'
+                                minWidth: '340px',
+                                backgroundColor: '#131525',
+                                border: `1px solid rgba(255,255,255,0.08)`,
+                                borderRadius: '12px',
+                                boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
+                                padding: '20px',
+                                cursor: 'default',
+                                color: '#fff'
                               }}>
-                                <div style={{ fontSize: '11px', fontWeight: 700, color: C.onSurfaceVariant, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                  Price History: {d.product_code}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#fff', lineHeight: 1.2 }}>
+                                    Price History: {activePriceProduct.desc}
+                                  </div>
+                                  <button onClick={() => setActivePriceProduct(null)} style={{ background: 'rgba(255,255,255,0.08)', border: 'none', color: '#fff', borderRadius: '6px', padding: '5px', cursor: 'pointer', display: 'flex' }}>
+                                    <X size={14} />
+                                  </button>
                                 </div>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '8px', fontSize: '11px', color: C.onSurfaceVariant, fontWeight: 600, borderBottom: `1px solid ${C.outlineVariant}33`, paddingBottom: '4px', marginBottom: '6px' }}>
-                                  <div>Date</div>
-                                  <div>Invoice</div>
-                                  <div style={{ textAlign: 'right' }}>Price</div>
+                                <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '16px', fontFamily: 'monospace' }}>
+                                  {activePriceProduct.code}
                                 </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '160px', overflowY: 'auto' }}>
-                                  {getProductHistory(d.product_code).map((h, hIdx) => (
-                                    <div key={`${h.transno}-${hIdx}`} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '8px', fontSize: '12px', color: C.onSurface, alignItems: 'center' }}>
-                                      <div>{h.date}</div>
-                                      <div style={{ fontFamily: 'monospace', fontSize: '11px' }}>{h.transno}</div>
-                                      <div style={{ textAlign: 'right', fontWeight: 600 }}>{h.price.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</div>
-                                    </div>
-                                  ))}
+
+                                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '8px', fontSize: '11px', color: 'rgba(255,255,255,0.7)', fontWeight: 700, borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                  <div>Effective Date</div>
+                                  <div>Price</div>
+                                  <div>Status</div>
+                                </div>
+
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0', maxHeight: '200px', overflowY: 'auto' }}>
+                                  {loadingHistory ? (
+                                    <div style={{ padding: '20px', textAlign: 'center', color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>Loading history...</div>
+                                  ) : priceHistoryData.length === 0 ? (
+                                    <div style={{ padding: '20px', textAlign: 'center', color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>No history found</div>
+                                  ) : priceHistoryData.map((h, hIdx) => {
+                                    const isCurrent = hIdx === 0;
+                                    return (
+                                      <div key={hIdx} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '8px', fontSize: '13px', color: '#fff', alignItems: 'center', padding: '12px 0', borderBottom: hIdx < priceHistoryData.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+                                        <div style={{ fontWeight: 600 }}>{new Date(h.effdate).toLocaleDateString()}</div>
+                                        <div style={{ fontWeight: 700 }}>{h.unitprice.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</div>
+                                        <div>
+                                          {isCurrent ? (
+                                            <span style={{ backgroundColor: 'rgba(34,197,94,0.15)', color: '#4ade80', padding: '4px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 700 }}>Current</span>
+                                          ) : (
+                                            <span style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)', padding: '4px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 700 }}>Historical</span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
                                 </div>
                               </div>
                             )}

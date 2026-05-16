@@ -1,5 +1,8 @@
-// productService — Fetches products and current prices from Supabase, joining with
-// the price_history table to provide complete product catalog and pricing data.
+/**
+ * Service functions for product-related data operations.
+ * Handles fetching the product catalog, resolving current pricing, and retrieving 
+ * complete historical price logs directly from the Supabase price_history table.
+ */
 import { supabase } from '../lib/supabase';
 
 export interface Product {
@@ -62,4 +65,18 @@ export async function getProducts(
 
     return { data: enriched, error: null };
   });
+}
+
+/**
+ * Fetch price history for a specific product code.
+ */
+export async function getProductPriceHistory(productCode: string): Promise<{ data: { effdate: string; unitprice: number }[] | null; error: string | null }> {
+  const { data: prices, error } = await supabase
+    .from('price_history')
+    .select('effdate:effective_date, unitprice:unit_price')
+    .eq('product_code', productCode)
+    .order('effective_date', { ascending: false });
+
+  if (error) return { data: null, error: error.message };
+  return { data: prices, error: null };
 }

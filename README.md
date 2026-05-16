@@ -20,7 +20,7 @@ This project was developed by **3rd Year Computer Science students** from **New 
 * **[M4: Vinz (@solanov)](https://github.com/solanov)** – Authentication & Session Management 
 * **[M5: Klyne (@KlyneZyro)](https://github.com/KlyneZyro)** – Quality Assurance & Documentation
 
-## 🚀 Key Features
+## Key Features
 
 * **Role-Based Access Control (RBAC):** Tailored dashboards for `SUPERADMIN`, `ADMIN`, and `USER` roles.
 * **Interactive Analytics:** Real-time data visualization using dynamic charts for revenue and transaction tracking.
@@ -30,7 +30,7 @@ This project was developed by **3rd Year Computer Science students** from **New 
 
 ---
 
-## 🛠️ Setup and Installation
+## Setup and Installation
 
 Follow these steps to set up your local development environment.
 
@@ -81,7 +81,7 @@ npm run test
 
 ---
 
-## 💻 Tech Stack
+## Tech Stack
 
 * **Frontend:** React.js, Vite, Tailwind CSS
 * **Backend/Database:** Supabase (PostgreSQL)
@@ -90,7 +90,7 @@ npm run test
 
 ---
 
-## 📄 License
+## License
 
 This project is for academic purposes. All rights reserved by the development team and New Era University, 2026.
 

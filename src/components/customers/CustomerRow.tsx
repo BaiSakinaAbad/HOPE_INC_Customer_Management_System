@@ -1,3 +1,8 @@
+/**
+ * Renders an individual customer row for the master table in the Customer Registry.
+ * Handles row-selection state, truncation of long text fields, and exposes role-gated
+ * action dropdowns (Edit, Delete) ensuring event isolation from row clicks.
+ */
 import React, { useState, useRef, useEffect } from 'react';
 import { Edit2, MoreHorizontal, ShoppingCart, Trash2 } from 'lucide-react';
 import { type DashboardTokens } from '../../providers/ThemeProvider';
@@ -129,11 +134,10 @@ export const CustomerRow: React.FC<CustomerRowProps> = React.memo(({
       <DefaultTable.Td><StatusBadge status={c.recordstatus} /></DefaultTable.Td>
       
       {canViewStamp && (
-        <DefaultTable.Td
-          style={{ fontFamily: 'monospace', fontSize: '11px', color: C.onSurfaceVariant, maxWidth: '260px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-          title={c.stamp ?? ''}
-        >
-          {c.stamp || '—'}
+        <DefaultTable.Td title={c.stamp ?? ''}>
+          <div className="w-full max-w-full truncate text-ellipsis overflow-hidden whitespace-nowrap" style={{ fontFamily: 'monospace', fontSize: '11px', color: C.onSurfaceVariant }}>
+            {c.stamp || '—'}
+          </div>
         </DefaultTable.Td>
       )}
       

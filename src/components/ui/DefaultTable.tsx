@@ -1,3 +1,8 @@
+/**
+ * Shared, reusable UI table component suite.
+ * Provides consistent styling, pagination, and structural controls (like table-fixed layouts)
+ * for use across different data lists within the application.
+ */
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
@@ -21,7 +26,7 @@ export const DefaultTableContainer: React.FC<{ children: React.ReactNode; pagina
       boxShadow: isDark ? '0 4px 32px rgba(0,0,0,0.25)' : '0 2px 16px rgba(0,0,0,0.05)',
     }}>
       <div style={{ overflow: 'visible' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
+        <table className="table-fixed w-full" style={{ borderCollapse: 'collapse', minWidth: '600px' }}>
           {children}
         </table>
       </div>
