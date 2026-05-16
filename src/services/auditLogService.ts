@@ -127,7 +127,20 @@ export const auditLogService = {
         return { count: 0, error };
       }
 
-      return { count: count ?? ids.length, error: null };
+      const deletedCount = count ?? 0;
+      if (deletedCount === 0) {
+        return {
+          count: 0,
+          error: {
+            message: 'No audit logs were deleted. This usually means the delete policy blocked the operation.',
+            details: 'No rows were affected by the delete statement.',
+            hint: 'Verify that the DELETE policy on audit_logs allows this user to delete these records.',
+            code: 'NO_ROWS_DELETED',
+          } as PostgrestError,
+        };
+      }
+
+      return { count: deletedCount, error: null };
     } catch (err) {
       console.error('Unexpected error deleting audit logs:', err);
       return { count: 0, error: err as PostgrestError };

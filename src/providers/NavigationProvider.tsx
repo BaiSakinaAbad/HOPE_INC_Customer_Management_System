@@ -6,7 +6,7 @@
  * The Sidebar consumes this context to highlight the active item and
  * drive navigation on click.
  */
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 
 export type PageId = 'dashboard' | 'customers' | 'deleted' | 'sales' | 'products' | 'employees' | 'logs';
 const NAV_STATE_KEY = 'dashboard-nav-state';
@@ -62,6 +62,9 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
     }
   });
 
+  // Track previous defaultPage to detect actual role changes vs URL changes
+  const prevDefaultPageRef = useRef(defaultPage);
+
   const navigate = (page: PageId, params?: Record<string, any>) => {
     setCurrentPage(page);
     setNavParams(params || {});
@@ -74,11 +77,19 @@ export const NavigationProvider: React.FC<NavigationProviderProps> = ({ children
     );
   }, [currentPage, navParams]);
 
-  // Dynamic role change check: if defaultPage changes to non-dashboard, kick from dashboard
+  // Dynamic role change check: only kick from dashboard if the role actually changed
+  // (detected by defaultPage changing FROM 'dashboard' TO something else),
+  // NOT when navigating between other pages
   useEffect(() => {
-    if (currentPage === 'dashboard' && defaultPage !== 'dashboard') {
+    if (
+      currentPage === 'dashboard' &&
+      defaultPage !== 'dashboard' &&
+      prevDefaultPageRef.current === 'dashboard'
+    ) {
+      // Role changed: user no longer has dashboard access
       setCurrentPage(defaultPage);
     }
+    prevDefaultPageRef.current = defaultPage;
   }, [defaultPage, currentPage]);
 
   return (

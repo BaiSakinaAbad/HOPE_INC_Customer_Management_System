@@ -235,15 +235,24 @@ export const LogsPage: React.FC = () => {
     if (!selectedIds.size) return;
     setDeleting(true);
     setDeleteError(null);
-    const { error: err } = await auditLogService.deleteLogs([...selectedIds]);
+
+    const { count, error: err } = await auditLogService.deleteLogs([...selectedIds]);
     if (err) {
       setDeleteError(err.message || 'Failed to delete logs.');
-    } else {
-      setLogs(prev => prev.filter(l => !selectedIds.has(l.id)));
-      setSelectedIds(new Set());
-      lastClickedIndexRef.current = null;
-      setDeleteConfirm(false);
+      setDeleting(false);
+      return;
     }
+
+    if (!count) {
+      setDeleteError('No audit logs were deleted. This may be a delete permission issue.');
+      setDeleting(false);
+      return;
+    }
+
+    setLogs(prev => prev.filter(l => !selectedIds.has(l.id)));
+    setSelectedIds(new Set());
+    lastClickedIndexRef.current = null;
+    setDeleteConfirm(false);
     setDeleting(false);
   };
 
