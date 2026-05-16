@@ -43,22 +43,26 @@ const hasPermission = (permissions: Record<string, boolean>, id: string): boolea
 export async function getCustomers(
   role: string,
   permissions?: Record<string, boolean>,
+  currentPage: number = 1,
+  itemsPerPage: number = 10
 ): Promise<CustomerServiceResult<Customer[]>> {
   if (permissions && !hasPermission(permissions, 'CUST_VIEW')) {
-    return { data: null, error: 'Permission denied: you do not have access to view customers.' };
+    return { data: null, error: 'Permission denied: you do not have access to view customers.', count: 0 };
   }
 
-  return withCache(`customers_active_${role}`, async () => {
-    const { data, error } = await supabase
-      .from('customers')
-      .select(COLS)
-      .eq('record_status', 'ACTIVE')
-      .order('customer_name', { ascending: true });
+  const from = (currentPage - 1) * itemsPerPage;
+  const to = from + itemsPerPage - 1;
 
-    if (error) return { data: null, error: error.message };
-    const rows = (data as Customer[]) ?? [];
-    return { data: rows, error: null };
-  });
+  const { data, count, error } = await supabase
+    .from('customers')
+    .select('custno:customer_no, custname:customer_name, address, payterm:payment_term, recordstatus:record_status', { count: 'exact' })
+    .eq('record_status', 'ACTIVE')
+    .order('customer_name', { ascending: true })
+    .range(from, to);
+
+  if (error) return { data: null, error: error.message, count: 0 };
+  const rows = (data as Customer[]) ?? [];
+  return { data: rows, error: null, count: count ?? 0 };
 }
 
 /**
