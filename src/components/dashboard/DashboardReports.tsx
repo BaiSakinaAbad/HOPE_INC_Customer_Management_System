@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import {
-  TrendingUp, Users, ShoppingBag, DollarSign, UserCheck,
+  ShoppingBag, DollarSign, UserCheck,
   RefreshCw, BarChart3, Crown, Package, AlertCircle
 } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
@@ -9,10 +9,8 @@ import { getSales, type SaleTransaction } from '../../services/salesService';
 import { getEmployees } from '../../services/employeeService';
 import { getCustomers, getInactiveCustomerCount } from '../../services/customerService';
 import { useAuth } from '../../providers/AuthProvider';
-import { useNavigation } from '../../providers/NavigationProvider';
-import { MiniBarChart } from '../ui/charts/MiniBarChart';
-import { MiniLineChart } from '../ui/charts/MiniLineChart';
 import type { Employee } from '../../types/employee';
+import type { Customer } from '../../types/customer';
 //dashboard reports
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -41,269 +39,18 @@ interface DashboardReportsProps {
   firstName: string;
 }
 
-type DashboardFilter = 
-  | { type: 'NONE' }
-  | { type: 'CUSTOMER_STATUS', status: 'ACTIVE' | 'INACTIVE' }
-  | { type: 'CUSTOMER', custno: string, name: string }
-  | { type: 'PRODUCT', code: string, name: string }
-  | { type: 'DATE', label: string };
+import type { DashboardFilter } from './types';
+import { StatCard } from './StatCard';
+import { RegisteredCustomersCard } from './RegisteredCustomersCard';
+import { TotalTransactionsCard } from './TotalTransactionsCard';
+import { ProductsSoldCard } from './ProductsSoldCard';
+import { ReportSection } from './ReportSection';
+import { BarVisual } from './BarVisual';
+import { DashboardSkeleton } from '../ui/Skeletons';
 
 // ─── Helper: Currency Formatter ──────────────────────────────────────────────
 const fmt = (n: number) =>
   n.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-
-// ─── Stat Card (tall style matching other cards) ─────────────────────────────
-const StatCard: React.FC<{
-  icon: React.ReactNode;
-  label: string;
-  value: string | number;
-  accent: string;
-  isDark: boolean;
-  C: ReturnType<typeof getDashboardTokens>;
-}> = ({ icon, label, value, accent, isDark, C }) => (
-  <div style={{
-    backgroundColor: isDark ? 'rgb(13, 24, 52)' : '#ffffff',
-    borderRadius: '16px', padding: '20px',
-    border: isDark ? '1px solid rgba(255,255,255,0.03)' : `1px solid ${C.outlineVariant}33`,
-    boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.5)' : '0 2px 10px rgba(0,0,0,0.02)',
-    display: 'flex', flexDirection: 'column',
-    minHeight: '140px',
-  }}>
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-      <div style={{ color: accent }}>{icon}</div>
-      <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: accent }}>
-        {label}
-      </span>
-    </div>
-    <span style={{ fontSize: '12px', color: isDark ? '#8b94a5' : C.onSurfaceVariant, marginBottom: '4px', fontWeight: 500 }}>
-      All-time Total
-    </span>
-    <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '28px', fontWeight: 700, color: isDark ? accent : '#1a1a2e', lineHeight: 1 }}>
-      {value}
-    </span>
-  </div>
-);
-
-// ─── Registered Customers Card ────────────────────────────────────────────────
-const RegisteredCustomersCard: React.FC<{
-  totalCount: number;
-  activeCount: number;
-  inactiveCount: number;
-  isDark: boolean;
-  C: ReturnType<typeof getDashboardTokens>;
-  onFilter: (filter: 'ALL' | 'ACTIVE' | 'INACTIVE') => void;
-  currentFilter: DashboardFilter;
-}> = ({ totalCount, activeCount, inactiveCount, isDark, C, onFilter, currentFilter }) => {
-  const [hoverArea, setHoverArea] = useState<'CARD' | 'ACTIVE' | 'INACTIVE' | null>(null);
-  
-  const isStatusFilter = currentFilter.type === 'CUSTOMER_STATUS';
-  const isActiveSelected = isStatusFilter && currentFilter.status === 'ACTIVE';
-  const isInactiveSelected = isStatusFilter && currentFilter.status === 'INACTIVE';
-
-  return (
-    <div 
-      onClick={(e) => { e.stopPropagation(); onFilter('ALL'); }}
-      onMouseEnter={() => setHoverArea('CARD')}
-      onMouseLeave={() => setHoverArea(null)}
-      style={{
-        flex: '1 1 260px',
-        backgroundColor: isDark ? 'rgb(13, 24, 52)' : '#ffffff',
-        borderRadius: '16px', padding: '20px',
-        border: isDark ? '1px solid rgba(255,255,255,0.03)' : `1px solid ${C.outlineVariant}33`,
-        boxShadow: hoverArea === 'CARD' 
-          ? (isDark ? '0 8px 32px rgba(0,0,0,0.6)' : '0 8px 24px rgba(0,0,0,0.08)') 
-          : (isDark ? '0 4px 20px rgba(0,0,0,0.5)' : '0 2px 10px rgba(0,0,0,0.02)'),
-        display: 'flex', flexDirection: 'column',
-        minHeight: '140px',
-        cursor: 'pointer',
-        transition: 'all 0.2s ease',
-        transform: hoverArea === 'CARD' ? 'translateY(-2px)' : 'none'
-      }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-        <div style={{ color: '#8b5cf6' }}>
-          <Users size={18} />
-        </div>
-        <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#8b5cf6' }}>
-          REGISTERED CUSTOMERS
-        </span>
-      </div>
-      <span style={{ fontSize: '12px', color: isDark ? '#8b94a5' : C.onSurfaceVariant, marginBottom: '4px', fontWeight: 500 }}>
-        Customer Total
-      </span>
-      <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '28px', fontWeight: 700, color: isDark ? '#8b5cf6' : '#1a1a2e', lineHeight: 1 }}>
-        {totalCount.toLocaleString()}
-      </span>
-      <div style={{ display: 'flex', gap: '16px', marginTop: 'auto', paddingTop: '10px' }}>
-        <div 
-          onClick={(e) => { e.stopPropagation(); onFilter('ACTIVE'); }}
-          onMouseEnter={(e) => { e.stopPropagation(); setHoverArea('ACTIVE'); }}
-          onMouseLeave={(e) => { e.stopPropagation(); setHoverArea('CARD'); }}
-          style={{ 
-            display: 'flex', alignItems: 'center', gap: '6px', 
-            cursor: 'pointer',
-            padding: '4px 8px', borderRadius: '6px', marginLeft: '-8px',
-            backgroundColor: (hoverArea === 'ACTIVE' || isActiveSelected) ? (isDark ? 'rgba(34,197,94,0.1)' : 'rgba(34,197,94,0.08)') : 'transparent',
-            transition: 'background-color 0.2s ease',
-            border: isActiveSelected ? `1px solid rgba(34,197,94,0.3)` : '1px solid transparent'
-          }}
-        >
-          <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e' }} />
-          <span style={{ fontSize: '11px', color: isDark ? '#8b94a5' : C.onSurfaceVariant, fontWeight: 500 }}>Active</span>
-          <span style={{ fontSize: '13px', fontWeight: 700, color: '#22c55e' }}>{activeCount}</span>
-        </div>
-        <div 
-          onClick={(e) => { e.stopPropagation(); onFilter('INACTIVE'); }}
-          onMouseEnter={(e) => { e.stopPropagation(); setHoverArea('INACTIVE'); }}
-          onMouseLeave={(e) => { e.stopPropagation(); setHoverArea('CARD'); }}
-          style={{ 
-            display: 'flex', alignItems: 'center', gap: '6px', 
-            cursor: 'pointer',
-            padding: '4px 8px', borderRadius: '6px', marginLeft: '-4px',
-            backgroundColor: (hoverArea === 'INACTIVE' || isInactiveSelected) ? (isDark ? 'rgba(255,95,116,0.1)' : 'rgba(255,95,116,0.08)') : 'transparent',
-            transition: 'background-color 0.2s ease',
-            border: isInactiveSelected ? `1px solid rgba(255,95,116,0.3)` : '1px solid transparent'
-          }}
-        >
-          <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ff5f74' }} />
-          <span style={{ fontSize: '11px', color: isDark ? '#8b94a5' : C.onSurfaceVariant, fontWeight: 500 }}>Inactive</span>
-          <span style={{ fontSize: '13px', fontWeight: 700, color: '#ff5f74' }}>{inactiveCount}</span>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// ─── Total Transactions Card ──────────────────────────────────────────────────
-const TotalTransactionsCard: React.FC<{
-  totalCount: number;
-  points: { label: string; value: number }[];
-  isDark: boolean;
-  C: ReturnType<typeof getDashboardTokens>;
-  onFilter: (dateLabel: string) => void;
-  currentFilter: DashboardFilter;
-}> = ({ totalCount, points, isDark, C, onFilter, currentFilter }) => {
-  const selectedIndex = currentFilter.type === 'DATE' 
-    ? points.findIndex(p => p.label === currentFilter.label) 
-    : null;
-
-  return (
-  <div style={{
-    flex: '1 1 260px',
-    backgroundColor: isDark ? 'rgb(13, 24, 52)' : '#ffffff',
-    borderRadius: '16px', padding: '20px',
-    border: isDark ? '1px solid rgba(255,255,255,0.03)' : `1px solid ${C.outlineVariant}33`,
-    boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.5)' : '0 2px 10px rgba(0,0,0,0.02)',
-    display: 'flex', flexDirection: 'column',
-    minHeight: '140px'
-  }}>
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-       <div style={{ color: C.primary }}>
-         <TrendingUp size={18} />
-       </div>
-       <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: C.primary }}>
-         TOTAL TRANSACTIONS
-       </span>
-    </div>
-    <span style={{ fontSize: '12px', color: isDark ? '#8b94a5' : C.onSurfaceVariant, marginBottom: '4px', fontWeight: 500 }}>
-      All-time Transactions
-    </span>
-    <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '28px', fontWeight: 700, color: isDark ? C.primary : '#1a1a2e', lineHeight: 1 }}>
-      {totalCount.toLocaleString()}
-    </span>
-    <div style={{ marginTop: 'auto', paddingTop: '12px' }}>
-      <MiniLineChart 
-        isDark={isDark} 
-        color={C.primary} 
-        points={points} 
-        onPointClick={(i) => onFilter(points[i].label)} 
-        selectedIndex={selectedIndex === -1 ? null : selectedIndex} 
-      />
-    </div>
-  </div>
-  );
-};
-
-// ─── Products Sold Card (horizontal bars with labels on top) ─────────────────
-const ProductsSoldCard: React.FC<{
-  totalCount: number;
-  topProducts: { productCode: string; description: string; totalQuantity: number }[];
-  isDark: boolean;
-  C: ReturnType<typeof getDashboardTokens>;
-  onFilter: (code: string, name: string) => void;
-  currentFilter: DashboardFilter;
-}> = ({ totalCount, topProducts, isDark, C, onFilter, currentFilter }) => {
-  const colors = ['#f59e0b', '#3b82f6', '#10b981', '#6366f1', '#ec4899'];
-  const maxQty = Math.max(...topProducts.map(p => p.totalQuantity), 1);
-
-  return (
-    <div style={{
-      backgroundColor: isDark ? 'rgb(13, 24, 52)' : '#ffffff',
-      borderRadius: '16px', padding: '20px',
-      border: isDark ? '1px solid rgba(255,255,255,0.03)' : `1px solid ${C.outlineVariant}33`,
-      boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.5)' : '0 2px 10px rgba(0,0,0,0.02)',
-      display: 'flex', flexDirection: 'column', height: '100%',
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-        <div style={{ color: '#f59e0b' }}><ShoppingBag size={18} /></div>
-        <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#f59e0b' }}>PRODUCTS SOLD</span>
-      </div>
-      <span style={{ fontSize: '12px', color: isDark ? '#8b94a5' : C.onSurfaceVariant, marginBottom: '4px', fontWeight: 500 }}>Unique Products Total</span>
-      <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '28px', fontWeight: 700, color: isDark ? '#fbbf24' : '#1a1a2e', lineHeight: 1, marginBottom: '12px' }}>{totalCount.toLocaleString()}</span>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', flex: 1 }}>
-        {topProducts.map((p, i) => {
-          const isSelected = currentFilter.type === 'PRODUCT' && currentFilter.code === p.productCode;
-          return (
-          <div 
-            key={p.description} 
-            onClick={(e) => { e.stopPropagation(); onFilter(p.productCode, p.description); }}
-            style={{ 
-              cursor: 'pointer', transition: 'all 0.2s', 
-              opacity: (currentFilter.type === 'PRODUCT' && !isSelected) ? 0.4 : 0.9,
-              padding: '8px', borderRadius: '8px',
-              backgroundColor: isSelected ? (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)') : 'transparent'
-            }}
-            onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.opacity = '1'; e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)'; }}
-            onMouseLeave={(e) => { if (!isSelected) { e.currentTarget.style.opacity = (currentFilter.type === 'PRODUCT') ? '0.4' : '0.9'; e.currentTarget.style.backgroundColor = 'transparent'; } }}
-          >
-            <div style={{ fontSize: '10px', fontWeight: 600, color: isDark ? '#8b94a5' : C.onSurfaceVariant, marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {p.description.length > 25 ? p.description.substring(0, 25) + '...' : p.description}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ flex: 1, height: '18px', borderRadius: '9px', backgroundColor: `${colors[i % colors.length]}15`, overflow: 'hidden' }}>
-                <div style={{ width: `${(p.totalQuantity / maxQty) * 100}%`, height: '100%', borderRadius: '4px', backgroundColor: colors[i % colors.length], transition: 'width 0.6s ease' }} />
-              </div>
-              <span style={{ fontSize: '11px', fontWeight: 700, color: colors[i % colors.length], minWidth: '28px', textAlign: 'right' }}>{p.totalQuantity}</span>
-            </div>
-          </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
-// ─── Shared Components ────────────────────────────────────────────────────────
-const ReportSection: React.FC<{
-  title: string; icon: React.ReactNode; children: React.ReactNode; 
-  C: ReturnType<typeof getDashboardTokens>; isDark: boolean;
-}> = ({ title, icon, children, C, isDark }) => (
-  <div style={{ borderRadius: '16px', backgroundColor: isDark ? C.surfaceContainerHigh : '#fff', border: `1px solid ${C.outlineVariant}44`, overflow: 'hidden' }}>
-    <div style={{ padding: '20px 24px', borderBottom: `1px solid ${C.outlineVariant}33`, display: 'flex', alignItems: 'center', gap: '10px' }}>
-      <div style={{ width: '32px', height: '32px', borderRadius: '10px', backgroundColor: `${C.primary}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {icon}
-      </div>
-      <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: C.onSurface }}>{title}</h3>
-    </div>
-    <div>{children}</div>
-  </div>
-);
-
-const BarVisual: React.FC<{ value: number; max: number; color: string }> = ({ value, max, color }) => (
-  <div style={{ width: '100%', height: '8px', borderRadius: '4px', backgroundColor: `${color}15`, overflow: 'hidden' }}>
-    <div style={{ width: `${max > 0 ? (value / max) * 100 : 0}%`, height: '100%', borderRadius: '4px', backgroundColor: color, transition: 'width 0.6s ease' }} />
-  </div>
-);
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
@@ -312,7 +59,6 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
   const { isDark } = useTheme();
   const C = getDashboardTokens(isDark);
   const { role } = useAuth();
-  const { navigate } = useNavigation();
 
   const [sales, setSales] = useState<SaleTransaction[]>([]);
   const [pendingAccounts, setPendingAccounts] = useState<PendingAccount[]>([]);
@@ -341,13 +87,13 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
 
       if (role === 'superadmin') {
         const customersData = custRes.data ?? [];
-        const activeCount = customersData.filter((c: any) => c.recordstatus === 'ACTIVE').length;
+        const activeCount = customersData.filter((c: Customer) => c.recordstatus === 'ACTIVE').length;
         setActiveCustomers(activeCount);
         setInactiveCustomers(inactiveCount);
         setTotalCustomers(activeCount + inactiveCount);
         
         const statusMap = new Map<string, string>();
-        customersData.forEach((c: any) => statusMap.set(c.custno, c.recordstatus));
+        customersData.forEach((c: Customer) => statusMap.set(c.custno, c.recordstatus));
         setCustomerStatusMap(statusMap);
       }
 
@@ -356,8 +102,8 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
         .filter((e: Employee) => e.recordstatus === 'INACTIVE')
         .map((e: Employee) => ({ id: e.id, username: e.username ?? '', email: e.email ?? '', role: e.role }));
       setPendingAccounts(inactive);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load dashboard data');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
     }
     setLoading(false);
   }, [role]);
@@ -491,6 +237,8 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
           </button>
         </div>
       </div>
+
+      {loading && !error && <DashboardSkeleton />}
 
       {!loading && !error && (
         <>

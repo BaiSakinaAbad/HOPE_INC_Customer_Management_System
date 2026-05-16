@@ -13,6 +13,7 @@ import { CustomerRow } from '../../components/customers/CustomerRow';
 import { ActionModal } from '../../components/customers/ActionModal';
 import { EditCustomerModal } from '../../components/customers/EditCustomerModal';
 import { AddCustomerModal } from '../../components/customers/AddCustomerModal';
+import { TableSkeleton } from '../../components/ui/Skeletons';
 
 export const CustomerListPage: React.FC = () => {
   const { isDark } = useTheme();
@@ -250,8 +251,12 @@ export const CustomerListPage: React.FC = () => {
         </div>
       )}
 
+      {/* Loading Skeleton */}
+      {loading && <TableSkeleton rows={itemsPerPage} />}
+
       {/* Table */}
-      <DefaultTable.Container
+      {!loading && (
+        <DefaultTable.Container
         pagination={{
           currentPage,
           totalPages: Math.ceil(filtered.length / itemsPerPage),
@@ -300,6 +305,7 @@ export const CustomerListPage: React.FC = () => {
           ))}
         </tbody>
       </DefaultTable.Container>
+      )}
 
       <ActionModal
         isOpen={!!confirmDelete}

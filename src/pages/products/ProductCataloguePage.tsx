@@ -5,6 +5,7 @@ import { useAuth } from '../../providers/AuthProvider';
 import { DefaultTable, SearchBar, DashboardHeader, Button } from '../../components/ui';
 import { getProducts, type Product } from '../../services/productService';
 import { PriceHistoryModal } from '../../components/products/PriceHistoryModal';
+import { TableSkeleton } from '../../components/ui/Skeletons';
 
 /**
  * ProductCataloguePage displays a read-only list of products with their current prices
@@ -127,8 +128,12 @@ export const ProductCataloguePage: React.FC = () => {
         </div>
       )}
 
+      {/* Loading Skeleton */}
+      {loading && <TableSkeleton rows={itemsPerPage} />}
+
       {/* Table */}
-      <DefaultTable.Container
+      {!loading && (
+        <DefaultTable.Container
         pagination={{
           currentPage,
           totalPages: Math.ceil(filtered.length / itemsPerPage),
@@ -196,6 +201,7 @@ export const ProductCataloguePage: React.FC = () => {
           ))}
         </tbody>
       </DefaultTable.Container>
+      )}
 
       {/* Price History Modal Overlay */}
       {selectedProduct && (

@@ -8,6 +8,7 @@
  */
 import { supabase } from '../lib/supabase';
 import type { Customer, CustomerServiceResult } from '../types/customer';
+import { withCache, invalidateCache } from './cache';
 
 const COLS = `
   custno:customer_no,
@@ -37,15 +38,17 @@ const buildStamp = (action: string, role: string, performedBy: string) => {
  * - `admin` / `superadmin`: all records (UI filters table, but header uses counts).
  */
 export async function getCustomers(role: string): Promise<CustomerServiceResult<Customer[]>> {
-  const { data, error } = await supabase
-    .from('customers')
-    .select(COLS)
-    .eq('record_status', 'ACTIVE')
-    .order('customer_name', { ascending: true });
+  return withCache(`customers_active_${role}`, async () => {
+    const { data, error } = await supabase
+      .from('customers')
+      .select(COLS)
+      .eq('record_status', 'ACTIVE')
+      .order('customer_name', { ascending: true });
 
-  if (error) return { data: null, error: error.message };
-  const rows = (data as Customer[]) ?? [];
-  return { data: rows, error: null };
+    if (error) return { data: null, error: error.message };
+    const rows = (data as Customer[]) ?? [];
+    return { data: rows, error: null };
+  });
 }
 
 /**
@@ -57,15 +60,17 @@ export async function getDeletedCustomers(role: string): Promise<CustomerService
   if (!(ELEVATED as readonly string[]).includes(role.toLowerCase())) {
     return { data: null, error: 'Access denied' };
   }
-  const { data, error } = await supabase
-    .from('customers')
-    .select(COLS)
-    .eq('record_status', 'INACTIVE')
-    .order('customer_name', { ascending: true });
+  return withCache(`customers_inactive_${role}`, async () => {
+    const { data, error } = await supabase
+      .from('customers')
+      .select(COLS)
+      .eq('record_status', 'INACTIVE')
+      .order('customer_name', { ascending: true });
 
-  if (error) return { data: null, error: error.message };
-  const rows = (data as Customer[]) ?? [];
-  return { data: rows, error: null };
+    if (error) return { data: null, error: error.message };
+    const rows = (data as Customer[]) ?? [];
+    return { data: rows, error: null };
+  });
 }
 
 /**
@@ -74,11 +79,13 @@ export async function getDeletedCustomers(role: string): Promise<CustomerService
  */
 export async function getInactiveCustomerCount(role: string): Promise<number> {
   if (!(ELEVATED as readonly string[]).includes(role.toLowerCase())) return 0;
-  const { count } = await supabase
-    .from('customers')
-    .select('customer_no', { count: 'exact', head: true })
-    .eq('record_status', 'INACTIVE');
-  return count ?? 0;
+  return withCache(`customers_inactive_count_${role}`, async () => {
+    const { count } = await supabase
+      .from('customers')
+      .select('customer_no', { count: 'exact', head: true })
+      .eq('record_status', 'INACTIVE');
+    return count ?? 0;
+  });
 }
 
 /**
@@ -101,6 +108,7 @@ export async function softDeleteCustomer(
     .eq('customer_no', custno);
 
   if (error) return { data: null, error: error.message };
+  invalidateCache('customers', true);
   return { data: null, error: null };
 }
 
@@ -124,6 +132,7 @@ export async function activateCustomer(
     .eq('customer_no', custno);
 
   if (error) return { data: null, error: error.message };
+  invalidateCache('customers', true);
   return { data: null, error: null };
 }
 
@@ -150,6 +159,7 @@ export async function updateCustomer(
     .eq('customer_no', custno);
 
   if (error) return { data: null, error: error.message };
+  invalidateCache('customers', true);
   return { data: null, error: null };
 }
 
@@ -196,5 +206,6 @@ export async function createCustomer(
     });
 
   if (error) return { data: null, error: error.message };
+  invalidateCache('customers', true);
   return { data: null, error: null };
 }

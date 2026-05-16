@@ -8,6 +8,7 @@ import { fetchUserPermissionsDetailed, updateUserPermission, resetPermissionsToD
 import type { DetailedPermission } from '../../services/permissionService';
 import type { Employee, EmployeeRole, EmployeeStatus } from '../../types/employee';
 import { DefaultTable, DashboardHeader } from '../../components/ui';
+import { TableSkeleton } from '../../components/ui/Skeletons';
 import { EmployeeRow } from '../../components/employees/EmployeeRow';
 import { ActionModal } from '../../components/customers/ActionModal';
 
@@ -262,8 +263,11 @@ export const EmployeeListPage: React.FC = () => {
           <AlertTriangle size={16} /> <span>{actionError}</span>
         </div>
       )}
+      {/* Loading Skeleton */}
+      {loading && <TableSkeleton rows={itemsPerPage} />}
 
-      <DefaultTable.Container
+      {!loading && (
+        <DefaultTable.Container
         pagination={{
           currentPage,
           totalPages: Math.ceil(employees.length / itemsPerPage),
@@ -305,6 +309,7 @@ export const EmployeeListPage: React.FC = () => {
           ))}
         </tbody>
       </DefaultTable.Container>
+      )}
 
       <ActionModal
         isOpen={!!pendingStatusAction}

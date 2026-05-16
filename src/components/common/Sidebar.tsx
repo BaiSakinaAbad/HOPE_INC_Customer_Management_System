@@ -55,16 +55,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerOpen, onClose }) => {
   return (
     <>
       {/* Mobile overlay backdrop */}
-      {drawerOpen && (
-        <div
-          onClick={onClose}
-          style={{
-            position: 'fixed', inset: 0,
-            backgroundColor: isDark ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.2)',
-            zIndex: 99, backdropFilter: 'blur(2px)',
-          }}
-        />
-      )}
+      <div
+        onClick={onClose}
+        style={{
+          position: 'fixed', inset: 0,
+          backgroundColor: isDark ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.4)',
+          zIndex: 99,
+          opacity: drawerOpen ? 1 : 0,
+          pointerEvents: drawerOpen ? 'auto' : 'none',
+          transition: 'opacity 0.3s ease',
+          willChange: 'opacity'
+        }}
+      />
 
       <aside style={{
         position: 'fixed', left: 0, top: 0, width: '256px', height: '100vh',
@@ -72,8 +74,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerOpen, onClose }) => {
         display: 'flex', flexDirection: 'column',
         paddingTop: '32px', paddingBottom: '32px', zIndex: 100,
         borderRight: `1px solid ${C.outlineVariant}1a`,
-        transition: 'transform 0.3s ease, background-color 0.3s ease',
+        transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease',
         transform: drawerOpen ? 'translateX(0)' : 'translateX(-100%)',
+        willChange: 'transform'
       }}>
 
         {/* Brand / close row */}
@@ -189,7 +192,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ label, icon: Icon, active, C,
         borderLeft: active ? `3px solid ${C.primary}` : '3px solid transparent',
         paddingLeft: '21px',      // compensate for 3px border
         cursor: 'pointer', textAlign: 'left',
-        transition: 'all 0.2s ease',
+        transition: 'background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease',
       }}
     >
       <Icon size={18} />
