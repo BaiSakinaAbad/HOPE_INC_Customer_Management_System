@@ -203,11 +203,19 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
   // ── Customer Sales Summary pagination ──
   const SALES_PAGE_SIZE = 10;
   const [salesPage, setSalesPage] = useState(1);
+
+  // Reset page index on filter trigger
+  useEffect(() => {
+    setSalesPage(1);
+  }, [filter]);
+
   const salesTotalPages = Math.ceil(customerSummary.length / SALES_PAGE_SIZE);
+  const safeSalesPage = salesPage > salesTotalPages ? Math.max(1, salesTotalPages) : salesPage;
+
   const paginatedSummary = useMemo(() => {
-    const start = (salesPage - 1) * SALES_PAGE_SIZE;
+    const start = (safeSalesPage - 1) * SALES_PAGE_SIZE;
     return customerSummary.slice(start, start + SALES_PAGE_SIZE);
-  }, [customerSummary, salesPage]);
+  }, [customerSummary, safeSalesPage]);
 
 
   return (
@@ -406,18 +414,18 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
                   padding: '14px 24px', borderTop: `1px solid ${C.outlineVariant}33`,
                 }}>
                   <span style={{ fontSize: '12px', color: C.onSurfaceVariant, fontWeight: 500 }}>
-                    Showing {((salesPage - 1) * SALES_PAGE_SIZE) + 1}–{Math.min(salesPage * SALES_PAGE_SIZE, customerSummary.length)} of {customerSummary.length}
+                    Showing {((safeSalesPage - 1) * SALES_PAGE_SIZE) + 1}–{Math.min(safeSalesPage * SALES_PAGE_SIZE, customerSummary.length)} of {customerSummary.length}
                   </span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <button
                       onClick={() => setSalesPage(p => Math.max(1, p - 1))}
-                      disabled={salesPage <= 1}
+                      disabled={safeSalesPage <= 1}
                       style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         width: '32px', height: '32px', borderRadius: '8px',
                         border: `1px solid ${C.outlineVariant}44`, backgroundColor: 'transparent',
-                        color: salesPage <= 1 ? `${C.onSurfaceVariant}44` : C.onSurfaceVariant,
-                        cursor: salesPage <= 1 ? 'not-allowed' : 'pointer',
+                        color: safeSalesPage <= 1 ? `${C.onSurfaceVariant}44` : C.onSurfaceVariant,
+                        cursor: safeSalesPage <= 1 ? 'not-allowed' : 'pointer',
                       }}
                     >
                       <ChevronLeft size={16} />
@@ -428,10 +436,10 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
                         onClick={() => setSalesPage(page)}
                         style={{
                           minWidth: '32px', height: '32px', borderRadius: '8px',
-                          border: page === salesPage ? `1px solid ${C.primary}` : `1px solid ${C.outlineVariant}44`,
-                          backgroundColor: page === salesPage ? `${C.primary}18` : 'transparent',
-                          color: page === salesPage ? C.primary : C.onSurfaceVariant,
-                          fontSize: '12px', fontWeight: page === salesPage ? 700 : 500,
+                          border: page === safeSalesPage ? `1px solid ${C.primary}` : `1px solid ${C.outlineVariant}44`,
+                          backgroundColor: page === safeSalesPage ? `${C.primary}18` : 'transparent',
+                          color: page === safeSalesPage ? C.primary : C.onSurfaceVariant,
+                          fontSize: '12px', fontWeight: page === safeSalesPage ? 700 : 500,
                           cursor: 'pointer', padding: '0 6px',
                         }}
                       >
@@ -440,13 +448,13 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
                     ))}
                     <button
                       onClick={() => setSalesPage(p => Math.min(salesTotalPages, p + 1))}
-                      disabled={salesPage >= salesTotalPages}
+                      disabled={safeSalesPage >= salesTotalPages}
                       style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         width: '32px', height: '32px', borderRadius: '8px',
                         border: `1px solid ${C.outlineVariant}44`, backgroundColor: 'transparent',
-                        color: salesPage >= salesTotalPages ? `${C.onSurfaceVariant}44` : C.onSurfaceVariant,
-                        cursor: salesPage >= salesTotalPages ? 'not-allowed' : 'pointer',
+                        color: safeSalesPage >= salesTotalPages ? `${C.onSurfaceVariant}44` : C.onSurfaceVariant,
+                        cursor: safeSalesPage >= salesTotalPages ? 'not-allowed' : 'pointer',
                       }}
                     >
                       <ChevronRight size={16} />
