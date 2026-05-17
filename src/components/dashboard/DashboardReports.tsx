@@ -336,34 +336,6 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
                 </table>
               </ReportSection>
 
-              <ReportSection title={`Product Revenue Breakdown (${productRevenue.length} Products Shown)`} icon={<ShoppingBag size={16} style={{ color: C.secondary }} />} C={C} isDark={isDark}>
-                <div onClick={(e) => e.stopPropagation()} style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '14px', maxHeight: '360px', overflowY: 'auto' }}>
-                  {productRevenue.map((p, i) => {
-                    const maxRev = productRevenue[0]?.totalRevenue || 1;
-                    const isSelected = filter.type === 'PRODUCT' && filter.code === p.productCode;
-                    return (
-                      <div
-                        key={p.productCode}
-                        onClick={(e) => { e.stopPropagation(); setFilter({ type: 'PRODUCT', code: p.productCode, name: p.description }); }}
-                        style={{
-                          cursor: 'pointer', transition: 'all 0.2s',
-                          padding: '8px', borderRadius: '8px',
-                          backgroundColor: isSelected ? (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)') : 'transparent',
-                          opacity: (filter.type === 'PRODUCT' && !isSelected) ? 0.4 : 1
-                        }}
-                        onMouseEnter={(e) => { if (!isSelected) { e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.01)'; } }}
-                        onMouseLeave={(e) => { if (!isSelected) { e.currentTarget.style.backgroundColor = 'transparent'; } }}
-                      >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '6px' }}>
-                          <div><span style={{ fontSize: '13px', fontWeight: 600, color: C.onSurface }}>{p.description}</span></div>
-                          <div style={{ textAlign: 'right' }}><span style={{ fontSize: '13px', fontWeight: 700, color: '#22c55e' }}>{fmt(p.totalRevenue)}</span></div>
-                        </div>
-                        <BarVisual value={p.totalRevenue} max={maxRev} color={i === 0 ? '#22c55e' : i === 1 ? C.primary : C.secondary} />
-                      </div>
-                    );
-                  })}
-                </div>
-              </ReportSection>
             </div>
 
             {/* ── Customer Sales Summary with pagination ── */}
