@@ -45,7 +45,8 @@ export async function getCustomers(
   permissions?: Record<string, boolean>,
   currentPage: number = 1,
   itemsPerPage: number = 10,
-  searchQuery?: string
+  searchQuery?: string,
+  sortAsc?: boolean | null
 ): Promise<CustomerServiceResult<Customer[]>> {
   if (permissions && !hasPermission(permissions, 'CUST_VIEW')) {
     return { data: null, error: 'Permission denied: you do not have access to view customers.', count: 0 };
@@ -67,8 +68,16 @@ export async function getCustomers(
     );
   }
 
+  let sortField = 'customer_name';
+  let isAscending = true;
+
+  if (sortAsc !== undefined && sortAsc !== null) {
+    sortField = 'customer_no';
+    isAscending = sortAsc;
+  }
+
   const { data, count, error } = await query
-    .order('customer_name', { ascending: true })
+    .order(sortField, { ascending: isAscending })
     .range(from, to);
 
   if (error) return { data: null, error: error.message, count: 0 };
