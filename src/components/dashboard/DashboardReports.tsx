@@ -304,8 +304,6 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
                 ? <RegisteredCustomersCard
                   totalCount={totalCustomers} activeCount={activeCustomers}
                   inactiveCount={inactiveCustomers} isDark={isDark} C={C}
-                  onFilter={(f) => setFilter(f === 'ALL' ? { type: 'NONE' } : { type: 'CUSTOMER_STATUS', status: f })}
-                  currentFilter={filter}
                 />
                 : <StatCard icon={<Package size={22} style={{ color: '#6366f1' }} />} label="Unique Products" value={uniqueProducts} accent="#6366f1" isDark={isDark} C={C} />
               }
