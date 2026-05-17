@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
 import { getSales, type SaleTransaction } from '../../services/salesService';
-import { getCustomers, getInactiveCustomerCount } from '../../services/customerService';
+import { getCustomers, getCustomerCounts } from '../../services/customerService';
 import { getEmployees } from '../../services/employeeService';
 import { useAuth } from '../../providers/AuthProvider';
 import { MiniBarChart } from '../ui/charts/MiniBarChart';
@@ -77,23 +77,24 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
     setLoading(true);
     setError(null);
     try {
-      const [salesRes, empRes, custRes, inactiveCount] = await Promise.all([
+      const [salesRes, empRes, countsRes, custRes] = await Promise.all([
         getSales(),
         getEmployees(),
+        role === 'superadmin' ? getCustomerCounts('superadmin') : Promise.resolve({ active: 0, inactive: 0, total: 0 }),
         role === 'superadmin' ? getCustomers('superadmin') : Promise.resolve({ data: null, error: null }),
-        role === 'superadmin' ? getInactiveCustomerCount('superadmin') : Promise.resolve(0),
       ]);
 
       if (salesRes.error) throw new Error(salesRes.error);
       setSales(salesRes.data ?? []);
 
       if (role === 'superadmin') {
-        const customersData = custRes.data ?? [];
-        const activeCount = customersData.filter((c: Customer) => c.recordstatus === 'ACTIVE').length;
-        setActiveCustomers(activeCount);
-        setInactiveCustomers(inactiveCount);
-        setTotalCustomers(activeCount + inactiveCount);
+        // Use dedicated count queries against the customers table
+        setActiveCustomers(countsRes.active);
+        setInactiveCustomers(countsRes.inactive);
+        setTotalCustomers(countsRes.total);
 
+        // Status map still needed for cross-filtering sales by customer status
+        const customersData = custRes.data ?? [];
         const statusMap = new Map<string, string>();
         customersData.forEach((c: Customer) => statusMap.set(c.custno, c.recordstatus));
         setCustomerStatusMap(statusMap);
@@ -311,7 +312,7 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
             </div>
             {/* Col 2, spans both rows: Products Sold */}
             <div style={{ gridColumn: '2', gridRow: '1 / 3' }}>
-              <ProductsSoldCard totalCount={uniqueProducts} topProducts={topProductsByQuantity} isDark={isDark} C={C} onFilter={(code, name) => setFilter({ type: 'PRODUCT', code, name })} currentFilter={filter} />
+              <ProductsSoldCard totalCount={uniqueProducts} topProducts={topProductsByQuantity} isDark={isDark} C={C} />
             </div>
             {/* Col 3 (double-width), spans both rows: Total Transactions */}
             <div style={{ gridColumn: '3', gridRow: '1 / 3' }}>

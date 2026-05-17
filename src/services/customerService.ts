@@ -110,6 +110,37 @@ export async function getInactiveCustomerCount(
 }
 
 /**
+ * Returns the counts of ACTIVE, INACTIVE, and total customers directly
+ * from the `customers` table — used by the dashboard stats card.
+ */
+export async function getCustomerCounts(
+  role: string,
+  permissions?: Record<string, boolean>,
+): Promise<{ active: number; inactive: number; total: number }> {
+  // Permission gate: need at least basic view
+  if (permissions && !hasPermission(permissions, 'CUST_VIEW')) {
+    return { active: 0, inactive: 0, total: 0 };
+  }
+
+  return withCache(`customers_counts_${role}`, async () => {
+    const [activeRes, inactiveRes] = await Promise.all([
+      supabase
+        .from('customers')
+        .select('customer_no', { count: 'exact', head: true })
+        .eq('record_status', 'ACTIVE'),
+      supabase
+        .from('customers')
+        .select('customer_no', { count: 'exact', head: true })
+        .eq('record_status', 'INACTIVE'),
+    ]);
+
+    const active = activeRes.count ?? 0;
+    const inactive = inactiveRes.count ?? 0;
+    return { active, inactive, total: active + inactive };
+  });
+}
+
+/**
  * Soft-delete a customer by setting `record_status` to 'INACTIVE'.
  * Requires CUST_DEL permission.
  * ⚠️ This NEVER issues a SQL DELETE — only an UPDATE.
