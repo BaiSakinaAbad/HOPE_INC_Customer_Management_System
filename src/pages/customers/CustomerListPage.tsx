@@ -65,7 +65,7 @@ export const CustomerListPage: React.FC = () => {
     setLoading(true);
     setError(null);
     const [{ data, count, error: svcError }, inactiveCount] = await Promise.all([
-      getCustomers(role ?? 'employee', permissions, currentPage, itemsPerPage),
+      getCustomers(role ?? 'employee', permissions, currentPage, itemsPerPage, debouncedSearch || undefined),
       getInactiveCustomerCount(role ?? 'employee', permissions),
     ]);
     setCustomers(svcError ? [] : (data ?? []));
@@ -73,10 +73,11 @@ export const CustomerListPage: React.FC = () => {
     setInactiveTotal(inactiveCount);
     setError(svcError);
     setLoading(false);
-  }, [role, permissions, currentPage, itemsPerPage]);
+  }, [role, permissions, currentPage, itemsPerPage, debouncedSearch]);
 
   useEffect(() => { void load(); }, [load]);
 
+  // Client-side: only apply local status filter and sort on the server-paginated results
   const filtered = useMemo(() => {
     let result = customers;
     
@@ -84,13 +85,6 @@ export const CustomerListPage: React.FC = () => {
       result = result.filter(cust => cust.recordstatus === statusFilter);
     }
 
-    const q = debouncedSearch.trim().toLowerCase();
-    if (q) {
-      result = result.filter(cust => 
-        [cust.custno, cust.custname, cust.address ?? '', cust.payterm ?? '']
-          .join(' ').toLowerCase().includes(q)
-      );
-    }
     if (sortAsc !== null) {
       result = [...result].sort((a, b) => {
         if (a.custno < b.custno) return sortAsc ? -1 : 1;
@@ -99,7 +93,7 @@ export const CustomerListPage: React.FC = () => {
       });
     }
     return result;
-  }, [customers, debouncedSearch, sortAsc, statusFilter]);
+  }, [customers, sortAsc, statusFilter]);
 
   const paginated = useMemo(() => {
     return filtered; // Server-side paginated

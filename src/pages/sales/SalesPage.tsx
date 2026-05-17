@@ -1,5 +1,5 @@
 // Displays all sales with complete details including payment, item lines, and transaction history.
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { CircleDollarSign, BarChart2, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
 import { useAuth } from '../../providers/AuthProvider';
@@ -17,11 +17,15 @@ export const SalesPage: React.FC = () => {
   const [sales, setSales] = useState<SaleTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [totalItems, setTotalItems] = useState(0);
   
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedCustomerNo, setSelectedCustomerNo] = useState<string>(navParams?.customerNo || 'ALL');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  // Separate state for the customer dropdown populated from a one-time full fetch
+  const [allCustomerNames, setAllCustomerNames] = useState<{ custno: string; name: string }[]>([]);
   
   // Track expanded transaction
   const [expandedSale, setExpandedSale] = useState<string | null>(null);
@@ -34,40 +38,35 @@ export const SalesPage: React.FC = () => {
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const { data, error: svcError } = await getSales();
+    const custFilter = selectedCustomerNo !== 'ALL' ? selectedCustomerNo : undefined;
+    const { data, count, error: svcError } = await getSales(
+      custFilter, undefined, debouncedSearch || undefined, currentPage, itemsPerPage
+    );
     setSales(svcError ? [] : (data ?? []));
+    setTotalItems(count ?? 0);
     setError(svcError);
     setLoading(false);
-  }, []);
+  }, [selectedCustomerNo, debouncedSearch, currentPage, itemsPerPage]);
 
   useEffect(() => { void load(); }, [load]);
 
-  const uniqueCustomers = useMemo(() => {
-    const map = new Map<string, string>();
-    sales.forEach(s => map.set(s.custno, s.customerName));
-    return Array.from(map.entries()).map(([custno, name]) => ({ custno, name })).sort((a, b) => a.name.localeCompare(b.name));
-  }, [sales]);
+  // One-time fetch for the customer dropdown (no pagination/search)
+  useEffect(() => {
+    (async () => {
+      const { data } = await getSales(undefined, undefined, undefined, 1, 9999);
+      if (data) {
+        const map = new Map<string, string>();
+        data.forEach(s => map.set(s.custno, s.customerName));
+        setAllCustomerNames(
+          Array.from(map.entries()).map(([custno, name]) => ({ custno, name })).sort((a, b) => a.name.localeCompare(b.name))
+        );
+      }
+    })();
+  }, []);
 
-  const filtered = useMemo(() => {
-    let result = sales;
-    
-    if (selectedCustomerNo !== 'ALL') {
-      result = result.filter(s => s.custno === selectedCustomerNo);
-    }
-
-    const q = debouncedSearch.trim().toLowerCase();
-    if (q) {
-      result = result.filter(s => 
-        [s.transno, s.employeeName, s.empno, s.customerName, s.custno].join(' ').toLowerCase().includes(q)
-      );
-    }
-    return result;
-  }, [sales, debouncedSearch, selectedCustomerNo]);
-
-  const paginated = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filtered.slice(start, start + itemsPerPage);
-  }, [filtered, currentPage]);
+  // Server-side search and pagination — no client-side filtering needed
+  const filtered = sales;
+  const paginated = sales;
 
   const formatDate = (dateString: string) => {
     if (!dateString) return '—';
@@ -135,14 +134,14 @@ export const SalesPage: React.FC = () => {
           }}
         >
           <option value="ALL">All Categories / Customers</option>
-          {uniqueCustomers.map(c => (
+          {allCustomerNames.map(c => (
             <option key={c.custno} value={c.custno}>{c.name}</option>
           ))}
         </select>
 
         {debouncedSearch.trim() && !loading && (
           <span style={{ fontSize: '12px', color: C.onSurfaceVariant, padding: '5px 10px', borderRadius: '7px', backgroundColor: isDark ? `${C.surfaceContainerHigh}88` : `${C.outlineVariant}22` }}>
-            {filtered.length} of {sales.length} shown
+            {sales.length} of {totalItems} shown
           </span>
         )}
       </div>
@@ -163,8 +162,8 @@ export const SalesPage: React.FC = () => {
         <DefaultTable.Container
         pagination={{
           currentPage,
-          totalPages: Math.ceil(filtered.length / itemsPerPage),
-          totalItems: filtered.length,
+          totalPages: Math.ceil(totalItems / itemsPerPage),
+          totalItems: totalItems,
           itemsPerPage,
           onPageChange: setCurrentPage,
         }}

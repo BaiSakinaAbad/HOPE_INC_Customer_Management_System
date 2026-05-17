@@ -78,7 +78,7 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
     setError(null);
     try {
       const [salesRes, empRes, countsRes, custRes] = await Promise.all([
-        getSales(),
+        getSales(undefined, undefined, undefined, 1, 9999),
         getEmployees(),
         role === 'superadmin' ? getCustomerCounts('superadmin') : Promise.resolve({ active: 0, inactive: 0, total: 0 }),
         role === 'superadmin' ? getCustomers('superadmin') : Promise.resolve({ data: null, error: null }),

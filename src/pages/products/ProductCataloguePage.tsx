@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Package, History, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
 import { useAuth } from '../../providers/AuthProvider';
@@ -20,6 +20,7 @@ export const ProductCataloguePage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [totalItems, setTotalItems] = useState(0);
   
   // Search and pagination state
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -39,35 +40,20 @@ export const ProductCataloguePage: React.FC = () => {
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const { data, error: svcError } = await getProducts();
+    const { data, count, error: svcError } = await getProducts(
+      undefined, currentPage, itemsPerPage, debouncedSearch || undefined
+    );
     setProducts(svcError ? [] : (data ?? []));
+    setTotalItems(count ?? 0);
     setError(svcError);
     setLoading(false);
-  }, []);
+  }, [currentPage, itemsPerPage, debouncedSearch]);
 
   useEffect(() => { void load(); }, [load]);
 
-  /**
-   * Filters the product list based on the search input.
-   */
-  const filtered = useMemo(() => {
-    let result = products;
-    const q = debouncedSearch.trim().toLowerCase();
-    if (q) {
-      result = result.filter(p => 
-        [p.prodcode, p.description, p.unit].join(' ').toLowerCase().includes(q)
-      );
-    }
-    return result;
-  }, [products, debouncedSearch]);
-
-  /**
-   * Paginates the filtered list of products.
-   */
-  const paginated = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filtered.slice(start, start + itemsPerPage);
-  }, [filtered, currentPage]);
+  // Server-side search and pagination — no client-side filtering needed
+  const filtered = products;
+  const paginated = products;
 
   const formatPrice = (price?: number) => {
     if (price === undefined) return '—';
@@ -115,7 +101,7 @@ export const ProductCataloguePage: React.FC = () => {
         <SearchBar onSearch={setDebouncedSearch} placeholder="Search products..." />
         {debouncedSearch.trim() && !loading && (
           <span style={{ fontSize: '12px', color: C.onSurfaceVariant, padding: '5px 10px', borderRadius: '7px', backgroundColor: isDark ? `${C.surfaceContainerHigh}88` : `${C.outlineVariant}22` }}>
-            {filtered.length} of {products.length} shown
+            {products.length} of {totalItems} shown
           </span>
         )}
       </div>
@@ -136,8 +122,8 @@ export const ProductCataloguePage: React.FC = () => {
         <DefaultTable.Container
         pagination={{
           currentPage,
-          totalPages: Math.ceil(filtered.length / itemsPerPage),
-          totalItems: filtered.length,
+          totalPages: Math.ceil(totalItems / itemsPerPage),
+          totalItems: totalItems,
           itemsPerPage,
           onPageChange: setCurrentPage,
         }}

@@ -44,7 +44,7 @@ export const CustomerDetailsPanel: React.FC<CustomerDetailsPanelProps> = ({ cust
     let mounted = true;
     const fetchSales = async () => {
       setLoading(true);
-      const { data } = await getSales(customer.custno);
+      const { data } = await getSales(customer.custno, undefined, undefined, 1, 9999);
       if (mounted) {
         setSales(data || []);
         setLoading(false);
