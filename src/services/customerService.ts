@@ -56,7 +56,7 @@ export async function getCustomers(
 
   let query = supabase
     .from('customers')
-    .select('custno:customer_no, custname:customer_name, address, payterm:payment_term, recordstatus:record_status', { count: 'exact' })
+    .select('custno:customer_no, custname:customer_name, address, payterm:payment_term, recordstatus:record_status, stamp:audit_stamp', { count: 'exact' })
     .eq('record_status', 'ACTIVE');
 
   // Server-side text search: filter the full dataset before pagination

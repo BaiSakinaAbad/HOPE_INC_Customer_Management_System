@@ -284,18 +284,18 @@ export const CustomerListPage: React.FC = () => {
       >
         <thead>
           <tr>
-            <DefaultTable.Th onClick={() => setSortAsc(prev => prev === null ? true : !prev)} style={{ cursor: 'pointer', userSelect: 'none', width: '12%' }}>
+            <DefaultTable.Th onClick={() => setSortAsc(prev => prev === null ? true : !prev)} style={{ cursor: 'pointer', userSelect: 'none', width: '10%' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 Customer ID {sortAsc === true && <ChevronUp size={14} />} {sortAsc === false && <ChevronDown size={14} />}
               </div>
             </DefaultTable.Th>
-            <DefaultTable.Th style={{ width: '18%' }}>Name</DefaultTable.Th>
-            <DefaultTable.Th style={{ width: '20%' }}>Address</DefaultTable.Th>
-            <DefaultTable.Th style={{ width: '10%' }}>Pay Term</DefaultTable.Th>
-            <DefaultTable.Th style={{ width: '10%' }}>Status</DefaultTable.Th>
+            <DefaultTable.Th style={{ width: canViewStamp ? '14%' : '18%' }}>Name</DefaultTable.Th>
+            <DefaultTable.Th style={{ width: canViewStamp ? '16%' : '22%' }}>Address</DefaultTable.Th>
+            <DefaultTable.Th style={{ width: '8%' }}>Pay Term</DefaultTable.Th>
+            <DefaultTable.Th style={{ width: '8%' }}>Status</DefaultTable.Th>
             {/* Test hook for stamp column visibility checks. */}
-            {canViewStamp && <DefaultTable.Th data-testid="stamp-column" className="w-1/4 truncate text-ellipsis overflow-hidden whitespace-nowrap">Stamp</DefaultTable.Th>}
-            <DefaultTable.Th style={{ textAlign: 'center', width: '10%' }}>Actions</DefaultTable.Th>
+            {canViewStamp && <DefaultTable.Th data-testid="stamp-column" style={{ width: '28%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Stamp</DefaultTable.Th>}
+            <DefaultTable.Th style={{ textAlign: 'center', width: '8%' }}>Actions</DefaultTable.Th>
           </tr>
         </thead>
         <tbody>
