@@ -14,7 +14,7 @@ import { EmployeeRow } from '../../components/employees/EmployeeRow';
 import { ActionModal } from '../../components/customers/ActionModal';
 
 // ── Module display order for grouping permissions in the modal ────────────────
-const MODULE_ORDER = ['Customer Module', 'Sales Module', 'Product Module', 'Admin Module'];
+const MODULE_ORDER = ['Customer Module', 'Admin Module'];
 
 export const EmployeeListPage: React.FC = () => {
   const { isDark } = useTheme();
@@ -229,7 +229,7 @@ export const EmployeeListPage: React.FC = () => {
       if (groups[m]) ordered.push({ module: m, perms: groups[m] });
     }
     for (const m of Object.keys(groups)) {
-      if (!MODULE_ORDER.includes(m)) ordered.push({ module: m, perms: groups[m] });
+      if (!MODULE_ORDER.includes(m) && m !== 'Sales Module' && m !== 'Product Module') ordered.push({ module: m, perms: groups[m] });
     }
     return ordered;
   }, [detailedPermissions]);

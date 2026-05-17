@@ -48,10 +48,10 @@ export const CustomerListPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   
-  // Reset page to 1 when search query changes
+  // Reset page to 1 when search query or sort changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch]);
+  }, [debouncedSearch, sortAsc]);
   
   // Modal & Selection State
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
@@ -65,7 +65,7 @@ export const CustomerListPage: React.FC = () => {
     setLoading(true);
     setError(null);
     const [{ data, count, error: svcError }, inactiveCount] = await Promise.all([
-      getCustomers(role ?? 'employee', permissions, currentPage, itemsPerPage, debouncedSearch || undefined),
+      getCustomers(role ?? 'employee', permissions, currentPage, itemsPerPage, debouncedSearch || undefined, sortAsc),
       getInactiveCustomerCount(role ?? 'employee', permissions),
     ]);
     setCustomers(svcError ? [] : (data ?? []));
@@ -73,11 +73,11 @@ export const CustomerListPage: React.FC = () => {
     setInactiveTotal(inactiveCount);
     setError(svcError);
     setLoading(false);
-  }, [role, permissions, currentPage, itemsPerPage, debouncedSearch]);
+  }, [role, permissions, currentPage, itemsPerPage, debouncedSearch, sortAsc]);
 
   useEffect(() => { void load(); }, [load]);
 
-  // Client-side: only apply local status filter and sort on the server-paginated results
+  // Client-side: only apply local status filter on the server-paginated results
   const filtered = useMemo(() => {
     let result = customers;
     
@@ -85,15 +85,8 @@ export const CustomerListPage: React.FC = () => {
       result = result.filter(cust => cust.recordstatus === statusFilter);
     }
 
-    if (sortAsc !== null) {
-      result = [...result].sort((a, b) => {
-        if (a.custno < b.custno) return sortAsc ? -1 : 1;
-        if (a.custno > b.custno) return sortAsc ? 1 : -1;
-        return 0;
-      });
-    }
     return result;
-  }, [customers, sortAsc, statusFilter]);
+  }, [customers, statusFilter]);
 
   const paginated = useMemo(() => {
     return filtered; // Server-side paginated
