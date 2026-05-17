@@ -38,6 +38,7 @@ const hasPermission = (permissions: Record<string, boolean>, id: string): boolea
 export async function getSales(
   custno?: string,
   permissions?: Record<string, boolean>,
+  searchQuery?: string
 ): Promise<{ data: SaleTransaction[] | null; error: string | null }> {
   if (permissions && !hasPermission(permissions, 'SALES_VIEW')) {
     return { data: null, error: 'Permission denied: you do not have access to view sales.' };
@@ -63,6 +64,10 @@ export async function getSales(
 
     if (custno) {
       query = query.eq('customer_no', custno);
+    }
+
+    if (searchQuery) {
+      query = query.ilike('customers.customer_name', `%${searchQuery}%`);
     }
 
     const { data: sales, error } = await query;

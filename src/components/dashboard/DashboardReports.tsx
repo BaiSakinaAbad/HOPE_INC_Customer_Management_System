@@ -3,7 +3,7 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   TrendingUp, Users, ShoppingBag, DollarSign, UserCheck,
-  RefreshCw, BarChart3, Crown, Package, AlertCircle
+  RefreshCw, BarChart3, Crown, Package, AlertCircle, Search
 } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
 import { getSales, type SaleTransaction } from '../../services/salesService';
@@ -200,22 +200,41 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
   const tdStyle: React.CSSProperties = { padding: '14px 20px', fontSize: '13px', color: C.onSurface };
   const trBorderStyle = `1px solid ${C.outlineVariant}22`;
 
-  // ── Customer Sales Summary pagination ──
+  // ── Customer Sales Summary pagination & search ──
   const SALES_PAGE_SIZE = 10;
   const [salesPage, setSalesPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
 
-  // Reset page index on filter trigger
+  // Debounce search query to prevent thrashing
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  // Reset page index on filter trigger or search
   useEffect(() => {
     setSalesPage(1);
-  }, [filter]);
+  }, [filter, debouncedSearchQuery]);
 
-  const salesTotalPages = Math.ceil(customerSummary.length / SALES_PAGE_SIZE);
+  const filteredCustomerSummary = useMemo(() => {
+    if (!debouncedSearchQuery.trim()) return customerSummary;
+    const q = debouncedSearchQuery.toLowerCase();
+    return customerSummary.filter(c => 
+      c.customerName.toLowerCase().includes(q) || 
+      c.custno.toLowerCase().includes(q)
+    );
+  }, [customerSummary, debouncedSearchQuery]);
+
+  const salesTotalPages = Math.ceil(filteredCustomerSummary.length / SALES_PAGE_SIZE);
   const safeSalesPage = salesPage > salesTotalPages ? Math.max(1, salesTotalPages) : salesPage;
 
   const paginatedSummary = useMemo(() => {
     const start = (safeSalesPage - 1) * SALES_PAGE_SIZE;
-    return customerSummary.slice(start, start + SALES_PAGE_SIZE);
-  }, [customerSummary, safeSalesPage]);
+    return filteredCustomerSummary.slice(start, start + SALES_PAGE_SIZE);
+  }, [filteredCustomerSummary, safeSalesPage]);
 
 
   return (
@@ -340,6 +359,35 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
 
             {/* ── Customer Sales Summary with pagination ── */}
             <ReportSection title="Customer Sales Summary" icon={<BarChart3 size={16} style={{ color: C.primary }} />} C={C} isDark={isDark}>
+              {/* Search Bar Wrapper Row */}
+              <div style={{ padding: '0 24px 16px 24px', display: 'flex', justifyContent: 'flex-end' }}>
+                <div style={{
+                  position: 'relative', width: '300px',
+                  display: 'flex', alignItems: 'center'
+                }}>
+                  <Search size={16} style={{ position: 'absolute', left: '12px', color: C.onSurfaceVariant }} />
+                  <input
+                    type="text"
+                    placeholder="Search clients..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px 10px 36px',
+                      borderRadius: '8px',
+                      border: `1px solid ${isDark ? '#1e293b' : C.outlineVariant}`, // slate-800
+                      backgroundColor: isDark ? 'rgba(15, 23, 42, 0.5)' : '#ffffff', // slate-900/50
+                      color: C.onSurface,
+                      fontSize: '13px',
+                      outline: 'none',
+                      transition: 'border-color 0.2s'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = C.primary}
+                    onBlur={(e) => e.target.style.borderColor = isDark ? '#1e293b' : C.outlineVariant}
+                  />
+                </div>
+              </div>
+
               <div onClick={(e) => e.stopPropagation()} style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead style={{ backgroundColor: isDark ? `${C.surfaceContainer}88` : '#f9f9fc' }}>
@@ -386,7 +434,7 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
                   padding: '14px 24px', borderTop: `1px solid ${C.outlineVariant}33`,
                 }}>
                   <span style={{ fontSize: '12px', color: C.onSurfaceVariant, fontWeight: 500 }}>
-                    Showing {((safeSalesPage - 1) * SALES_PAGE_SIZE) + 1}–{Math.min(safeSalesPage * SALES_PAGE_SIZE, customerSummary.length)} of {customerSummary.length}
+                    Showing {((safeSalesPage - 1) * SALES_PAGE_SIZE) + 1}–{Math.min(safeSalesPage * SALES_PAGE_SIZE, filteredCustomerSummary.length)} of {filteredCustomerSummary.length}
                   </span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <button
