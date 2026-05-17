@@ -29,25 +29,27 @@ interface DashboardLayoutProps {
 }
 
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
-  const { signOut, user, role } = useAuth();
+  const { signOut, user, role, permissions } = useAuth();
   const { isDark } = useTheme();
   const C = getDashboardTokens(isDark);
   const width = useWindowWidth();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
-  // Pending activation state (superadmin only)
+  // Pending activation state
   const [pendingAccounts, setPendingAccounts] = useState<PendingAccount[]>([]);
   const [pendingOverlayOpen, setPendingOverlayOpen] = useState(false);
 
+  const canManageUsers = role === 'superadmin' || role === 'admin' || (permissions && permissions['ADM_USER'] === true);
+
   const loadPending = useCallback(async () => {
-    if (role !== 'superadmin') return;
-    const { data } = await getEmployees();
+    if (!canManageUsers) return;
+    const { data } = await getEmployees(permissions);
     const inactive = (data ?? [])
       .filter((e: Employee) => e.recordstatus === 'INACTIVE')
       .map((e: Employee) => ({ id: e.id, username: e.username ?? '', email: e.email ?? '', role: e.role }));
     setPendingAccounts(inactive);
-  }, [role]);
+  }, [canManageUsers, permissions]);
 
   useEffect(() => { void loadPending(); }, [loadPending]);
 
@@ -90,8 +92,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
           role={role || 'LOADING...'}
           displayName={displayName}
           avatarUrl={avatarUrl}
-          pendingCount={role === 'superadmin' ? pendingAccounts.length : 0}
-          onBellClick={role === 'superadmin' && pendingAccounts.length > 0 ? () => setPendingOverlayOpen(true) : undefined}
+          pendingCount={canManageUsers ? pendingAccounts.length : 0}
+          onBellClick={canManageUsers && pendingAccounts.length > 0 ? () => setPendingOverlayOpen(true) : undefined}
         />
         
         {/* Inject the active page here */}
