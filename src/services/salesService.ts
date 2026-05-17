@@ -81,19 +81,37 @@ export async function getSales(
       return { data: null, error: priceError.message };
     }
 
-    // Map the latest prices for quick lookup
-    const latestPrices = new Map<string, number>();
-    for (const price of prices ?? []) {
-      if (!latestPrices.has(price.product_code)) {
-        latestPrices.set(price.product_code, Number(price.unit_price));
-      }
-    }
+    // Keep full price history sorted by effective_date descending for point-in-time lookups
+    const sortedPrices = (prices ?? []).sort(
+      (a, b) => new Date(b.effective_date).getTime() - new Date(a.effective_date).getTime(),
+    );
 
     // Transform raw Supabase response into SaleTransaction objects
     const transformed = (sales || []).map((sale: any) => {
       let total = 0;
+      const saleDate = new Date(sale.salesdate);
+
       const details = (sale.sales_detail || []).map((detail: any) => {
-        const unitPrice = latestPrices.get(detail.product_code) ?? 0;
+        // Find the unit price that was active at the time of sale
+        const matchingPriceEntry = sortedPrices.find(
+          (p) =>
+            p.product_code === detail.product_code &&
+            new Date(p.effective_date) <= saleDate,
+        );
+
+        // Fallback: if no price predates this sale, use the earliest available price for the product
+        const fallbackPriceEntry = !matchingPriceEntry
+          ? [...sortedPrices]
+              .reverse()
+              .find((p) => p.product_code === detail.product_code)
+          : undefined;
+
+        const unitPrice = matchingPriceEntry
+          ? Number(matchingPriceEntry.unit_price)
+          : fallbackPriceEntry
+            ? Number(fallbackPriceEntry.unit_price)
+            : 0;
+
         const quantity = Number(detail.quantity) || 0;
         const totalPrice = quantity * unitPrice;
         total += totalPrice;
