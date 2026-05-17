@@ -13,7 +13,7 @@ export interface Product {
   priceHistory?: { effdate: string; unitprice: number }[];
 }
 
-import { withCache } from './cache';
+
 
 /** Shorthand: check if a specific permission is granted. */
 const hasPermission = (permissions: Record<string, boolean>, id: string): boolean =>
@@ -25,46 +25,60 @@ const hasPermission = (permissions: Record<string, boolean>, id: string): boolea
  */
 export async function getProducts(
   permissions?: Record<string, boolean>,
-): Promise<{ data: Product[] | null; error: string | null }> {
+  currentPage: number = 1,
+  itemsPerPage: number = 10,
+  searchQuery?: string
+): Promise<{ data: Product[] | null; error: string | null; count: number }> {
   if (permissions && !hasPermission(permissions, 'PROD_VIEW')) {
-    return { data: null, error: 'Permission denied: you do not have access to view products.' };
+    return { data: null, error: 'Permission denied: you do not have access to view products.', count: 0 };
   }
 
-  return withCache('products_all', async () => {
-    const { data: products, error: pError } = await supabase
-      .from('products')
-      .select('prodcode:product_code, description, unit')
-      .order('product_code', { ascending: true });
+  const from = (currentPage - 1) * itemsPerPage;
+  const to = from + itemsPerPage - 1;
 
+  let query = supabase
+    .from('products')
+    .select('prodcode:product_code, description, unit', { count: 'exact' });
 
-    if (pError) return { data: null, error: pError.message };
+  // Server-side text search: filter the full dataset before pagination
+  if (searchQuery && searchQuery.trim()) {
+    const q = `%${searchQuery.trim()}%`;
+    query = query.or(
+      `product_code.ilike.${q},description.ilike.${q},unit.ilike.${q}`
+    );
+  }
 
-    const { data: prices, error: prError } = await supabase
-      .from('price_history')
-      .select('prodcode:product_code, unitprice:unit_price, effdate:effective_date')
-      .order('effective_date', { ascending: false });
+  const { data: products, count, error: pError } = await query
+    .order('product_code', { ascending: true })
+    .range(from, to);
 
-    if (prError) return { data: null, error: prError.message };
+  if (pError) return { data: null, error: pError.message, count: 0 };
 
-    const latestPrices: Record<string, number> = {};
-    const historyMap: Record<string, { effdate: string; unitprice: number }[]> = {};
-    for (const p of (prices || [])) {
-      if (!historyMap[p.prodcode]) historyMap[p.prodcode] = [];
-      historyMap[p.prodcode].push({ effdate: p.effdate, unitprice: p.unitprice });
-      
-      if (latestPrices[p.prodcode] === undefined) {
-        latestPrices[p.prodcode] = p.unitprice;
-      }
+  const { data: prices, error: prError } = await supabase
+    .from('price_history')
+    .select('prodcode:product_code, unitprice:unit_price, effdate:effective_date')
+    .order('effective_date', { ascending: false });
+
+  if (prError) return { data: null, error: prError.message, count: 0 };
+
+  const latestPrices: Record<string, number> = {};
+  const historyMap: Record<string, { effdate: string; unitprice: number }[]> = {};
+  for (const p of (prices || [])) {
+    if (!historyMap[p.prodcode]) historyMap[p.prodcode] = [];
+    historyMap[p.prodcode].push({ effdate: p.effdate, unitprice: p.unitprice });
+    
+    if (latestPrices[p.prodcode] === undefined) {
+      latestPrices[p.prodcode] = p.unitprice;
     }
+  }
 
-    const enriched = products.map(prod => ({
-      ...prod,
-      current_price: latestPrices[prod.prodcode] ?? 0,
-      priceHistory: historyMap[prod.prodcode] || []
-    }));
+  const enriched = (products || []).map(prod => ({
+    ...prod,
+    current_price: latestPrices[prod.prodcode] ?? 0,
+    priceHistory: historyMap[prod.prodcode] || []
+  }));
 
-    return { data: enriched, error: null };
-  });
+  return { data: enriched, error: null, count: count ?? 0 };
 }
 
 /**

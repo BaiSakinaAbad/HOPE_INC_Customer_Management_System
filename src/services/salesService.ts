@@ -1,6 +1,6 @@
 /**
  * Sales Service
- * Handles data fetching and transformation for sales transactions and history.
+ * Handles data fetching and transformation for sales transactions and history..
  */
 import { supabase } from '../lib/supabase';
 
@@ -38,92 +38,117 @@ const hasPermission = (permissions: Record<string, boolean>, id: string): boolea
 export async function getSales(
   custno?: string,
   permissions?: Record<string, boolean>,
-): Promise<{ data: SaleTransaction[] | null; error: string | null }> {
+  searchQuery?: string,
+  currentPage: number = 1,
+  itemsPerPage: number = 10
+): Promise<{ data: SaleTransaction[] | null; error: string | null; count: number }> {
   if (permissions && !hasPermission(permissions, 'SALES_VIEW')) {
-    return { data: null, error: 'Permission denied: you do not have access to view sales.' };
+    return { data: null, error: 'Permission denied: you do not have access to view sales.', count: 0 };
   }
 
-  const cacheKey = custno ? `sales_${custno}` : 'sales_all';
-  
-  return withCache(cacheKey, async () => {
-    // Fetch raw sales data with related table joins
-    let query = supabase
-      .from('sales')
-      .select(`
-        transno:transaction_no,
-        salesdate:sales_date,
-        custno:customer_no,
-        empno,
-        customers!inner ( custname:customer_name ),
-        employees!inner ( firstname, lastname ),
-        sales_detail ( product_code, quantity, products ( description ) )
-      `)
-      .order('sales_date', { ascending: false });
+  const from = (currentPage - 1) * itemsPerPage;
+  const to = from + itemsPerPage - 1;
 
+  // Fetch raw sales data with related table joins
+  let query = supabase
+    .from('sales')
+    .select(`
+      transno:transaction_no,
+      salesdate:sales_date,
+      custno:customer_no,
+      empno,
+      customers!inner ( custname:customer_name ),
+      employees!inner ( firstname, lastname ),
+      sales_detail ( product_code, quantity, products ( description ) )
+    `, { count: 'exact' })
+    .order('sales_date', { ascending: false });
 
-    if (custno) {
-      query = query.eq('customer_no', custno);
-    }
+  if (custno) {
+    query = query.eq('customer_no', custno);
+  }
 
-    const { data: sales, error } = await query;
+  // Server-side text search: filter the full dataset before pagination
+  if (searchQuery && searchQuery.trim()) {
+    query = query.ilike('customers.customer_name', `%${searchQuery.trim()}%`);
+  }
 
-    if (error) {
-      return { data: null, error: error.message };
-    }
+  // Apply pagination range AFTER all filters
+  const { data: sales, count, error } = await query.range(from, to);
 
-    // Fetch price history to determine the unit price for each product
-    const { data: prices, error: priceError } = await supabase
-      .from('price_history')
-      .select('product_code, unit_price, effective_date')
-      .order('effective_date', { ascending: false });
+  if (error) {
+    return { data: null, error: error.message, count: 0 };
+  }
 
-    if (priceError) {
-      return { data: null, error: priceError.message };
-    }
+  // Fetch price history to determine the unit price for each product
+  const { data: prices, error: priceError } = await supabase
+    .from('price_history')
+    .select('product_code, unit_price, effective_date')
+    .order('effective_date', { ascending: false });
 
-    // Map the latest prices for quick lookup
-    const latestPrices = new Map<string, number>();
-    for (const price of prices ?? []) {
-      if (!latestPrices.has(price.product_code)) {
-        latestPrices.set(price.product_code, Number(price.unit_price));
-      }
-    }
+  if (priceError) {
+    return { data: null, error: priceError.message, count: 0 };
+  }
 
-    // Transform raw Supabase response into SaleTransaction objects
-    const transformed = (sales || []).map((sale: any) => {
-      let total = 0;
-      const details = (sale.sales_detail || []).map((detail: any) => {
-        const unitPrice = latestPrices.get(detail.product_code) ?? 0;
-        const quantity = Number(detail.quantity) || 0;
-        const totalPrice = quantity * unitPrice;
-        total += totalPrice;
-        
-        const prod = Array.isArray(detail.products) ? detail.products[0] : detail.products;
-        
-        return {
-          product_code: detail.product_code,
-          description: prod?.description || detail.product_code,
-          quantity,
-          unitPrice,
-          totalPrice,
-        };
-      });
+  // Keep full price history sorted by effective_date descending for point-in-time lookups
+  const sortedPrices = (prices ?? []).sort(
+    (a, b) => new Date(b.effective_date).getTime() - new Date(a.effective_date).getTime(),
+  );
 
-      const emp = Array.isArray(sale.employees) ? sale.employees[0] : sale.employees;
-      const cust = Array.isArray(sale.customers) ? sale.customers[0] : sale.customers;
+  // Transform raw Supabase response into SaleTransaction objects
+  const transformed = (sales || []).map((sale: any) => {
+    let total = 0;
+    const saleDate = new Date(sale.salesdate);
+
+    const details = (sale.sales_detail || []).map((detail: any) => {
+      // Find the unit price that was active at the time of sale
+      const matchingPriceEntry = sortedPrices.find(
+        (p) =>
+          p.product_code === detail.product_code &&
+          new Date(p.effective_date) <= saleDate,
+      );
+
+      // Fallback: if no price predates this sale, use the earliest available price for the product
+      const fallbackPriceEntry = !matchingPriceEntry
+        ? [...sortedPrices]
+          .reverse()
+          .find((p) => p.product_code === detail.product_code)
+        : undefined;
+
+      const unitPrice = matchingPriceEntry
+        ? Number(matchingPriceEntry.unit_price)
+        : fallbackPriceEntry
+          ? Number(fallbackPriceEntry.unit_price)
+          : 0;
+
+      const quantity = Number(detail.quantity) || 0;
+      const totalPrice = quantity * unitPrice;
+      total += totalPrice;
+
+      const prod = Array.isArray(detail.products) ? detail.products[0] : detail.products;
 
       return {
-        transno: sale.transno,
-        salesdate: sale.salesdate,
-        custno: sale.custno,
-        empno: sale.empno,
-        customerName: cust?.custname || sale.custno,
-        employeeName: emp ? `${emp.firstname} ${emp.lastname}`.trim() : sale.empno,
-        total,
-        details,
+        product_code: detail.product_code,
+        description: prod?.description || detail.product_code,
+        quantity,
+        unitPrice,
+        totalPrice,
       };
     });
 
-    return { data: transformed, error: null };
+    const emp = Array.isArray(sale.employees) ? sale.employees[0] : sale.employees;
+    const cust = Array.isArray(sale.customers) ? sale.customers[0] : sale.customers;
+
+    return {
+      transno: sale.transno,
+      salesdate: sale.salesdate,
+      custno: sale.custno,
+      empno: sale.empno,
+      customerName: cust?.custname || sale.custno,
+      employeeName: emp ? `${emp.firstname} ${emp.lastname}`.trim() : sale.empno,
+      total,
+      details,
+    };
   });
+
+  return { data: transformed, error: null, count: count ?? 0 };
 }

@@ -3,11 +3,11 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   TrendingUp, Users, ShoppingBag, DollarSign, UserCheck,
-  RefreshCw, BarChart3, Crown, Package, AlertCircle
+  RefreshCw, BarChart3, Crown, Package, AlertCircle, Search
 } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
 import { getSales, type SaleTransaction } from '../../services/salesService';
-import { getCustomers, getInactiveCustomerCount } from '../../services/customerService';
+import { getCustomers, getCustomerCounts } from '../../services/customerService';
 import { getEmployees } from '../../services/employeeService';
 import { useAuth } from '../../providers/AuthProvider';
 import { MiniBarChart } from '../ui/charts/MiniBarChart';
@@ -77,23 +77,24 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
     setLoading(true);
     setError(null);
     try {
-      const [salesRes, empRes, custRes, inactiveCount] = await Promise.all([
-        getSales(),
+      const [salesRes, empRes, countsRes, custRes] = await Promise.all([
+        getSales(undefined, undefined, undefined, 1, 9999),
         getEmployees(),
+        role === 'superadmin' ? getCustomerCounts('superadmin') : Promise.resolve({ active: 0, inactive: 0, total: 0 }),
         role === 'superadmin' ? getCustomers('superadmin') : Promise.resolve({ data: null, error: null }),
-        role === 'superadmin' ? getInactiveCustomerCount('superadmin') : Promise.resolve(0),
       ]);
 
       if (salesRes.error) throw new Error(salesRes.error);
       setSales(salesRes.data ?? []);
 
       if (role === 'superadmin') {
-        const customersData = custRes.data ?? [];
-        const activeCount = customersData.filter((c: Customer) => c.recordstatus === 'ACTIVE').length;
-        setActiveCustomers(activeCount);
-        setInactiveCustomers(inactiveCount);
-        setTotalCustomers(activeCount + inactiveCount);
+        // Use dedicated count queries against the customers table
+        setActiveCustomers(countsRes.active);
+        setInactiveCustomers(countsRes.inactive);
+        setTotalCustomers(countsRes.total);
 
+        // Status map still needed for cross-filtering sales by customer status
+        const customersData = custRes.data ?? [];
         const statusMap = new Map<string, string>();
         customersData.forEach((c: Customer) => statusMap.set(c.custno, c.recordstatus));
         setCustomerStatusMap(statusMap);
@@ -200,22 +201,41 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
   const tdStyle: React.CSSProperties = { padding: '14px 20px', fontSize: '13px', color: C.onSurface };
   const trBorderStyle = `1px solid ${C.outlineVariant}22`;
 
-  // ── Customer Sales Summary pagination ──
+  // ── Customer Sales Summary pagination & search ──
   const SALES_PAGE_SIZE = 10;
   const [salesPage, setSalesPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
 
-  // Reset page index on filter trigger
+  // Debounce search query to prevent thrashing
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  // Reset page index on filter trigger or search
   useEffect(() => {
     setSalesPage(1);
-  }, [filter]);
+  }, [filter, debouncedSearchQuery]);
 
-  const salesTotalPages = Math.ceil(customerSummary.length / SALES_PAGE_SIZE);
+  const filteredCustomerSummary = useMemo(() => {
+    if (!debouncedSearchQuery.trim()) return customerSummary;
+    const q = debouncedSearchQuery.toLowerCase();
+    return customerSummary.filter(c => 
+      c.customerName.toLowerCase().includes(q) || 
+      c.custno.toLowerCase().includes(q)
+    );
+  }, [customerSummary, debouncedSearchQuery]);
+
+  const salesTotalPages = Math.ceil(filteredCustomerSummary.length / SALES_PAGE_SIZE);
   const safeSalesPage = salesPage > salesTotalPages ? Math.max(1, salesTotalPages) : salesPage;
 
   const paginatedSummary = useMemo(() => {
     const start = (safeSalesPage - 1) * SALES_PAGE_SIZE;
-    return customerSummary.slice(start, start + SALES_PAGE_SIZE);
-  }, [customerSummary, safeSalesPage]);
+    return filteredCustomerSummary.slice(start, start + SALES_PAGE_SIZE);
+  }, [filteredCustomerSummary, safeSalesPage]);
 
 
   return (
@@ -292,7 +312,7 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
             </div>
             {/* Col 2, spans both rows: Products Sold */}
             <div style={{ gridColumn: '2', gridRow: '1 / 3' }}>
-              <ProductsSoldCard totalCount={uniqueProducts} topProducts={topProductsByQuantity} isDark={isDark} C={C} onFilter={(code, name) => setFilter({ type: 'PRODUCT', code, name })} currentFilter={filter} />
+              <ProductsSoldCard totalCount={uniqueProducts} topProducts={topProductsByQuantity} isDark={isDark} C={C} />
             </div>
             {/* Col 3 (double-width), spans both rows: Total Transactions */}
             <div style={{ gridColumn: '3', gridRow: '1 / 3' }}>
@@ -336,38 +356,39 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
                 </table>
               </ReportSection>
 
-              <ReportSection title={`Product Revenue Breakdown (${productRevenue.length} Products Shown)`} icon={<ShoppingBag size={16} style={{ color: C.secondary }} />} C={C} isDark={isDark}>
-                <div onClick={(e) => e.stopPropagation()} style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '14px', maxHeight: '360px', overflowY: 'auto' }}>
-                  {productRevenue.map((p, i) => {
-                    const maxRev = productRevenue[0]?.totalRevenue || 1;
-                    const isSelected = filter.type === 'PRODUCT' && filter.code === p.productCode;
-                    return (
-                      <div
-                        key={p.productCode}
-                        onClick={(e) => { e.stopPropagation(); setFilter({ type: 'PRODUCT', code: p.productCode, name: p.description }); }}
-                        style={{
-                          cursor: 'pointer', transition: 'all 0.2s',
-                          padding: '8px', borderRadius: '8px',
-                          backgroundColor: isSelected ? (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)') : 'transparent',
-                          opacity: (filter.type === 'PRODUCT' && !isSelected) ? 0.4 : 1
-                        }}
-                        onMouseEnter={(e) => { if (!isSelected) { e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.01)'; } }}
-                        onMouseLeave={(e) => { if (!isSelected) { e.currentTarget.style.backgroundColor = 'transparent'; } }}
-                      >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '6px' }}>
-                          <div><span style={{ fontSize: '13px', fontWeight: 600, color: C.onSurface }}>{p.description}</span></div>
-                          <div style={{ textAlign: 'right' }}><span style={{ fontSize: '13px', fontWeight: 700, color: '#22c55e' }}>{fmt(p.totalRevenue)}</span></div>
-                        </div>
-                        <BarVisual value={p.totalRevenue} max={maxRev} color={i === 0 ? '#22c55e' : i === 1 ? C.primary : C.secondary} />
-                      </div>
-                    );
-                  })}
-                </div>
-              </ReportSection>
             </div>
 
             {/* ── Customer Sales Summary with pagination ── */}
             <ReportSection title="Customer Sales Summary" icon={<BarChart3 size={16} style={{ color: C.primary }} />} C={C} isDark={isDark}>
+              {/* Search Bar Wrapper Row */}
+              <div style={{ padding: '0 24px 16px 24px', display: 'flex', justifyContent: 'flex-end' }}>
+                <div style={{
+                  position: 'relative', width: '300px',
+                  display: 'flex', alignItems: 'center'
+                }}>
+                  <Search size={16} style={{ position: 'absolute', left: '12px', color: C.onSurfaceVariant }} />
+                  <input
+                    type="text"
+                    placeholder="Search clients..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px 10px 36px',
+                      borderRadius: '8px',
+                      border: `1px solid ${isDark ? '#1e293b' : C.outlineVariant}`, // slate-800
+                      backgroundColor: isDark ? 'rgba(15, 23, 42, 0.5)' : '#ffffff', // slate-900/50
+                      color: C.onSurface,
+                      fontSize: '13px',
+                      outline: 'none',
+                      transition: 'border-color 0.2s'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = C.primary}
+                    onBlur={(e) => e.target.style.borderColor = isDark ? '#1e293b' : C.outlineVariant}
+                  />
+                </div>
+              </div>
+
               <div onClick={(e) => e.stopPropagation()} style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead style={{ backgroundColor: isDark ? `${C.surfaceContainer}88` : '#f9f9fc' }}>
@@ -414,7 +435,7 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
                   padding: '14px 24px', borderTop: `1px solid ${C.outlineVariant}33`,
                 }}>
                   <span style={{ fontSize: '12px', color: C.onSurfaceVariant, fontWeight: 500 }}>
-                    Showing {((safeSalesPage - 1) * SALES_PAGE_SIZE) + 1}–{Math.min(safeSalesPage * SALES_PAGE_SIZE, customerSummary.length)} of {customerSummary.length}
+                    Showing {((safeSalesPage - 1) * SALES_PAGE_SIZE) + 1}–{Math.min(safeSalesPage * SALES_PAGE_SIZE, filteredCustomerSummary.length)} of {filteredCustomerSummary.length}
                   </span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <button

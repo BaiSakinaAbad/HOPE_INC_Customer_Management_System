@@ -134,10 +134,19 @@ export const CustomerRow: React.FC<CustomerRowProps> = React.memo(({
       <DefaultTable.Td><StatusBadge status={c.recordstatus} /></DefaultTable.Td>
       
       {canViewStamp && (
-        <DefaultTable.Td title={c.stamp ?? ''}>
-          <div className="w-full max-w-full truncate text-ellipsis overflow-hidden whitespace-nowrap" style={{ fontFamily: 'monospace', fontSize: '11px', color: C.onSurfaceVariant }}>
-            {c.stamp || '—'}
-          </div>
+        <DefaultTable.Td 
+          title={c.stamp ?? ''}
+          style={{ 
+            maxWidth: '1px',
+            overflow: 'hidden', 
+            textOverflow: 'ellipsis', 
+            whiteSpace: 'nowrap',
+            fontFamily: 'monospace', 
+            fontSize: '11px', 
+            color: C.onSurfaceVariant 
+          }}
+        >
+          {c.stamp || '—'}
         </DefaultTable.Td>
       )}
       

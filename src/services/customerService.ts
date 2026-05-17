@@ -44,7 +44,8 @@ export async function getCustomers(
   role: string,
   permissions?: Record<string, boolean>,
   currentPage: number = 1,
-  itemsPerPage: number = 10
+  itemsPerPage: number = 10,
+  searchQuery?: string
 ): Promise<CustomerServiceResult<Customer[]>> {
   if (permissions && !hasPermission(permissions, 'CUST_VIEW')) {
     return { data: null, error: 'Permission denied: you do not have access to view customers.', count: 0 };
@@ -53,10 +54,20 @@ export async function getCustomers(
   const from = (currentPage - 1) * itemsPerPage;
   const to = from + itemsPerPage - 1;
 
-  const { data, count, error } = await supabase
+  let query = supabase
     .from('customers')
-    .select('custno:customer_no, custname:customer_name, address, payterm:payment_term, recordstatus:record_status', { count: 'exact' })
-    .eq('record_status', 'ACTIVE')
+    .select('custno:customer_no, custname:customer_name, address, payterm:payment_term, recordstatus:record_status, stamp:audit_stamp', { count: 'exact' })
+    .eq('record_status', 'ACTIVE');
+
+  // Server-side text search: filter the full dataset before pagination
+  if (searchQuery && searchQuery.trim()) {
+    const q = `%${searchQuery.trim()}%`;
+    query = query.or(
+      `customer_no.ilike.${q},customer_name.ilike.${q},address.ilike.${q},payment_term.ilike.${q}`
+    );
+  }
+
+  const { data, count, error } = await query
     .order('customer_name', { ascending: true })
     .range(from, to);
 
@@ -106,6 +117,37 @@ export async function getInactiveCustomerCount(
       .select('customer_no', { count: 'exact', head: true })
       .eq('record_status', 'INACTIVE');
     return count ?? 0;
+  });
+}
+
+/**
+ * Returns the counts of ACTIVE, INACTIVE, and total customers directly
+ * from the `customers` table — used by the dashboard stats card.
+ */
+export async function getCustomerCounts(
+  role: string,
+  permissions?: Record<string, boolean>,
+): Promise<{ active: number; inactive: number; total: number }> {
+  // Permission gate: need at least basic view
+  if (permissions && !hasPermission(permissions, 'CUST_VIEW')) {
+    return { active: 0, inactive: 0, total: 0 };
+  }
+
+  return withCache(`customers_counts_${role}`, async () => {
+    const [activeRes, inactiveRes] = await Promise.all([
+      supabase
+        .from('customers')
+        .select('customer_no', { count: 'exact', head: true })
+        .eq('record_status', 'ACTIVE'),
+      supabase
+        .from('customers')
+        .select('customer_no', { count: 'exact', head: true })
+        .eq('record_status', 'INACTIVE'),
+    ]);
+
+    const active = activeRes.count ?? 0;
+    const inactive = inactiveRes.count ?? 0;
+    return { active, inactive, total: active + inactive };
   });
 }
 
