@@ -1,6 +1,6 @@
 /**
  * Sales Service
- * Handles data fetching and transformation for sales transactions and history.
+ * Handles data fetching and transformation for sales transactions and history..
  */
 import { supabase } from '../lib/supabase';
 
@@ -44,7 +44,7 @@ export async function getSales(
   }
 
   const cacheKey = custno ? `sales_${custno}` : 'sales_all';
-  
+
   return withCache(cacheKey, async () => {
     // Fetch raw sales data with related table joins
     let query = supabase
@@ -102,8 +102,8 @@ export async function getSales(
         // Fallback: if no price predates this sale, use the earliest available price for the product
         const fallbackPriceEntry = !matchingPriceEntry
           ? [...sortedPrices]
-              .reverse()
-              .find((p) => p.product_code === detail.product_code)
+            .reverse()
+            .find((p) => p.product_code === detail.product_code)
           : undefined;
 
         const unitPrice = matchingPriceEntry
@@ -115,9 +115,9 @@ export async function getSales(
         const quantity = Number(detail.quantity) || 0;
         const totalPrice = quantity * unitPrice;
         total += totalPrice;
-        
+
         const prod = Array.isArray(detail.products) ? detail.products[0] : detail.products;
-        
+
         return {
           product_code: detail.product_code,
           description: prod?.description || detail.product_code,
