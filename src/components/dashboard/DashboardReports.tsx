@@ -137,7 +137,7 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
     return sales;
   }, [sales, filter, customerStatusMap]);
 
- 
+
 
   const customerSummary = useMemo<CustomerSalesSummary[]>(() => {
     const map = new Map<string, CustomerSalesSummary>();
@@ -223,8 +223,8 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
   const filteredCustomerSummary = useMemo(() => {
     if (!debouncedSearchQuery.trim()) return customerSummary;
     const q = debouncedSearchQuery.toLowerCase();
-    return customerSummary.filter(c => 
-      c.customerName.toLowerCase().includes(q) || 
+    return customerSummary.filter(c =>
+      c.customerName.toLowerCase().includes(q) ||
       c.custno.toLowerCase().includes(q)
     );
   }, [customerSummary, debouncedSearchQuery]);
