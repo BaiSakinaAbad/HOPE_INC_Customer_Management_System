@@ -84,7 +84,7 @@ export function useRights(): Rights {
     canDeactivateUsers: p(permissions, 'ADM_DEACTIVATE'),
 
     // ── Role-derived (no matching DB permission) ──
-    canViewDeletedNav:  isElevated,
+    canViewDeletedNav:  p(permissions, 'CUST_VIEW_INACTIVE'),
     canViewLogs:        isElevated,
     canViewDashboard:   isSuperAdmin,
   };

@@ -47,11 +47,11 @@ export const DeletedCustomersPage: React.FC = () => {
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const { data, error: svcError } = await getDeletedCustomers(role ?? 'employee');
+    const { data, error: svcError } = await getDeletedCustomers(role ?? 'employee', permissions);
     setCustomers(svcError ? [] : (data ?? []));
     setError(svcError);
     setLoading(false);
-  }, [role]);
+  }, [role, permissions]);
 
   useEffect(() => { void load(); }, [load]);
 

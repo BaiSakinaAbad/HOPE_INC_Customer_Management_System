@@ -150,59 +150,61 @@ export const CustomerRow: React.FC<CustomerRowProps> = React.memo(({
         </DefaultTable.Td>
       )}
       
-      <DefaultTable.Td style={{ textAlign: 'center' }}>
-        <div style={{ position: 'relative', display: 'inline-block' }} ref={dropdownRef}>
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); setDropdownOpen(!dropdownOpen); }}
-            style={{
-              background: dropdownOpen ? `${C.primary}15` : 'none', 
-              border: 'none', cursor: 'pointer',
-              color: dropdownOpen ? C.primary : C.onSurfaceVariant, 
-              padding: '6px', borderRadius: '6px',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              transition: 'background 0.2s',
-            }}
-          >
-            <MoreHorizontal size={18} />
-          </button>
+      {(canEdit || canSoftDelete) && (
+        <DefaultTable.Td style={{ textAlign: 'center' }}>
+          <div style={{ position: 'relative', display: 'inline-block' }} ref={dropdownRef}>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setDropdownOpen(!dropdownOpen); }}
+              style={{
+                background: dropdownOpen ? `${C.primary}15` : 'none', 
+                border: 'none', cursor: 'pointer',
+                color: dropdownOpen ? C.primary : C.onSurfaceVariant, 
+                padding: '6px', borderRadius: '6px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'background 0.2s',
+              }}
+            >
+              <MoreHorizontal size={18} />
+            </button>
 
-          {dropdownOpen && (
-            <div style={{
-              position: 'absolute', right: 0, top: '100%', zIndex: 10,
-              minWidth: '140px', marginTop: '4px',
-              backgroundColor: isDark ? C.surfaceContainerHigh : '#ffffff',
-              border: `1px solid ${C.outlineVariant}33`,
-              borderRadius: '8px',
-              boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.5)' : '0 4px 14px rgba(0,0,0,0.08)',
-              padding: '4px', display: 'flex', flexDirection: 'column', gap: '2px',
-              textAlign: 'left'
-            }}>
-              {canEdit && (
-                <DropdownItem 
-                  icon={<Edit2 size={15} />} 
-                  label="Edit" 
-                  onClick={(e) => { e.stopPropagation(); setDropdownOpen(false); onEdit(c); }} 
-                  C={C}
-                  /* Test hook for the per-row edit action. */
-                  dataTestId="edit-customer-btn"
-                />
-              )}
-              {canSoftDelete && (
-                <DropdownItem
-                  icon={<Trash2 size={15} />}
-                  label="Delete"
-                  onClick={(e) => { e.stopPropagation(); setDropdownOpen(false); onDelete(c); }}
-                  C={C}
-                  /* Test hook for the per-row delete action. */
-                  dataTestId="delete-customer-btn"
-                  danger
-                />
-              )}
-            </div>
-          )}
-        </div>
-      </DefaultTable.Td>
+            {dropdownOpen && (
+              <div style={{
+                position: 'absolute', right: 0, top: '100%', zIndex: 10,
+                minWidth: '140px', marginTop: '4px',
+                backgroundColor: isDark ? C.surfaceContainerHigh : '#ffffff',
+                border: `1px solid ${C.outlineVariant}33`,
+                borderRadius: '8px',
+                boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.5)' : '0 4px 14px rgba(0,0,0,0.08)',
+                padding: '4px', display: 'flex', flexDirection: 'column', gap: '2px',
+                textAlign: 'left'
+              }}>
+                {canEdit && (
+                  <DropdownItem 
+                    icon={<Edit2 size={15} />} 
+                    label="Edit" 
+                    onClick={(e) => { e.stopPropagation(); setDropdownOpen(false); onEdit(c); }} 
+                    C={C}
+                    /* Test hook for the per-row edit action. */
+                    dataTestId="edit-customer-btn"
+                  />
+                )}
+                {canSoftDelete && (
+                  <DropdownItem
+                    icon={<Trash2 size={15} />}
+                    label="Delete"
+                    onClick={(e) => { e.stopPropagation(); setDropdownOpen(false); onDelete(c); }}
+                    C={C}
+                    /* Test hook for the per-row delete action. */
+                    dataTestId="delete-customer-btn"
+                    danger
+                  />
+                )}
+              </div>
+            )}
+          </div>
+        </DefaultTable.Td>
+      )}
     </DefaultTable.Tr>
     </React.Fragment>
   );
