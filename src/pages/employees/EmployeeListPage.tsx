@@ -131,11 +131,11 @@ export const EmployeeListPage: React.FC = () => {
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const { data, error: svcError } = await getEmployees();
+    const { data, error: svcError } = await getEmployees(permissions);
     setEmployees(svcError ? [] : (data ?? []));
     setError(svcError);
     setLoading(false);
-  }, []);
+  }, [permissions]);
 
   useEffect(() => { void load(); }, [load]);
 

@@ -288,7 +288,7 @@ export const CustomerListPage: React.FC = () => {
             <DefaultTable.Th style={{ width: '8%' }}>Status</DefaultTable.Th>
             {/* Test hook for stamp column visibility checks. */}
             {canViewStamp && <DefaultTable.Th data-testid="stamp-column" style={{ width: '28%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Stamp</DefaultTable.Th>}
-            <DefaultTable.Th style={{ textAlign: 'center', width: '8%' }}>Actions</DefaultTable.Th>
+            {(canEdit || canSoftDelete) && <DefaultTable.Th style={{ textAlign: 'center', width: '8%' }}>Actions</DefaultTable.Th>}
           </tr>
         </thead>
         <tbody>

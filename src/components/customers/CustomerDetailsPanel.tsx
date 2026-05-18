@@ -9,6 +9,7 @@ import { type Customer } from '../../types/customer';
 import { type DashboardTokens } from '../../providers/ThemeProvider';
 import { getSales, type SaleTransaction } from '../../services/salesService';
 import { getProductPriceHistory } from '../../services/productService';
+import { useRights } from '../../hooks/useRights';
 
 interface CustomerDetailsPanelProps {
   customer: Customer;
@@ -23,6 +24,7 @@ export const CustomerDetailsPanel: React.FC<CustomerDetailsPanelProps> = ({ cust
   const [activePriceProduct, setActivePriceProduct] = useState<{ code: string, desc: string } | null>(null);
   const [priceHistoryData, setPriceHistoryData] = useState<{effdate: string; unitprice: number}[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const { canViewSalesDetail } = useRights();
 
   useEffect(() => {
     let mounted = true;
@@ -158,6 +160,10 @@ export const CustomerDetailsPanel: React.FC<CustomerDetailsPanelProps> = ({ cust
 
         {loading ? (
           <div style={{ fontSize: '14px', color: C.onSurfaceVariant, textAlign: 'center', padding: '40px' }}>Loading transactions...</div>
+        ) : !canViewSalesDetail ? (
+          <div style={{ fontSize: '14px', color: C.onSurfaceVariant, textAlign: 'center', padding: '40px', backgroundColor: isDark ? `${C.surfaceContainerHigh}44` : '#f8f8fb', borderRadius: '12px' }}>
+            You do not have permission to view transaction details.
+          </div>
         ) : sales.length === 0 ? (
           <div style={{ fontSize: '14px', color: C.onSurfaceVariant, textAlign: 'center', padding: '40px', backgroundColor: isDark ? `${C.surfaceContainerHigh}44` : '#f8f8fb', borderRadius: '12px' }}>
             No sales history found for this customer.

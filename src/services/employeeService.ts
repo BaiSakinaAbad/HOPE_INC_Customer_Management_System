@@ -106,9 +106,7 @@ export async function updateEmployeeRole(
   }
 
   const normalizedActorRole = actorRole.toLowerCase();
-  if (normalizedActorRole !== 'superadmin') {
-    return { error: 'Only superadmin can change employee roles.' };
-  }
+
   if (targetCurrentRole === 'superadmin') {
     return { error: 'Superadmin role cannot be changed.' };
   }
