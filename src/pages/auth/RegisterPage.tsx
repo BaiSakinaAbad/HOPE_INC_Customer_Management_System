@@ -12,8 +12,10 @@ interface RegisterPageProps {
   onSwitch: () => void;
 }
 
+// Discriminator type used to toggle between legal document contexts
 type PolicyType = 'terms' | 'privacy';
 
+// Static legal content dictionary mapped by document type identifier
 const policyContent: Record<PolicyType, { title: string; intro: string; items: string[] }> = {
   terms: {
     title: 'Terms of Service',
@@ -38,10 +40,11 @@ const policyContent: Record<PolicyType, { title: string; intro: string; items: s
 const RegisterPage: React.FC<RegisterPageProps> = ({ 
   onSwitch
 }) => {
+  // Theme context retrieval to determine color design token applications
   const { isDark } = useTheme();
   const t = isDark ? tokens.dark : tokens.light;
   
-  // Form State
+  // Controlled form inputs tracking registration credentials
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [username, setUsername] = useState('');
@@ -49,25 +52,28 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
   const [password, setPassword] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   
-  // UI State
+  // App UI/UX state workflow tracking flags
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [activePolicy, setActivePolicy] = useState<PolicyType | null>(null);
 
+  // Higher-order click handler function to safely intercept link events and pop open legal overlays
   const openPolicy = (policy: PolicyType) => (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
     setActivePolicy(policy);
   };
 
+  // Form submission coordinator orchestrating validations and remote data insertion
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!agreedToTerms) return;
+    if (!agreedToTerms) return; // Prevent submission if legal checkbox isn't checked
     
     setIsLoading(true);
     setError(null);
     setSuccessMsg(null);
 
+    // Call Supabase Authentication API to register a new user
     const { data, error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -80,11 +86,13 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
       }
     });
 
+    // Handle authentication responses and handle duplicate profile conditions
     if (authError) {
       setError(authError.message);
     } else if (data.user && data.user.identities && data.user.identities.length === 0) {
       setError('An account with this email already exists.');
     } else {
+      // Clear forms and signal submission completion to UI state trackers
       setSuccessMsg('Registration successful! Please check your email to verify your account.');
       setFirstName('');
       setLastName('');
@@ -101,6 +109,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
     <AuthLayout compact title="" subtitle="">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
 
+        {/* Third-party authentication route */}
         <GoogleButton 
           compact 
           variant="luminous"
@@ -110,12 +119,14 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
 
         <Divider variant="luminous" label="or register with email" />
 
-        {/* --- Error / Success Messages --- */}
+        {/* Dynamic warning banner rendering state-driven input validation faults */}
         {error && (
           <div style={{ padding: '8px', borderRadius: '6px', backgroundColor: `${t.error}15`, border: `1px solid ${t.error}30`, color: t.error, fontSize: '12px', textAlign: 'center', fontFamily: "'Inter', sans-serif" }}>
             {error}
           </div>
         )}
+        
+        {/* Success confirmation banners signaling email notification dispatches */}
         {successMsg && (
           <div style={{ padding: '8px', borderRadius: '6px', backgroundColor: `${t.tertiary}15`, border: `1px solid ${t.tertiary}30`, color: t.tertiaryDim, fontSize: '12px', textAlign: 'center', fontFamily: "'Inter', sans-serif" }}>
             {successMsg}
@@ -124,6 +135,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
 
+          {/* User profile details grid row container */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
             <Input 
               compact 
@@ -174,6 +186,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
             required 
           />
 
+          {/* Core password field equipped with reactive entropy scoring bars */}
           <div>
             <Input
               compact
@@ -190,6 +203,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
             <PasswordStrength password={password} variant="luminous" />
           </div>
 
+          {/* Required checkbox component capturing mandatory compliance acknowledgment */}
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', margin: '4px 0' }}>
             <input
               type="checkbox"
@@ -219,6 +233,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
           </Button>
         </form>
 
+        {/* View switching panel navigation to route active users back towards SignIn cards */}
         <p style={{
           textAlign: 'center', margin: '8px 0 0 0',
           fontFamily: "'Inter', sans-serif",
@@ -243,6 +258,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
         </p>
       </div>
 
+      {/* DOM Portal Injection: Renders modals outside the parent styling tree to avoid CSS clipping bugs */}
       {activePolicy && createPortal(
         <div
           className="policy-modal-backdrop"
@@ -268,7 +284,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
           >
             <header className="policy-modal-header">
               <div>
-                {/* Updated this line to show dynamic document title */}
+                {/* Evaluates state to apply appropriate header subtitle context text strings */}
                 <p style={{ color: isDark ? 'rgba(208, 201, 235, 0.68)' : t.onSurfaceVariant }}>
                   BiteLog {activePolicy === 'privacy' ? 'Privacy Policy' : 'Terms of Service'}
                 </p>
@@ -284,10 +300,12 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
               </button>
             </header>
 
+            {/* Dynamic legal paragraph rendering */}
             <p className="policy-modal-intro" style={{ color: isDark ? 'rgba(224, 218, 246, 0.76)' : t.onSurfaceVariant }}>
               {policyContent[activePolicy].intro}
             </p>
 
+            {/* Maps array item collections out onto structural bullet lists dynamically */}
             <ul className="policy-modal-list">
               {policyContent[activePolicy].items.map((item) => (
                 <li key={item} style={{ color: isDark ? 'rgba(238, 232, 255, 0.86)' : t.onSurface }}>
@@ -305,7 +323,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
             </button>
           </section>
         </div>,
-        document.body
+        document.body // Injects layout child branch append node into root runtime container window target
       )}
     </AuthLayout>
   );
