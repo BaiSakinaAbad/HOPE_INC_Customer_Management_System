@@ -6,7 +6,7 @@ import {
   RefreshCw, BarChart3, Crown, Package, AlertCircle, Search
 } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';
-import { getSales, type SaleTransaction } from '../../services/salesService';
+import { getSales, getGrandTotalRevenue, type SaleTransaction } from '../../services/salesService';
 import { getCustomers, getCustomerCounts } from '../../services/customerService';
 import { getEmployees } from '../../services/employeeService';
 import { useAuth } from '../../providers/AuthProvider';
@@ -67,6 +67,8 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
   const [totalCustomers, setTotalCustomers] = useState(0);
   const [activeCustomers, setActiveCustomers] = useState(0);
   const [inactiveCustomers, setInactiveCustomers] = useState(0);
+  // Authoritative total revenue fetched from the customer_sales_summary DB view
+  const [viewTotalRevenue, setViewTotalRevenue] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -77,12 +79,21 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
     setLoading(true);
     setError(null);
     try {
-      const [salesRes, empRes, countsRes, custRes] = await Promise.all([
+      const [salesRes, empRes, countsRes, custRes, revenueRes] = await Promise.all([
         getSales(undefined, undefined, undefined, 1, 9999),
         getEmployees(),
         role === 'superadmin' ? getCustomerCounts('superadmin') : Promise.resolve({ active: 0, inactive: 0, total: 0 }),
         role === 'superadmin' ? getCustomers('superadmin') : Promise.resolve({ data: null, error: null }),
+        // Fetch grand total directly from the customer_sales_summary view (authoritative)
+        getGrandTotalRevenue(),
       ]);
+
+      // Use the DB view value for the displayed total — avoids drift from local price recalculation
+      // Falls back to 0 if the view doesn't exist yet in Supabase
+      if (revenueRes.error) {
+        console.warn('[DashboardReports] getGrandTotalRevenue error:', revenueRes.error);
+      }
+      setViewTotalRevenue(revenueRes.data ?? 0);
 
       if (salesRes.error) throw new Error(salesRes.error);
       setSales(salesRes.data ?? []);
@@ -175,7 +186,8 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
     return [...productRevenue].sort((a, b) => b.totalQuantity - a.totalQuantity);
   }, [productRevenue]);
 
-  const totalRevenue = useMemo(() => filteredSales.reduce((s, t) => s + t.total, 0), [filteredSales]);
+  // Used for relative Share % bar calculations within the filtered view (local sum is correct here)
+  const filteredTotalRevenue = useMemo(() => filteredSales.reduce((s, t) => s + t.total, 0), [filteredSales]);
   const totalTransactions = filteredSales.length;
   const uniqueProducts = useMemo(() => {
     const codes = new Set<string>();
@@ -296,7 +308,8 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(180px, 1fr) minmax(180px, 1fr) minmax(400px, 3fr)', gridTemplateRows: 'auto auto', gap: '16px', marginBottom: '28px' }}>
             {/* Col 1, Row 1: Total Revenue */}
             <div style={{ gridColumn: '1', gridRow: '1' }}>
-              <StatCard icon={<DollarSign size={22} style={{ color: '#22c55e' }} />} label="Total Revenue" value={fmt(totalRevenue)} accent="#22c55e" isDark={isDark} C={C} />
+              {/* viewTotalRevenue comes from customer_sales_summary view — matches DB exactly */}
+              <StatCard icon={<DollarSign size={22} style={{ color: '#22c55e' }} />} label="Total Revenue" value={fmt(viewTotalRevenue)} accent="#22c55e" isDark={isDark} C={C} />
             </div>
             {/* Col 1, Row 2: Registered Customers (or fallback) */}
             <div style={{ gridColumn: '1', gridRow: '2' }}>
@@ -417,8 +430,8 @@ export const DashboardReports: React.FC<DashboardReportsProps> = ({ firstName })
                         <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#22c55e' }}>{fmt(c.totalRevenue)}</td>
                         <td style={{ ...tdStyle, paddingRight: '24px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <BarVisual value={c.totalRevenue} max={totalRevenue} color={C.primary} />
-                            <span style={{ fontSize: '11px', fontWeight: 600, color: C.onSurfaceVariant, minWidth: '40px', textAlign: 'right' }}>{totalRevenue > 0 ? `${((c.totalRevenue / totalRevenue) * 100).toFixed(1)}%` : '0%'}</span>
+                            <BarVisual value={c.totalRevenue} max={filteredTotalRevenue} color={C.primary} />
+                            <span style={{ fontSize: '11px', fontWeight: 600, color: C.onSurfaceVariant, minWidth: '40px', textAlign: 'right' }}>{filteredTotalRevenue > 0 ? `${((c.totalRevenue / filteredTotalRevenue) * 100).toFixed(1)}%` : '0%'}</span>
                           </div>
                         </td>
                       </tr>

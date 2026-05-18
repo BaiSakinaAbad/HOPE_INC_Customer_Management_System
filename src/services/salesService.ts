@@ -152,3 +152,30 @@ export async function getSales(
 
   return { data: transformed, error: null, count: count ?? 0 };
 }
+
+/**
+ * Fetch the global grand total revenue across all customers.
+ * Reads directly from the `customer_sales_summary` view:
+ *   SELECT SUM(total_spend) AS global_grand_total_revenue FROM customer_sales_summary;
+ * This is the authoritative source — avoids local price-history recalculation drift.
+ */
+export async function getGrandTotalRevenue(
+  permissions?: Record<string, boolean>,
+): Promise<{ data: number | null; error: string | null }> {
+  if (permissions && !hasPermission(permissions, 'SALES_VIEW')) {
+    return { data: null, error: 'Permission denied.' };
+  }
+
+  const { data, error } = await supabase
+    .from('customer_sales_summary')
+    .select('total_spend');
+
+  if (error) return { data: null, error: error.message };
+
+  const grandTotal = (data ?? []).reduce(
+    (sum: number, row: { total_spend: number }) => sum + (Number(row.total_spend) || 0),
+    0,
+  );
+
+  return { data: grandTotal, error: null };
+}
