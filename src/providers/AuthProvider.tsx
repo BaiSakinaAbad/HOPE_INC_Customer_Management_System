@@ -259,6 +259,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [user, session, loadPermissions]);
 
+  /**
+   * Realtime subscription: detect individual permission changes made by an admin.
+   * When any row in user_permission for the current user changes, immediately
+   * reload the full permission map so the UI reflects the new grants without
+   * requiring the user to log out and back in.
+   *
+   * This is the fix for: "user with CUST_DEL=true can't soft-delete customers"
+   * — the root cause was that the DB row was updated correctly, but the in-memory
+   * `permissions` object was never refreshed in the target user's session.
+   */
+  useEffect(() => {
+    const currentUser = user ?? session?.user;
+    if (!currentUser) return;
+
+    const permChannel = supabase
+      .channel(`user_permission_${currentUser.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'user_permission',
+          filter: `user_id=eq.${currentUser.id}`,
+        },
+        async () => {
+          if (!isMounted.current) return;
+          console.log('[AuthProvider] Realtime permission change detected — reloading permissions.');
+          await loadPermissions(currentUser.id, role);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(permChannel);
+    };
+  }, [user, session, role, loadPermissions]);
+
   const signOut = async () => {
     window.sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
     // Clear navigation state so next login starts fresh (dashboard for superadmin, customers for others)

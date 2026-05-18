@@ -226,26 +226,6 @@ export const CustomerListPage: React.FC = () => {
         <div style={{ flex: 1, minWidth: '250px' }}>
           <SearchBar onSearch={setDebouncedSearch} placeholder="Search by name, address, code, pay term…" />
         </div>
-        {canViewStamp && (
-          <select 
-            value={statusFilter} 
-            onChange={(e) => setStatusFilter(e.target.value as any)}
-            style={{ 
-              padding: '9px 12px', 
-              borderRadius: '8px', 
-              border: `1px solid ${C.outlineVariant}55`, 
-              backgroundColor: isDark ? C.surfaceContainer : '#fff',
-              color: C.onSurface,
-              fontSize: '13px',
-              fontWeight: 500,
-              outline: 'none'
-            }}
-          >
-            <option value="ALL">All Statuses</option>
-            <option value="ACTIVE">Active Only</option>
-            <option value="INACTIVE">Inactive Only</option>
-          </select>
-        )}
         {(debouncedSearch.trim() || statusFilter !== 'ALL') && !loading && (
           <span style={{ fontSize: '12px', color: C.onSurfaceVariant, padding: '5px 10px', borderRadius: '7px', backgroundColor: isDark ? `${C.surfaceContainerHigh}88` : `${C.outlineVariant}22` }}>
             {filtered.length} shown

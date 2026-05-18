@@ -1,3 +1,6 @@
+// src/pages/products/ProductCataloguePage.tsx
+// Primary product catalogue view for browsing and viewing product details. 
+// Features server-side pagination, search, and an integrated price history modal.
 import React, { useCallback, useEffect, useState } from 'react';
 import { Package, History, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';

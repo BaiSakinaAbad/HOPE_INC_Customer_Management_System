@@ -1,5 +1,7 @@
-// DeletedCustomersPage — Displays soft-deleted (inactive) customers. Allows
-// superadmin and admin roles to review and restore previously removed records.
+// src/pages/customers/DeletedCustomersPage.tsx
+// Displays soft-deleted (INACTIVE) customers. Access is gated behind CUST_VIEW_INACTIVE;
+// users without that permission see an Access Denied screen. Admins and SuperAdmins
+// with CUST_RECOVER can restore records back to their previous ACTIVE/INACTIVE state.
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { RefreshCw, AlertTriangle, Inbox, ShieldOff, ChevronUp, ChevronDown, CheckCircle2 } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';

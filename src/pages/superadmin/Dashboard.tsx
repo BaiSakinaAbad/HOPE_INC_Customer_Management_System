@@ -1,3 +1,6 @@
+// src/pages/superadmin/Dashboard.tsx
+// Root dashboard for superadmins and admins, hosting the main application navigation,
+// role-gated page routing, and a welcome screen with personalized greeting.
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { NavigationProvider, useNavigation } from '../../providers/NavigationProvider';

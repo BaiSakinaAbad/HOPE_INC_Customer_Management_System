@@ -1,3 +1,7 @@
+// src/components/auth/GoogleButton.tsx
+// Reusable Google OAuth sign-in button that triggers Supabase's signInWithOAuth flow.
+// Accepts a label, an optional compact size, a variant ('default' | 'luminous' for styled
+// login pages), and an onAuthStart callback fired before the redirect begins.
 import React, { useState } from 'react';
 import { useTheme, tokens } from '../../providers/ThemeProvider';
 import { supabase } from '../../lib/supabase';
