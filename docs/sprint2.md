@@ -1,6 +1,6 @@
 
 # SPRINT 2: RETROSPECTIVE
-**Date:** April 27, 2026  
+**Date:** April 30, 2026  
 **Project:** Customer Managment System (HOPECMS) <br>
 **Sprint Cycle:** Sprint 2 (Week 2 Wrap-up) <br>
 **Prepared by:** @BaiSakinaAbad 
@@ -21,7 +21,7 @@
 ---
 
 # SPRINT 3: PLANNING
-**Date:** April 28, 2026 – May 12, 2026  
+**Date:** May 1, 2026 – May 11, 2026  
 **Sprint Goal:** Finalize Analytics, Role Security, and User Documentation.
 
 ## Sprint Backlog
@@ -43,5 +43,6 @@
 2. UI matches the Stitch design 1:1 (M2).
 3. All RLS policies are functional and verified (M3/M4).
 4. Documentation is ready for end-user review (M5).
+5. Succesfully deployed to vercel.
 
 ---
