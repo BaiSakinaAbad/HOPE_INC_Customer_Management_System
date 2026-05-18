@@ -1,5 +1,7 @@
-// LoadingSpinnerPage — Full-screen loading state shown during authentication.
-// Displays an animated spinner and progress bar while credentials are verified.
+// src/pages/auth/LoadingSpinnerPage.tsx
+// Full-screen loading state displayed while the auth session is being resolved on startup.
+// Shows an animated spinner, lock icon, and a pulsing progress bar until credentials are
+// verified and the app redirects the user to their appropriate landing page.
 import React from 'react';
 import { Key, ShieldCheck } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';

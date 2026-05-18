@@ -1,3 +1,8 @@
+// src/components/audits/LogDetailsModal.tsx
+// Full-screen overlay modal that renders the complete details of a single audit log entry.
+// Handles three data states: INSERT/DELETE (one-sided data), UPDATE with a diff (old vs new),
+// and UPDATE where old/new are identical (pre-fix trigger quirk — infers grant/revoke from
+// the is_granted flag for user_permission rows, or shows a raw snapshot for other tables).
 import React from 'react';
 import { X } from 'lucide-react';
 import { useTheme, getDashboardTokens } from '../../providers/ThemeProvider';

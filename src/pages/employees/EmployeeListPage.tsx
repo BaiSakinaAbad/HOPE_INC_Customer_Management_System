@@ -435,10 +435,19 @@ export const EmployeeListPage: React.FC = () => {
                 </div>
               ) : (
                 (groupedPermissions.find(g => g.module === activePermTab)?.perms ?? []).map((perm) => {
-                  // Admin-category permissions (ADM_*) are only editable by superadmins
+                  // Admin-category permissions (ADM_*) are only editable by superadmins.
+                  // ADM_ROLE and ADM_DEACTIVATE are additionally locked when the target is a
+                  // USER-role account — regular users should not be granted role-change or
+                  // deactivation abilities.
                   const isAdminPerm = perm.permission_id.startsWith('ADM_');
                   const actorRole = (role ?? '').toLowerCase();
-                  const canToggleThis = canEditTargetPermissions && (!isAdminPerm || actorRole === 'superadmin');
+                  const isLockedForUser =
+                    ['ADM_ROLE', 'ADM_DEACTIVATE'].includes(perm.permission_id) &&
+                    viewingPermissionsFor?.role === 'user';
+                  const canToggleThis =
+                    canEditTargetPermissions &&
+                    (!isAdminPerm || actorRole === 'superadmin') &&
+                    !isLockedForUser;
 
                   return (
                   <div key={perm.permission_id} style={{
